@@ -1,70 +1,50 @@
 "use client"
 
-import { useCallback, useState, useRef, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useCallback, useState, useRef } from "react"
 import { Eye, Download, Loader2, X, ZoomIn, ZoomOut } from "lucide-react"
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { generateHtmlPdf, generateHtmlContent, inlineImages, type HtmlPdfProgressCallback, type ReportDataForPptx } from "@/lib/html-pdf-service"
-import type { PptxProgressUpdate } from "@/lib/pptx-service"
-
-const initialProgress: PptxProgressUpdate = {
-  percent: 0,
-  stageLabel: "",
-  detail: "",
-  etaSeconds: null,
-}
+import { generateHtmlPdf, generateHtmlContent, type HtmlPdfProgressCallback, type ReportDataForPptx } from "@/lib/html-pdf-service"
 
 export function useHtmlPdfWithPreview() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [downloading, setDownloading] = useState(false)
-  const [progress, setProgress] = useState<PptxProgressUpdate>(initialProgress)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const currentDataRef = useRef<ReportDataForPptx | null>(null)
 
-  const openPreview = useCallback(async (data: ReportDataForPptx) => {
-    currentDataRef.current = data
-    setLoadingPreview(true)
-    setPreviewOpen(true)
-    setProgress(initialProgress)
-
+  const openPreview = useCallback((data: ReportDataForPptx) => {
     try {
-      let html = generateHtmlContent(data)
-      html = await inlineImages(html)
+      currentDataRef.current = data
+      const html = generateHtmlContent(data)
       setPreviewHtml(html)
+      setPreviewOpen(true)
+      setErrorMsg(null)
+      setLoadingPreview(false)
     } catch (e) {
       console.error("Preview generation error:", e)
-      setPreviewHtml(null)
-    } finally {
-      setLoadingPreview(false)
+      setErrorMsg(e instanceof Error ? e.message : "حدث خطأ أثناء إنشاء المعاينة")
     }
   }, [])
 
   const handleDownload = useCallback(async () => {
     if (!currentDataRef.current) return
     setDownloading(true)
-    setProgress(initialProgress)
+    setErrorMsg(null)
 
-    const cb: HtmlPdfProgressCallback = (update) => {
-      setProgress({
-        percent: update.percent,
-        stageLabel: update.stageLabel,
-        detail: update.detail,
-        etaSeconds: update.etaSeconds,
-      })
-    }
+    const cb: HtmlPdfProgressCallback = () => {}
 
     try {
       await generateHtmlPdf(currentDataRef.current, cb)
     } catch (e) {
       console.error("Download error:", e)
+      setErrorMsg(e instanceof Error ? e.message : "حدث خطأ أثناء التنزيل")
     } finally {
       setDownloading(false)
-      setProgress(initialProgress)
     }
   }, [])
 
@@ -72,7 +52,7 @@ export function useHtmlPdfWithPreview() {
     setPreviewOpen(false)
     setPreviewHtml(null)
     currentDataRef.current = null
-    setProgress(initialProgress)
+    setErrorMsg(null)
   }, [])
 
   const previewDialog = (
@@ -93,14 +73,12 @@ export function useHtmlPdfWithPreview() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {downloading && (
-              <span className="text-xs text-gray-500 ml-3">
-                {progress.stageLabel} — {Math.round(progress.percent)}%
-              </span>
+            {errorMsg && (
+              <span className="text-xs text-red-500 ml-3">{errorMsg}</span>
             )}
             <Button
               onClick={handleDownload}
-              disabled={downloading || loadingPreview}
+              disabled={downloading}
               size="sm"
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
@@ -129,15 +107,8 @@ export function useHtmlPdfWithPreview() {
         </div>
 
         {/* Preview Area */}
-        <div className="bg-gray-100 overflow-auto" style={{ height: "calc(95vh - 56px)" }}>
-          {loadingPreview ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">جاري تحميل المعاينة...</p>
-              </div>
-            </div>
-          ) : previewHtml ? (
+        <div className="bg-gray-200 overflow-auto" style={{ height: "calc(95vh - 56px)" }}>
+          {previewHtml ? (
             <div className="flex justify-center p-4">
               <PreviewFrame html={previewHtml} />
             </div>
@@ -155,62 +126,49 @@ export function useHtmlPdfWithPreview() {
 }
 
 function PreviewFrame({ html }: { html: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [scale, setScale] = useState(0.45)
+  const [scale, setScale] = useState(0.5)
 
-  useEffect(() => {
-    if (iframeRef.current) {
-      const doc = iframeRef.current.contentDocument
-      if (doc) {
-        doc.open()
-        doc.write(html)
-        doc.close()
-      }
-    }
-  }, [html])
-
-  // A3 long proportions: 297mm x 420mm
-  const pageW = 297 * 1.33 // px at 1.33px/mm
-  const pageH = 420 * 1.33
+  // A3 long proportions: 297mm x 420mm (at ~3.78px/mm for 96dpi)
+  const pageW = 395  // ~297mm at 96dpi
+  const pageH = 558  // ~420mm at 96dpi (keep aspect)
 
   return (
-    <div className="relative">
+    <div className="relative inline-block">
       {/* Zoom Controls */}
-      <div className="absolute -top-10 left-0 flex items-center gap-1 z-10">
+      <div className="flex items-center gap-1 mb-2">
         <button
-          onClick={() => setScale((s) => Math.max(0.2, s - 0.05))}
-          className="p-1 rounded bg-white border shadow-sm hover:bg-gray-50"
+          onClick={() => setScale((s) => Math.max(0.2, +(s - 0.1).toFixed(2)))}
+          className="p-1.5 rounded bg-white border shadow-sm hover:bg-gray-50"
           title="تصغير"
         >
           <ZoomOut className="h-4 w-4 text-gray-600" />
         </button>
-        <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded border shadow-sm min-w-[50px] text-center">
+        <span className="text-xs text-gray-600 bg-white px-3 py-1 rounded border shadow-sm min-w-[50px] text-center font-medium">
           {Math.round(scale * 100)}%
         </span>
         <button
-          onClick={() => setScale((s) => Math.min(1.5, s + 0.05))}
-          className="p-1 rounded bg-white border shadow-sm hover:bg-gray-50"
+          onClick={() => setScale((s) => Math.min(1.5, +(s + 0.1).toFixed(2)))}
+          className="p-1.5 rounded bg-white border shadow-sm hover:bg-gray-50"
           title="تكبير"
         >
           <ZoomIn className="h-4 w-4 text-gray-600" />
         </button>
       </div>
 
-      {/* Scaled iframe container */}
+      {/* Scaled page */}
       <div
         style={{
           transform: `scale(${scale})`,
           transformOrigin: "top center",
           width: `${pageW}px`,
           height: `${pageH}px`,
-          marginBottom: `${(pageH * (scale - 1))}px`,
+          marginBottom: `${pageH * (scale - 1)}px`,
         }}
       >
         <iframe
-          ref={iframeRef}
+          srcDoc={html}
           className="border shadow-lg bg-white"
-          style={{ width: `${pageW}px`, height: `${pageH}px`, pointerEvents: downloading ? "none" : "auto" }}
-          sandbox="allow-same-origin"
+          style={{ width: `${pageW}px`, height: `${pageH}px` }}
           title="PDF Preview"
         />
       </div>
