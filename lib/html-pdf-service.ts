@@ -68,7 +68,7 @@ function generateHtmlContent(data: ReportDataForPptx): string {
   const leaveDurationAr = `<span style="font-family:'Times New Roman',Times,serif;font-weight:400;">(${entryH} </span><span style="font-family:'Noto Sans Arabic',sans-serif;font-weight:400;">الى</span><span style="font-family:'Times New Roman',Times,serif;font-weight:400;"> ${exitH})</span> <span style="font-family:'Noto Sans Arabic',sans-serif;font-weight:400;">يوم</span> <span style="font-family:'Times New Roman',Times,serif;font-weight:400;">${data.DAYS_COUNT}</span>`
 
   return `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -82,14 +82,14 @@ function generateHtmlContent(data: ReportDataForPptx): string {
 <body>
   <div style="position:relative;width:297mm;height:420mm;overflow:hidden;background:#FFFFFF;font-family:'Times New Roman',Times,serif;color:#000000;">
 
-    <!-- HEADER: Logos -->
+    <!-- HEADER: Logos (positions from PDF: Seha left=12.7, Calligraphy left=101.8, MOH left=191.7) -->
     <img src="/images/seha-logo.png" alt="Seha" style="position:absolute;top:12.7mm;left:12.7mm;width:52.9mm;height:23.4mm;object-fit:contain;">
     <img src="/images/calligraphy.png" alt="Kingdom" style="position:absolute;top:12.7mm;left:101.8mm;width:92.6mm;height:44mm;object-fit:contain;">
-    <img src="/images/moh-logo.png" alt="MOH" style="position:absolute;top:12.7mm;right:12.7mm;width:92.6mm;height:37.7mm;object-fit:contain;">
+    <img src="/images/moh-logo.png" alt="MOH" style="position:absolute;top:12.7mm;left:191.7mm;width:92.6mm;height:37.7mm;object-fit:contain;">
 
-    <!-- HEADER: Title Text (centered) -->
-    <div style="position:absolute;top:38mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:17.2pt;font-weight:400;color:#000000;line-height:1.3;direction:ltr;">Kingdom of Saudi Arabia</div>
-    <div style="position:absolute;top:55.3mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;line-height:1.3;letter-spacing:3px;">تقرير إجازة مرضية</div>
+    <!-- HEADER: Title Text (centered on 297mm page = center at 148.5mm) -->
+    <!-- NOTE: "Kingdom of Saudi Arabia" is already inside calligraphy.png image, no separate text needed -->
+    <div style="position:absolute;top:55.3mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;line-height:1.3;direction:rtl;">تقرير إجازة مرضية</div>
     <div style="position:absolute;top:70.8mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;line-height:1.3;direction:ltr;">Sick Leave Report</div>
 
     <!-- TABLE: left=12.7mm, width=271.5mm, top=85.0mm -->
