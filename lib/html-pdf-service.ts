@@ -87,10 +87,11 @@ function generateHtmlContent(data: ReportDataForPptx): string {
     <img src="/images/calligraphy.png" alt="Kingdom" style="position:absolute;top:12.7mm;left:101.8mm;width:92.6mm;height:44mm;object-fit:contain;">
     <img src="/images/moh-logo.png" alt="MOH" style="position:absolute;top:12.7mm;left:191.7mm;width:92.6mm;height:37.7mm;object-fit:contain;">
 
-    <!-- HEADER: Title Text (centered on 297mm page = center at 148.5mm) -->
+    <!-- HEADER: Title Text -->
+    <!-- PDF measurements: Arabic title top=55.29mm, English title top=70.80mm, both perfectly centered at 148.52mm -->
     <!-- NOTE: "Kingdom of Saudi Arabia" is already inside calligraphy.png image, no separate text needed -->
-    <div style="position:absolute;top:55.3mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;line-height:1.3;direction:rtl;">تقرير إجازة مرضية</div>
-    <div style="position:absolute;top:70.8mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;line-height:1.3;direction:ltr;">Sick Leave Report</div>
+    <div style="position:absolute;top:55.29mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
+    <div style="position:absolute;top:70.80mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
     <!-- TABLE: left=12.7mm, width=271.5mm, top=85.0mm -->
     <!-- Columns: 57.3mm | 84.1mm | 84.1mm | 45.9mm -->
