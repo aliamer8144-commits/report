@@ -48,7 +48,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
  *   Row 10 (Position):   white
  */
 
-const cellBase = `height:14.8mm;padding:0 3mm;vertical-align:middle;border:0.5mm solid #E0E0E0;font-size:13.5pt;line-height:1.2;`
+const cellBase = `height:14.8mm;padding:2.5mm 3mm;vertical-align:middle;border:0.5mm solid #E0E0E0;font-size:13.5pt;line-height:1.4;`
 
 const labelEn = (bg: string) =>
   `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:center;`
