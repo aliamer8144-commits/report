@@ -19,7 +19,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
 
 /* ===== Measurements from PPTX template (exact match) =====
  * Page: 297mm x 420mm (A3 long)
- * Table: left=12.84mm, top=83.45mm, width=271.15mm
+ * Table: left=12.84mm, top=86mm, width=271.15mm
  *   Col 0 (EN Label): 57.23mm
  *   Col 1 (EN Value): 84.12mm
  *   Col 2 (AR Value): 83.77mm
@@ -35,6 +35,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
  *   English title: #2C3E77, 18.7pt, top=70.59mm
  */
 
+// ===== CSS Grid styles for HTML preview =====
 const gridCols = `display:grid;grid-template-columns:57.23mm 84.12mm 83.77mm 46.02mm;`
 
 const cellBase = (bg: string) =>
@@ -60,6 +61,7 @@ const valueEnBlue = `${cellBase('#2C3E77')}font-weight:400;color:#FFFFFF;font-fa
 const valueArBlue = `${cellBase('#2C3E77')}font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
 const labelArBlue = `${cellBase('#2C3E77')}font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
 
+// ===== HTML generation (kept for preview) =====
 export function generateHtmlContent(data: ReportDataForPptx): string {
   const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
   const exitG = format_date_dd_mm_yyyy(data.EXIT_DATE_GREGORIAN)
@@ -95,7 +97,7 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
     <div style="position:absolute;top:55.85mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
     <div style="position:absolute;top:70.59mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
-    <!-- TABLE: CSS Grid layout (html2canvas-compatible vertical centering) -->
+    <!-- TABLE: CSS Grid layout -->
     <!-- left=12.84mm, top=86mm, width=271.15mm -->
     <!-- Column widths: 57.23mm | 84.12mm | 83.77mm | 46.02mm -->
     <div style="position:absolute;top:86mm;left:12.84mm;width:271.15mm;border:0.5mm solid #E0E0E0;border-radius:3mm;overflow:hidden;direction:ltr;">
@@ -208,7 +210,7 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
 }
 
 /**
- * Convert images to base64 data URLs so html2pdf can render them.
+ * Convert images to base64 data URLs (kept for preview).
  */
 async function imageToBase64(src: string): Promise<string> {
   try {
@@ -226,7 +228,7 @@ async function imageToBase64(src: string): Promise<string> {
 }
 
 /**
- * Replace all image src attributes with base64 data URLs.
+ * Replace all image src attributes with base64 data URLs (kept for preview).
  */
 export async function inlineImages(html: string): Promise<string> {
   const imgRegex = /src="(\/images\/[^"]+)"/g
@@ -251,80 +253,372 @@ export async function inlineImages(html: string): Promise<string> {
   return result
 }
 
-/**
- * Generate and download a PDF from the HTML template.
- * Uses html2pdf.js (client-side) for browser-based PDF generation.
- */
+/* ===== Canvas + jsPDF PDF generation (no html2canvas) ===== */
+
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = src
+  })
+}
+
+function imageToDataURL(src: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const c = document.createElement('canvas')
+      c.width = img.naturalWidth
+      c.height = img.naturalHeight
+      const cx = c.getContext('2d')!
+      cx.drawImage(img, 0, 0)
+      resolve(c.toDataURL('image/png'))
+    }
+    img.onerror = () => resolve(null)
+    img.src = src
+  })
+}
+
+interface CellDef {
+  text: string
+  bold: boolean
+  color: string
+  isAr?: boolean
+}
+
+interface RowDef {
+  cells: CellDef[]
+  bg: string
+  merge?: { colIndex: number; span: number }
+}
+
 export async function generateHtmlPdf(
   data: ReportDataForPptx,
   onProgress?: HtmlPdfProgressCallback
 ): Promise<void> {
   const t0 = Date.now()
-
   const push = (update: { percent: number; stageLabel: string; detail: string; etaSeconds: number | null }) => {
     onProgress?.(update)
   }
 
-  push({ percent: 5, stageLabel: 'تجهيز القالب', detail: 'جاري إنشاء محتوى HTML...', etaSeconds: null })
+  push({ percent: 5, stageLabel: 'تجهيز القالب', detail: 'جاري إعداد البيانات...', etaSeconds: null })
 
-  let html = generateHtmlContent(data)
+  // Scale factor: 3x for high quality
+  const S = 3
+  const MM = S * 96 / 25.4   // 1mm = 11.3386 canvas px at 3x
+  const PT = S * 96 / 72     // 1pt = 4.0 canvas px at 3x
+  const PW = 297 * MM        // page width in canvas px
+  const PH = 420 * MM        // page height in canvas px
 
-  push({ percent: 15, stageLabel: 'تحميل الصور', detail: 'جاري تحميل صور القالب وتحويلها...', etaSeconds: null })
-  html = await inlineImages(html)
+  // Create canvas
+  const canvas = document.createElement('canvas')
+  canvas.width = PW
+  canvas.height = PH
+  const ctx = canvas.getContext('2d')!
 
-  push({ percent: 30, stageLabel: 'تحميل المحرك', detail: 'جاري تحميل محرك توليد PDF...', etaSeconds: null })
+  // White background
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, PW, PH)
 
-  const html2pdf = (await import('html2pdf.js')).default
+  push({ percent: 10, stageLabel: 'تحميل الخطوط', detail: 'جاري تحميل الخطوط...', etaSeconds: null })
 
-  push({ percent: 45, stageLabel: 'بناء PDF', detail: 'جاري تحويل HTML إلى PDF عالي الجودة...', etaSeconds: null })
-
-  const container = document.createElement('div')
-  container.innerHTML = html
-  container.style.position = 'absolute'
-  container.style.left = '-9999px'
-  container.style.top = '0'
-  document.body.appendChild(container)
-
-  await new Promise((resolve) => setTimeout(resolve, 800))
-
-  push({ percent: 60, stageLabel: 'توليد PDF', detail: 'جاري إنشاء ملف PDF النهائي...', etaSeconds: 2 })
-
+  // Preload fonts via Font Loading API
   try {
-    const filename = `sickLeaves_${data.NAME_EN || data.SERVICE_CODE || 'report'}.pdf`
-
-    const pageEl = container.querySelector('div[style*="width:297mm"]') as HTMLElement
-    if (!pageEl) throw new Error('Template element not found')
-
-    await html2pdf()
-      .from(pageEl)
-      .set({
-        margin: 0,
-        filename,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: {
-          scale: 3,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          letterRendering: true,
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: [297, 420],
-          orientation: 'portrait',
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      })
-      .save()
-
-    const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
-    push({
-      percent: 100,
-      stageLabel: 'تم بنجاح',
-      detail: `تم إنشاء وتنزيل ملف PDF بنجاح (${elapsed} ثانية)`,
-      etaSeconds: 0,
-    })
-  } finally {
-    document.body.removeChild(container)
+    await Promise.all([
+      document.fonts.load(`bold 22.5pt "Noto Sans Arabic"`),
+      document.fonts.load(`bold 18.7pt "Times New Roman"`),
+      document.fonts.load(`13.5pt "Noto Sans Arabic"`),
+      document.fonts.load(`13.5pt "Times New Roman"`),
+      document.fonts.load(`11.2pt "Noto Sans Arabic"`),
+      document.fonts.load(`11.2pt "Times New Roman"`),
+      document.fonts.load(`12.8pt "Noto Sans Arabic"`),
+      document.fonts.load(`12.8pt "Times New Roman"`),
+    ])
+  } catch {
+    // Fonts might already be loaded or partially available
   }
+
+  push({ percent: 20, stageLabel: 'تحميل الصور', detail: 'جاري تحميل صور القالب...', etaSeconds: null })
+
+  // Load images as data URLs (needed for canvas drawing)
+  const [sehaUrl, calligraphyUrl, mohUrl, qrUrl, sealUrl, nhicUrl] = await Promise.all([
+    imageToDataURL('/images/seha-logo.png'),
+    imageToDataURL('/images/calligraphy.png'),
+    imageToDataURL('/images/moh-logo.png'),
+    imageToDataURL('/images/qr-code.png'),
+    imageToDataURL('/images/seal.png'),
+    imageToDataURL('/images/nhic-logo.png'),
+  ])
+
+  push({ percent: 35, stageLabel: 'رسم الهيدر', detail: 'جاري رسم رأس التقرير...', etaSeconds: null })
+
+  // Helper: draw image from data URL at mm coordinates
+  const drawImg = async (url: string | null, xMm: number, yMm: number, wMm: number, hMm: number) => {
+    if (!url) return
+    const img = await loadImage(url.startsWith('data:') ? url : '')
+    if (img) ctx.drawImage(img, xMm * MM, yMm * MM, wMm * MM, hMm * MM)
+  }
+
+  // Draw logos
+  await drawImg(sehaUrl, 12.7, 12.7, 52.92, 23.36)
+  await drawImg(calligraphyUrl, 101.78, 12.7, 92.6, 44.02)
+  await drawImg(mohUrl, 191.73, 12.7, 92.6, 37.72)
+
+  // Draw Arabic title (centered horizontally, vertically at baseline)
+  ctx.font = `bold ${22.5 * PT}px "Noto Sans Arabic", sans-serif`
+  ctx.fillStyle = '#306DB5'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('تقرير إجازة مرضية', PW / 2, 55.85 * MM + 11.25 * PT)
+
+  // Draw English title
+  ctx.font = `bold ${18.7 * PT}px "Times New Roman", serif`
+  ctx.fillStyle = '#2C3E77'
+  ctx.fillText('Sick Leave Report', PW / 2, 70.59 * MM + 9.35 * PT)
+
+  push({ percent: 50, stageLabel: 'رسم الجدول', detail: 'جاري رسم جدول البيانات...', etaSeconds: null })
+
+  // ===== TABLE =====
+  const TBL_LEFT = 12.84
+  const TBL_TOP = 86
+  const COLS = [57.23, 84.12, 83.77, 46.02]
+  const ROW_H = 14.8
+  const BORDER = 0.5
+  const FONT_SIZE = 13.5
+
+  // Format dates
+  const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
+  const exitG = format_date_dd_mm_yyyy(data.EXIT_DATE_GREGORIAN)
+  const entryH = format_date_dd_mm_yyyy(data.ENTRY_DATE_HIJRI)
+  const exitH = format_date_dd_mm_yyyy(data.EXIT_DATE_HIJRI)
+  const issueG = format_date_dd_mm_yyyy(data.REPORT_ISSUE_DATE)
+  const printG = format_date_dd_mm_yyyy(data.PRINT_DATE)
+
+  const leaveDurationEn = `${data.DAYS_COUNT} day ( ${entryG} to ${exitG} )`
+  const leaveDurationAr = `${data.DAYS_COUNT} يوم (${entryH} الى ${exitH})`
+
+  // Table rows
+  const rows: RowDef[] = [
+    {
+      cells: [
+        { text: 'Leave ID', bold: true, color: '#366FB5' },
+        { text: data.SERVICE_CODE || '', bold: false, color: '#2C3E77' },
+        { text: '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'رمز الإجازة', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+      merge: { colIndex: 1, span: 2 },
+    },
+    {
+      cells: [
+        { text: 'Leave Duration', bold: true, color: '#FFFFFF' },
+        { text: leaveDurationEn, bold: false, color: '#FFFFFF' },
+        { text: leaveDurationAr, bold: false, color: '#FFFFFF', isAr: true },
+        { text: 'مدة الإجازة', bold: true, color: '#FFFFFF', isAr: true },
+      ],
+      bg: '#2C3E77',
+    },
+    {
+      cells: [
+        { text: 'Admission Date', bold: true, color: '#366FB5' },
+        { text: entryG, bold: false, color: '#2C3E77' },
+        { text: entryH, bold: false, color: '#2C3E77', isAr: true },
+        { text: 'تاريخ الدخول', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+    },
+    {
+      cells: [
+        { text: 'Discharge Date', bold: true, color: '#366FB5' },
+        { text: exitG, bold: false, color: '#2C3E77' },
+        { text: exitH, bold: false, color: '#2C3E77', isAr: true },
+        { text: 'تاريخ الخروج', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#F7F7F7',
+    },
+    {
+      cells: [
+        { text: 'Issue Date', bold: true, color: '#366FB5' },
+        { text: issueG, bold: false, color: '#2C3E77' },
+        { text: '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'تاريخ إصدار التقرير', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+    },
+    {
+      cells: [
+        { text: 'Name', bold: true, color: '#366FB5' },
+        { text: data.NAME_EN || '', bold: false, color: '#2C3E77' },
+        { text: data.NAME_AR || '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'الاسم', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#F7F7F7',
+    },
+    {
+      cells: [
+        { text: 'National ID / Iqama', bold: true, color: '#366FB5' },
+        { text: data.ID_NUMBER || '', bold: false, color: '#2C3E77' },
+        { text: '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'الإقامة / رقم الهوية', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+    },
+    {
+      cells: [
+        { text: 'Nationality', bold: true, color: '#366FB5' },
+        { text: data.NATIONALITY_EN || '', bold: false, color: '#2C3E77' },
+        { text: data.NATIONALITY_AR || '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'الجنسية', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#F7F7F7',
+    },
+    {
+      cells: [
+        { text: 'Employer', bold: true, color: '#366FB5' },
+        { text: '', bold: false, color: '#2C3E77' },
+        { text: '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'جهة العمل', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+    },
+    {
+      cells: [
+        { text: 'Practitioner Name', bold: true, color: '#366FB5' },
+        { text: data.DOCTOR_NAME_EN || '', bold: false, color: '#2C3E77' },
+        { text: data.DOCTOR_NAME_AR || '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'اسم الممارس', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#F7F7F7',
+    },
+    {
+      cells: [
+        { text: 'Position', bold: true, color: '#366FB5' },
+        { text: data.JOB_TITLE_EN || '', bold: false, color: '#2C3E77' },
+        { text: data.JOB_TITLE_AR || '', bold: false, color: '#2C3E77', isAr: true },
+        { text: 'المسمى الوظيفي', bold: true, color: '#366FB5', isAr: true },
+      ],
+      bg: '#FFFFFF',
+    },
+  ]
+
+  // Draw table cells
+  ctx.strokeStyle = '#E0E0E0'
+  ctx.lineWidth = BORDER * MM
+
+  for (let ri = 0; ri < rows.length; ri++) {
+    const row = rows[ri]
+    const yTop = (TBL_TOP + ri * ROW_H) * MM
+    const yCenter = yTop + (ROW_H * MM) / 2  // vertical center of row
+
+    let colOffset = 0
+    for (let ci = 0; ci < row.cells.length; ci++) {
+      // Skip cells inside a merged span
+      if (row.merge && ci > row.merge.colIndex && ci < row.merge.colIndex + row.merge.span) {
+        continue
+      }
+
+      const xLeft = (TBL_LEFT + colOffset) * MM
+      const spanW = (row.merge && ci === row.merge.colIndex)
+        ? COLS.slice(ci, ci + row.merge.span).reduce((a, b) => a + b, 0)
+        : COLS[ci]
+      const cellW = spanW * MM
+      const cellH = ROW_H * MM
+      const xCenter = xLeft + cellW / 2  // horizontal center of cell
+
+      // Cell background
+      ctx.fillStyle = row.bg
+      ctx.fillRect(xLeft, yTop, cellW, cellH)
+
+      // Cell border
+      ctx.strokeRect(xLeft, yTop, cellW, cellH)
+
+      // Cell text
+      const cell = row.cells[ci]
+      if (cell.text) {
+        const fontFamily = cell.isAr
+          ? '"Noto Sans Arabic", sans-serif'
+          : '"Times New Roman", serif'
+        const weight = cell.bold ? 'bold ' : ''
+        ctx.font = `${weight}${FONT_SIZE * PT}px ${fontFamily}`
+        ctx.fillStyle = cell.color
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(cell.text, xCenter, yCenter)
+      }
+
+      colOffset += spanW
+    }
+  }
+
+  push({ percent: 70, stageLabel: 'رسم الفوتر', detail: 'جاري رسم ذيل التقرير...', etaSeconds: null })
+
+  // ===== FOOTER =====
+  // Draw footer images
+  await drawImg(qrUrl, 60.1, 260, 25, 25)
+  await drawImg(sealUrl, 203.5, 277, 39.7, 39.7)
+  await drawImg(nhicUrl, 231.4, 339, 52.9, 25.1)
+
+  // Helper: draw footer text
+  const drawText = (
+    text: string,
+    xMm: number,
+    yMm: number,
+    sizePt: number,
+    fontFamily: string,
+    color: string,
+    align: CanvasTextAlign = 'left',
+  ) => {
+    if (!text) return
+    ctx.font = `bold ${sizePt * PT}px ${fontFamily}`
+    ctx.fillStyle = color
+    ctx.textAlign = align
+    ctx.textBaseline = 'top'
+    ctx.fillText(text, xMm * MM, yMm * MM)
+  }
+
+  // Verification text (RTL, right-aligned)
+  // HTML: left:25.2mm, width:110mm, text-align:right → right edge = 135.2mm
+  drawText('للتحقق من بيانات التقرير يرجى التأكد من زيارة موقع منصة صحة', 135.2, 290, 11.2, '"Noto Sans Arabic", sans-serif', '#000000', 'right')
+  drawText('الرسمي', 92.7, 304.9, 11.2, '"Noto Sans Arabic", sans-serif', '#000000', 'right')
+
+  // English verification text (LTR)
+  drawText('To check the report please visit Seha\'s official website', 35.1, 312.5, 11.2, '"Times New Roman", serif', '#000000', 'left')
+  drawText('www.seha.sa/#/inquiries/slenquiry', 51.1, 321.6, 11.2, '"Times New Roman", serif', '#0000FF', 'left')
+
+  // Facility info
+  // Hospital name AR (RTL, right-aligned, no explicit width → use ~270mm as right edge)
+  drawText(data.HOSPITAL_NAME_AR || '', 270, 263, 12.8, '"Noto Sans Arabic", sans-serif', '#000000', 'right')
+  drawText(data.HOSPITAL_NAME_EN || '', 201.9, 306, 12.8, '"Times New Roman", serif', '#000000', 'left')
+  drawText(': رقم الترخيص', 270, 312, 12.8, '"Noto Sans Arabic", sans-serif', '#000000', 'right')
+
+  // Timestamp
+  drawText(data.PRINT_TIME || '', 13.5, 338, 12.8, '"Times New Roman", serif', '#000000', 'left')
+  drawText(printG, 13.5, 349, 12.8, '"Times New Roman", serif', '#000000', 'left')
+
+  push({ percent: 85, stageLabel: 'توليد PDF', detail: 'جاري إنشاء ملف PDF النهائي...', etaSeconds: 2 })
+
+  // ===== Convert canvas to PDF using jsPDF =====
+  const jsPDF = (await import('jspdf')).default
+  const doc = new jsPDF({
+    unit: 'mm',
+    format: [297, 420],
+    orientation: 'portrait',
+  })
+
+  const imgData = canvas.toDataURL('image/jpeg', 0.98)
+  doc.addImage(imgData, 'JPEG', 0, 0, 297, 420)
+
+  const filename = `sickLeaves_${data.NAME_EN || data.SERVICE_CODE || 'report'}.pdf`
+  doc.save(filename)
+
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  push({
+    percent: 100,
+    stageLabel: 'تم بنجاح',
+    detail: `تم إنشاء وتنزيل ملف PDF بنجاح (${elapsed} ثانية)`,
+    etaSeconds: 0,
+  })
 }
