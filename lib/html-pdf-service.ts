@@ -56,7 +56,7 @@ const valueEnBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF
 const valueArBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
 const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:4mm;`
 
-function generateHtmlContent(data: ReportDataForPptx): string {
+export function generateHtmlContent(data: ReportDataForPptx): string {
   const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
   const exitG = format_date_dd_mm_yyyy(data.EXIT_DATE_GREGORIAN)
   const entryH = format_date_dd_mm_yyyy(data.ENTRY_DATE_HIJRI)
@@ -232,7 +232,7 @@ async function imageToBase64(src: string): Promise<string> {
 /**
  * Replace all image src attributes with base64 data URLs.
  */
-async function inlineImages(html: string): Promise<string> {
+export async function inlineImages(html: string): Promise<string> {
   const imgRegex = /src="(\/images\/[^"]+)"/g
   const matches = [...html.matchAll(imgRegex)]
 

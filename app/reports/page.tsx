@@ -8,8 +8,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { BarChart3, PlusCircle, Edit, Trash2, Download, ChevronLeft, ChevronRight, FileText } from "lucide-react"
-import { usePptxDownloadWithProgress, usePdfDownloadWithProgress, useHtmlPdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
+import { BarChart3, PlusCircle, Edit, Trash2, Download, ChevronLeft, ChevronRight, FileText, Eye } from "lucide-react"
+import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
+import { useHtmlPdfWithPreview } from "@/components/ui-custom/pdf-preview-dialog"
 
 interface Report {
   id: string
@@ -60,7 +61,7 @@ export default function ReportsPage() {
   const supabase = createClientSupabaseClient()
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
-  const { downloadHtmlPdf, htmlPdfProgressDialog } = useHtmlPdfDownloadWithProgress()
+  const { openPreview, previewDialog } = useHtmlPdfWithPreview()
 
   useEffect(() => {
     // التحقق من تسجيل الدخول
@@ -144,8 +145,8 @@ export default function ReportsPage() {
     await downloadPdf(reportToPayload(report))
   }
 
-  const handleDownloadHtmlPdf = async (report: Report) => {
-    await downloadHtmlPdf(reportToPayload(report))
+  const handlePreviewHtmlPdf = async (report: Report) => {
+    await openPreview(reportToPayload(report))
   }
 
   // تنسيق التاريخ
@@ -158,7 +159,7 @@ export default function ReportsPage() {
     <div className="container max-w-md mx-auto p-4 pb-20">
       {pptxProgressDialog}
       {pdfProgressDialog}
-      {htmlPdfProgressDialog}
+      {previewDialog}
       <BackButton />
       <PageHeader
         title="التقارير"
@@ -254,15 +255,15 @@ export default function ReportsPage() {
                       PDF
                     </Button>
                   </div>
-                  {/* الصف الثالث: زر تنزيل القالب الجديد (HTML PDF) */}
+                  {/* الصف الثالث: زر معاينة وتنزيل القالب الجديد (HTML PDF) */}
                   <Button
-                    onClick={() => handleDownloadHtmlPdf(report)}
+                    onClick={() => handlePreviewHtmlPdf(report)}
                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
                     size="sm"
                   >
                     <FileText className="ml-2 h-4 w-4" />
-                    <Download className="ml-2 h-4 w-4" />
-                    تنزيل تقرير PDF — القالب الجديد
+                    <Eye className="ml-2 h-4 w-4" />
+                    معاينة وتنزيل التقرير
                   </Button>
                 </CardFooter>
               </Card>
