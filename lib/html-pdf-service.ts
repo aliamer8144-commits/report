@@ -50,23 +50,23 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
 
 const cellBase = `height:14.8mm;padding:0 3mm;vertical-align:middle;border:0.5mm solid #E0E0E0;font-size:13.5pt;line-height:1.2;`
 
-const labelAr = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
-
-const valueAr = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
+const labelEn = (bg: string) =>
+  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:4mm;`
 
 const valueEn = (bg: string) =>
   `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:3mm;`
 
-const labelEn = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:center;`
+const valueAr = (bg: string) =>
+  `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
+
+const labelAr = (bg: string) =>
+  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:4mm;`
 
 /* Blue row overrides */
-const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
-const valueArBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
+const labelEnBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:4mm;`
 const valueEnBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:3mm;`
-const labelEnBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:center;`
+const valueArBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
+const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:4mm;`
 
 export function generateHtmlContent(data: ReportDataForPptx): string {
   const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
@@ -103,92 +103,92 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
     <div style="position:absolute;top:55.85mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
     <div style="position:absolute;top:70.59mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
-    <!-- TABLE: from PPTX - left=12.84mm, top=83.45mm, width=271.15mm -->
-    <!-- Column order: AR Label (46mm) | AR Value (84mm) | EN Value (84mm) | EN Label (57mm) -->
+    <!-- TABLE: from PPTX measurements - left=12.84mm, top=83.45mm, width=271.15mm -->
+    <!-- Column order: EN Label (57.23mm) | EN Value (84.12mm) | AR Value (83.77mm) | AR Label (46.02mm) -->
     <table style="position:absolute;top:83.45mm;left:12.84mm;width:271.15mm;border-collapse:separate;border-spacing:0;border:0.5mm solid #E0E0E0;border-radius:3mm;overflow:hidden;table-layout:fixed;direction:ltr;">
       <colgroup>
-        <col style="width:46.02mm;">
-        <col style="width:83.77mm;">
-        <col style="width:84.12mm;">
         <col style="width:57.23mm;">
+        <col style="width:84.12mm;">
+        <col style="width:83.77mm;">
+        <col style="width:46.02mm;">
       </colgroup>
       <tbody>
         <!-- Row 0: Leave ID (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">رمز الإجازة</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${valueEn('#FFFFFF')}">${data.SERVICE_CODE || ''}</td>
           <td style="${labelEn('#FFFFFF')}">Leave ID</td>
+          <td style="${valueEn('#FFFFFF')}">${data.SERVICE_CODE || ''}</td>
+          <td style="${valueAr('#FFFFFF')}"></td>
+          <td style="${labelAr('#FFFFFF')}">رمز الإجازة</td>
         </tr>
         <!-- Row 1: Leave Duration (bg: #2C3E77 dark blue) -->
         <tr>
-          <td style="${labelArBlue}">مدة الإجازة</td>
-          <td style="${valueArBlue}">${leaveDurationAr}</td>
-          <td style="${valueEnBlue}">${leaveDurationEn}</td>
           <td style="${labelEnBlue}">Leave Duration</td>
+          <td style="${valueEnBlue}">${leaveDurationEn}</td>
+          <td style="${valueArBlue}">${leaveDurationAr}</td>
+          <td style="${labelArBlue}">مدة الإجازة</td>
         </tr>
         <!-- Row 2: Admission Date (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">تاريخ الدخول</td>
-          <td style="${valueAr('#FFFFFF')}">${entryH}</td>
-          <td style="${valueEn('#FFFFFF')}">${entryG}</td>
           <td style="${labelEn('#FFFFFF')}">Admission Date</td>
+          <td style="${valueEn('#FFFFFF')}">${entryG}</td>
+          <td style="${valueAr('#FFFFFF')}">${entryH}</td>
+          <td style="${labelAr('#FFFFFF')}">تاريخ الدخول</td>
         </tr>
         <!-- Row 3: Discharge Date (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelAr('#F7F7F7')}">تاريخ الخروج</td>
-          <td style="${valueAr('#F7F7F7')}">${exitH}</td>
-          <td style="${valueEn('#F7F7F7')}">${exitG}</td>
           <td style="${labelEn('#F7F7F7')}">Discharge Date</td>
+          <td style="${valueEn('#F7F7F7')}">${exitG}</td>
+          <td style="${valueAr('#F7F7F7')}">${exitH}</td>
+          <td style="${labelAr('#F7F7F7')}">تاريخ الخروج</td>
         </tr>
         <!-- Row 4: Issue Date (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">تاريخ إصدار التقرير</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${valueEn('#FFFFFF')}">${issueG}</td>
           <td style="${labelEn('#FFFFFF')}">Issue Date</td>
+          <td style="${valueEn('#FFFFFF')}">${issueG}</td>
+          <td style="${valueAr('#FFFFFF')}"></td>
+          <td style="${labelAr('#FFFFFF')}">تاريخ إصدار التقرير</td>
         </tr>
         <!-- Row 5: Name (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelAr('#F7F7F7')}">الاسم</td>
-          <td style="${valueAr('#F7F7F7')}">${data.NAME_AR || ''}</td>
-          <td style="${valueEn('#F7F7F7')}">${data.NAME_EN || ''}</td>
           <td style="${labelEn('#F7F7F7')}">Name</td>
+          <td style="${valueEn('#F7F7F7')}">${data.NAME_EN || ''}</td>
+          <td style="${valueAr('#F7F7F7')}">${data.NAME_AR || ''}</td>
+          <td style="${labelAr('#F7F7F7')}">الاسم</td>
         </tr>
         <!-- Row 6: National ID (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">رقم الهوية / الإقامة</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${valueEn('#FFFFFF')}">${data.ID_NUMBER || ''}</td>
           <td style="${labelEn('#FFFFFF')}">National ID / Iqama</td>
+          <td style="${valueEn('#FFFFFF')}">${data.ID_NUMBER || ''}</td>
+          <td style="${valueAr('#FFFFFF')}"></td>
+          <td style="${labelAr('#FFFFFF')}">الإقامة / رقم الهوية</td>
         </tr>
         <!-- Row 7: Nationality (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelAr('#F7F7F7')}">الجنسية</td>
-          <td style="${valueAr('#F7F7F7')}">${data.NATIONALITY_AR || ''}</td>
-          <td style="${valueEn('#F7F7F7')}">${data.NATIONALITY_EN || ''}</td>
           <td style="${labelEn('#F7F7F7')}">Nationality</td>
+          <td style="${valueEn('#F7F7F7')}">${data.NATIONALITY_EN || ''}</td>
+          <td style="${valueAr('#F7F7F7')}">${data.NATIONALITY_AR || ''}</td>
+          <td style="${labelAr('#F7F7F7')}">الجنسية</td>
         </tr>
         <!-- Row 8: Employer (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">جهة العمل</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${valueEn('#FFFFFF')}"></td>
           <td style="${labelEn('#FFFFFF')}">Employer</td>
+          <td style="${valueEn('#FFFFFF')}"></td>
+          <td style="${valueAr('#FFFFFF')}"></td>
+          <td style="${labelAr('#FFFFFF')}">جهة العمل</td>
         </tr>
         <!-- Row 9: Practitioner Name (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelAr('#F7F7F7')}">اسم الممارس</td>
-          <td style="${valueAr('#F7F7F7')}">${data.DOCTOR_NAME_AR || ''}</td>
-          <td style="${valueEn('#F7F7F7')}">${data.DOCTOR_NAME_EN || ''}</td>
           <td style="${labelEn('#F7F7F7')}">Practitioner Name</td>
+          <td style="${valueEn('#F7F7F7')}">${data.DOCTOR_NAME_EN || ''}</td>
+          <td style="${valueAr('#F7F7F7')}">${data.DOCTOR_NAME_AR || ''}</td>
+          <td style="${labelAr('#F7F7F7')}">اسم الممارس</td>
         </tr>
         <!-- Row 10: Position (bg: white) -->
         <tr>
-          <td style="${labelAr('#FFFFFF')}">المسمى الوظيفي</td>
-          <td style="${valueAr('#FFFFFF')}">${data.JOB_TITLE_AR || ''}</td>
-          <td style="${valueEn('#FFFFFF')}">${data.JOB_TITLE_EN || ''}</td>
           <td style="${labelEn('#FFFFFF')}">Position</td>
+          <td style="${valueEn('#FFFFFF')}">${data.JOB_TITLE_EN || ''}</td>
+          <td style="${valueAr('#FFFFFF')}">${data.JOB_TITLE_AR || ''}</td>
+          <td style="${labelAr('#FFFFFF')}">المسمى الوظيفي</td>
         </tr>
       </tbody>
     </table>
