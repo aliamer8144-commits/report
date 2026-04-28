@@ -38,7 +38,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
 const gridCols = `display:grid;grid-template-columns:57.23mm 84.12mm 83.77mm 46.02mm;`
 
 const cellBase = (bg: string) =>
-  `height:14.8mm;display:flex;align-items:center;justify-content:center;padding:0 3mm;border:0.5mm solid #E0E0E0;background:${bg};font-size:13.5pt;`
+  `height:14.8mm;padding:0 3mm;border:0.5mm solid #E0E0E0;background:${bg};font-size:13.5pt;line-height:13.8mm;text-align:center;`
 
 const labelEn = (bg: string) =>
   `${cellBase(bg)}font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;`
