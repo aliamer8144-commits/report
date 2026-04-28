@@ -46,3 +46,4 @@ uploads/
 # database
 db/*.db
 db/*.db-journal
+dev.log
