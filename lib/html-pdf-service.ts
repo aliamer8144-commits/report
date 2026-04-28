@@ -91,11 +91,11 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
     <div style="position:absolute;top:55.29mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:23.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
     <div style="position:absolute;top:69mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:17pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
-    <!-- TABLE: left=12.7mm, width=271.5mm, top=85.0mm -->
-    <!-- Columns: 57.3mm | 84.1mm | 84.1mm | 45.9mm -->
-    <table style="position:absolute;top:85mm;left:12.7mm;width:271.5mm;border-collapse:separate;border-spacing:0;border:0.3mm solid #DDDDDD;border-radius:3mm;overflow:hidden;table-layout:fixed;direction:ltr;">
+    <!-- TABLE: left=12.7mm, width=271.7mm, top=100.3mm -->
+    <!-- Columns from PDF: 57.5mm | 84.1mm | 84.1mm | 45.9mm -->
+    <table style="position:absolute;top:100.3mm;left:12.7mm;width:271.7mm;border-collapse:separate;border-spacing:0;border:0.3mm solid #DDDDDD;border-radius:3mm;overflow:hidden;table-layout:fixed;direction:ltr;">
       <colgroup>
-        <col style="width:57.3mm;">
+        <col style="width:57.5mm;">
         <col style="width:84.1mm;">
         <col style="width:84.1mm;">
         <col style="width:45.9mm;">
