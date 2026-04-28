@@ -51,7 +51,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
 const cellBase = `height:14.8mm;padding:0 3mm;vertical-align:middle;border:0.5mm solid #E0E0E0;font-size:13.5pt;line-height:1.2;`
 
 const labelEn = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:4mm;`
+  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:center;`
 
 const valueEn = (bg: string) =>
   `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:3mm;`
@@ -60,13 +60,13 @@ const valueAr = (bg: string) =>
   `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
 
 const labelAr = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:4mm;`
+  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
 
 /* Blue row overrides */
-const labelEnBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:4mm;`
+const labelEnBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:center;`
 const valueEnBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:left;padding-left:3mm;`
 const valueArBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:3mm;`
-const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:right;direction:rtl;padding-right:4mm;`
+const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
 
 export function generateHtmlContent(data: ReportDataForPptx): string {
   const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
