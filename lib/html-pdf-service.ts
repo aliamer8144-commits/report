@@ -20,53 +20,39 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
 /* ===== Measurements from PPTX template (exact match) =====
  * Page: 297mm x 420mm (A3 long)
  * Table: left=12.84mm, top=83.45mm, width=271.15mm
- *   Col 0 (AR Label): 46.02mm
- *   Col 1 (AR Value): 83.77mm
- *   Col 2 (EN Value): 84.12mm
- *   Col 3 (EN Label): 57.23mm
- * Row heights vary: ~14.5-15.8mm
+ *   Col 0 (EN Label): 57.23mm
+ *   Col 1 (EN Value): 84.12mm
+ *   Col 2 (AR Value): 83.77mm
+ *   Col 3 (AR Label): 46.02mm
  * Colors:
  *   Table border: #E0E0E0 (0.5mm)
- *   White row bg: transparent (#FFFFFF)
+ *   White row bg: #FFFFFF
  *   Gray row bg: #F7F7F7
  *   Dark blue row bg: #2C3E77
  *   Label text (blue): #366FB5
  *   Value text (dark): #2C3E77
  *   Arabic title: #306DB5, 22.5pt, top=55.85mm
  *   English title: #2C3E77, 18.7pt, top=70.59mm
- * Row bg pattern (from PPTX):
- *   Row 0 (Leave ID):    white
- *   Row 1 (Duration):    #2C3E77 (blue)
- *   Row 2 (Admission):   white
- *   Row 3 (Discharge):   #F7F7F7
- *   Row 4 (Issue):       white
- *   Row 5 (Name):        #F7F7F7
- *   Row 6 (National ID): white
- *   Row 7 (Nationality): #F7F7F7
- *   Row 8 (Employer):    white
- *   Row 9 (Practitioner): #F7F7F7
- *   Row 10 (Position):   white
  */
 
-const cellBase = `height:14.8mm;padding:0 3mm;border:0.5mm solid #E0E0E0;font-size:13.5pt;line-height:1.4;display:flex;align-items:center;justify-content:center;box-sizing:border-box;`
+const tdStyle = (bg: string) =>
+  `height:14.8mm;padding:0;border:0.5mm solid #E0E0E0;background:${bg};vertical-align:middle;`
 
-const labelEn = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:center;`
+const cellWrap = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13.5pt;line-height:1.4;`
 
-const valueEn = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Times New Roman',Times,serif;text-align:center;`
+const labelEnStyle = `${cellWrap}font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;`
+const valueEnStyle = `${cellWrap}font-weight:400;color:#2C3E77;font-family:'Times New Roman',Times,serif;`
+const valueArStyle = `${cellWrap}font-weight:400;color:#2C3E77;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
+const labelArStyle = `${cellWrap}font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
 
-const valueAr = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:400;color:#2C3E77;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
+const labelEnBlueStyle = `${cellWrap}font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;`
+const valueEnBlueStyle = `${cellWrap}font-weight:400;color:#FFFFFF;font-family:'Times New Roman',Times,serif;`
+const valueArBlueStyle = `${cellWrap}font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
+const labelArBlueStyle = `${cellWrap}font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;direction:rtl;`
 
-const labelAr = (bg: string) =>
-  `${cellBase}background:${bg};font-weight:700;color:#366FB5;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
-
-/* Blue row overrides */
-const labelEnBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:center;`
-const valueEnBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Times New Roman',Times,serif;text-align:center;`
-const valueArBlue = `${cellBase}background:#2C3E77;font-weight:400;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
-const labelArBlue = `${cellBase}background:#2C3E77;font-weight:700;color:#FFFFFF;font-family:'Noto Sans Arabic',sans-serif;text-align:center;direction:rtl;`
+function cell(content: string, bg: string, wrapStyle: string) {
+  return `<td style="${tdStyle(bg)}"><div style="${wrapStyle}">${content}</div></td>`
+}
 
 export function generateHtmlContent(data: ReportDataForPptx): string {
   const entryG = format_date_dd_mm_yyyy(data.ENTRY_DATE_GREGORIAN)
@@ -115,80 +101,80 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
       <tbody>
         <!-- Row 0: Leave ID (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">Leave ID</td>
-          <td style="${valueEn('#FFFFFF')}">${data.SERVICE_CODE || ''}</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${labelAr('#FFFFFF')}">رمز الإجازة</td>
+          ${cell('Leave ID', '#FFFFFF', labelEnStyle)}
+          ${cell(data.SERVICE_CODE || '', '#FFFFFF', valueEnStyle)}
+          ${cell('', '#FFFFFF', valueArStyle)}
+          ${cell('رمز الإجازة', '#FFFFFF', labelArStyle)}
         </tr>
         <!-- Row 1: Leave Duration (bg: #2C3E77 dark blue) -->
         <tr>
-          <td style="${labelEnBlue}">Leave Duration</td>
-          <td style="${valueEnBlue}">${leaveDurationEn}</td>
-          <td style="${valueArBlue}">${leaveDurationAr}</td>
-          <td style="${labelArBlue}">مدة الإجازة</td>
+          ${cell('Leave Duration', '#2C3E77', labelEnBlueStyle)}
+          ${cell(leaveDurationEn, '#2C3E77', valueEnBlueStyle)}
+          ${cell(leaveDurationAr, '#2C3E77', valueArBlueStyle)}
+          ${cell('مدة الإجازة', '#2C3E77', labelArBlueStyle)}
         </tr>
         <!-- Row 2: Admission Date (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">Admission Date</td>
-          <td style="${valueEn('#FFFFFF')}">${entryG}</td>
-          <td style="${valueAr('#FFFFFF')}">${entryH}</td>
-          <td style="${labelAr('#FFFFFF')}">تاريخ الدخول</td>
+          ${cell('Admission Date', '#FFFFFF', labelEnStyle)}
+          ${cell(entryG, '#FFFFFF', valueEnStyle)}
+          ${cell(entryH, '#FFFFFF', valueArStyle)}
+          ${cell('تاريخ الدخول', '#FFFFFF', labelArStyle)}
         </tr>
         <!-- Row 3: Discharge Date (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelEn('#F7F7F7')}">Discharge Date</td>
-          <td style="${valueEn('#F7F7F7')}">${exitG}</td>
-          <td style="${valueAr('#F7F7F7')}">${exitH}</td>
-          <td style="${labelAr('#F7F7F7')}">تاريخ الخروج</td>
+          ${cell('Discharge Date', '#F7F7F7', labelEnStyle)}
+          ${cell(exitG, '#F7F7F7', valueEnStyle)}
+          ${cell(exitH, '#F7F7F7', valueArStyle)}
+          ${cell('تاريخ الخروج', '#F7F7F7', labelArStyle)}
         </tr>
         <!-- Row 4: Issue Date (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">Issue Date</td>
-          <td style="${valueEn('#FFFFFF')}">${issueG}</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${labelAr('#FFFFFF')}">تاريخ إصدار التقرير</td>
+          ${cell('Issue Date', '#FFFFFF', labelEnStyle)}
+          ${cell(issueG, '#FFFFFF', valueEnStyle)}
+          ${cell('', '#FFFFFF', valueArStyle)}
+          ${cell('تاريخ إصدار التقرير', '#FFFFFF', labelArStyle)}
         </tr>
         <!-- Row 5: Name (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelEn('#F7F7F7')}">Name</td>
-          <td style="${valueEn('#F7F7F7')}">${data.NAME_EN || ''}</td>
-          <td style="${valueAr('#F7F7F7')}">${data.NAME_AR || ''}</td>
-          <td style="${labelAr('#F7F7F7')}">الاسم</td>
+          ${cell('Name', '#F7F7F7', labelEnStyle)}
+          ${cell(data.NAME_EN || '', '#F7F7F7', valueEnStyle)}
+          ${cell(data.NAME_AR || '', '#F7F7F7', valueArStyle)}
+          ${cell('الاسم', '#F7F7F7', labelArStyle)}
         </tr>
         <!-- Row 6: National ID (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">National ID / Iqama</td>
-          <td style="${valueEn('#FFFFFF')}">${data.ID_NUMBER || ''}</td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${labelAr('#FFFFFF')}">الإقامة / رقم الهوية</td>
+          ${cell('National ID / Iqama', '#FFFFFF', labelEnStyle)}
+          ${cell(data.ID_NUMBER || '', '#FFFFFF', valueEnStyle)}
+          ${cell('', '#FFFFFF', valueArStyle)}
+          ${cell('الإقامة / رقم الهوية', '#FFFFFF', labelArStyle)}
         </tr>
         <!-- Row 7: Nationality (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelEn('#F7F7F7')}">Nationality</td>
-          <td style="${valueEn('#F7F7F7')}">${data.NATIONALITY_EN || ''}</td>
-          <td style="${valueAr('#F7F7F7')}">${data.NATIONALITY_AR || ''}</td>
-          <td style="${labelAr('#F7F7F7')}">الجنسية</td>
+          ${cell('Nationality', '#F7F7F7', labelEnStyle)}
+          ${cell(data.NATIONALITY_EN || '', '#F7F7F7', valueEnStyle)}
+          ${cell(data.NATIONALITY_AR || '', '#F7F7F7', valueArStyle)}
+          ${cell('الجنسية', '#F7F7F7', labelArStyle)}
         </tr>
         <!-- Row 8: Employer (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">Employer</td>
-          <td style="${valueEn('#FFFFFF')}"></td>
-          <td style="${valueAr('#FFFFFF')}"></td>
-          <td style="${labelAr('#FFFFFF')}">جهة العمل</td>
+          ${cell('Employer', '#FFFFFF', labelEnStyle)}
+          ${cell('', '#FFFFFF', valueEnStyle)}
+          ${cell('', '#FFFFFF', valueArStyle)}
+          ${cell('جهة العمل', '#FFFFFF', labelArStyle)}
         </tr>
         <!-- Row 9: Practitioner Name (bg: #F7F7F7) -->
         <tr>
-          <td style="${labelEn('#F7F7F7')}">Practitioner Name</td>
-          <td style="${valueEn('#F7F7F7')}">${data.DOCTOR_NAME_EN || ''}</td>
-          <td style="${valueAr('#F7F7F7')}">${data.DOCTOR_NAME_AR || ''}</td>
-          <td style="${labelAr('#F7F7F7')}">اسم الممارس</td>
+          ${cell('Practitioner Name', '#F7F7F7', labelEnStyle)}
+          ${cell(data.DOCTOR_NAME_EN || '', '#F7F7F7', valueEnStyle)}
+          ${cell(data.DOCTOR_NAME_AR || '', '#F7F7F7', valueArStyle)}
+          ${cell('اسم الممارس', '#F7F7F7', labelArStyle)}
         </tr>
         <!-- Row 10: Position (bg: white) -->
         <tr>
-          <td style="${labelEn('#FFFFFF')}">Position</td>
-          <td style="${valueEn('#FFFFFF')}">${data.JOB_TITLE_EN || ''}</td>
-          <td style="${valueAr('#FFFFFF')}">${data.JOB_TITLE_AR || ''}</td>
-          <td style="${labelAr('#FFFFFF')}">المسمى الوظيفي</td>
+          ${cell('Position', '#FFFFFF', labelEnStyle)}
+          ${cell(data.JOB_TITLE_EN || '', '#FFFFFF', valueEnStyle)}
+          ${cell(data.JOB_TITLE_AR || '', '#FFFFFF', valueArStyle)}
+          ${cell('المسمى الوظيفي', '#FFFFFF', labelArStyle)}
         </tr>
       </tbody>
     </table>
