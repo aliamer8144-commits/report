@@ -7,27 +7,28 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { generateHtmlPdf, generateHtmlContent, type HtmlPdfProgressCallback, type ReportDataForPptx } from "@/lib/html-pdf-service"
+import { generateHtmlPdf, generateHtmlContent, inlineImages, type HtmlPdfProgressCallback, type ReportDataForPptx } from "@/lib/html-pdf-service"
 
 export function useHtmlPdfWithPreview() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const currentDataRef = useRef<ReportDataForPptx | null>(null)
 
-  const openPreview = useCallback((data: ReportDataForPptx) => {
+  const openPreview = useCallback(async (data: ReportDataForPptx) => {
     try {
       currentDataRef.current = data
-      const html = generateHtmlContent(data)
+      let html = generateHtmlContent(data)
+      // Convert relative image paths to base64 so srcDoc iframe can render them
+      html = await inlineImages(html)
       setPreviewHtml(html)
       setPreviewOpen(true)
       setErrorMsg(null)
-      setLoadingPreview(false)
     } catch (e) {
       console.error("Preview generation error:", e)
       setErrorMsg(e instanceof Error ? e.message : "حدث خطأ أثناء إنشاء المعاينة")
+      setPreviewOpen(true)
     }
   }, [])
 
@@ -114,7 +115,10 @@ export function useHtmlPdfWithPreview() {
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p className="text-sm text-red-500">حدث خطأ أثناء تحميل المعاينة</p>
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">جاري تحميل المعاينة...</p>
+              </div>
             </div>
           )}
         </div>
@@ -130,7 +134,7 @@ function PreviewFrame({ html }: { html: string }) {
 
   // A3 long proportions: 297mm x 420mm (at ~3.78px/mm for 96dpi)
   const pageW = 395  // ~297mm at 96dpi
-  const pageH = 558  // ~420mm at 96dpi (keep aspect)
+  const pageH = 558  // ~420mm at 96dpi
 
   return (
     <div className="relative inline-block">
