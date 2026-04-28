@@ -88,10 +88,8 @@ function generateHtmlContent(data: ReportDataForPptx): string {
     <img src="/images/moh-logo.png" alt="MOH" style="position:absolute;top:12.7mm;left:191.7mm;width:92.6mm;height:37.7mm;object-fit:contain;">
 
     <!-- HEADER: Title Text -->
-    <!-- PDF measurements: Arabic title top=55.29mm, English title top=70.80mm, both perfectly centered at 148.52mm -->
-    <!-- NOTE: "Kingdom of Saudi Arabia" is already inside calligraphy.png image, no separate text needed -->
-    <div style="position:absolute;top:55.29mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
-    <div style="position:absolute;top:70.80mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
+    <div style="position:absolute;top:55.29mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:23.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
+    <div style="position:absolute;top:69mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:17pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
     <!-- TABLE: left=12.7mm, width=271.5mm, top=85.0mm -->
     <!-- Columns: 57.3mm | 84.1mm | 84.1mm | 45.9mm -->
