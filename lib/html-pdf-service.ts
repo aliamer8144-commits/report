@@ -36,7 +36,7 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
  */
 
 const cellBase = (bg: string) =>
-  `height:14.8mm;padding:4.5mm 3mm 0 3mm;border:0.5mm solid #E0E0E0;background:${bg};font-size:13.5pt;line-height:1;vertical-align:top;`
+  `height:14.8mm;padding:0 3mm;border:0.5mm solid #E0E0E0;background:${bg};font-size:13.5pt;line-height:13.8mm;vertical-align:top;`
 
 const labelEn = (bg: string) =>
   `${cellBase(bg)}font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;text-align:center;`
@@ -90,9 +90,9 @@ export function generateHtmlContent(data: ReportDataForPptx): string {
     <div style="position:absolute;top:55.85mm;left:0;width:297mm;text-align:center;font-family:'Noto Sans Arabic',sans-serif;font-size:22.5pt;font-weight:700;color:#306DB5;">تقرير إجازة مرضية</div>
     <div style="position:absolute;top:70.59mm;left:0;width:297mm;text-align:center;font-family:'Times New Roman',Times,serif;font-size:18.7pt;font-weight:700;color:#2C3E77;">Sick Leave Report</div>
 
-    <!-- TABLE: from PPTX measurements - left=12.84mm, top=83.45mm, width=271.15mm -->
+    <!-- TABLE: from PPTX measurements - left=12.84mm, top=86mm, width=271.15mm -->
     <!-- Column order: EN Label (57.23mm) | EN Value (84.12mm) | AR Value (83.77mm) | AR Label (46.02mm) -->
-    <table style="position:absolute;top:83.45mm;left:12.84mm;width:271.15mm;border-collapse:separate;border-spacing:0;border:0.5mm solid #E0E0E0;border-radius:3mm;overflow:hidden;table-layout:fixed;direction:ltr;">
+    <table style="position:absolute;top:86mm;left:12.84mm;width:271.15mm;border-collapse:separate;border-spacing:0;border:0.5mm solid #E0E0E0;border-radius:3mm;overflow:hidden;table-layout:fixed;direction:ltr;">
       <colgroup>
         <col style="width:57.23mm;">
         <col style="width:84.12mm;">
