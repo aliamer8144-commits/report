@@ -36,9 +36,9 @@ function format_date_dd_mm_yyyy(value?: string | null): string {
  */
 
 const tdStyle = (bg: string) =>
-  `height:14.8mm;padding:0;border:0.5mm solid #E0E0E0;background:${bg};vertical-align:middle;`
+  `height:14.8mm;padding:0;border:0.5mm solid #E0E0E0;background:${bg};vertical-align:top;`
 
-const cellWrap = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13.5pt;line-height:1.4;`
+const cellWrap = `width:100%;height:13.8mm;display:flex;align-items:center;justify-content:center;font-size:13.5pt;line-height:1.4;`
 
 const labelEnStyle = `${cellWrap}font-weight:700;color:#366FB5;font-family:'Times New Roman',Times,serif;`
 const valueEnStyle = `${cellWrap}font-weight:400;color:#2C3E77;font-family:'Times New Roman',Times,serif;`
