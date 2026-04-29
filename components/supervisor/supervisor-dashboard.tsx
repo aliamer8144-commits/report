@@ -334,7 +334,7 @@ export function SupervisorDashboard() {
           return new Set(reports.map((r: any) => r.created_at.split("T")[0])).size
         }
 
-        const { data: weekReportsData } = await supabase
+        const { data: weekPeriodData } = await supabase
           .from("reports")
           .select("created_at")
           .in("user_id", clientIds)
@@ -357,8 +357,8 @@ export function SupervisorDashboard() {
         setPeriodCounts({
           todayReports: todayR.length,
           todayDays: countUniqueDays(todayR),
-          weekReports: weekReportsData?.length || 0,
-          weekDays: countUniqueDays(weekReportsData || []),
+          weekReports: weekPeriodData?.length || 0,
+          weekDays: countUniqueDays(weekPeriodData || []),
           monthReports: monthReportsData?.length || 0,
           monthDays: countUniqueDays(monthReportsData || []),
           allReports: allReportsData?.length || 0,
