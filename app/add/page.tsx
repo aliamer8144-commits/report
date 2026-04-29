@@ -179,6 +179,48 @@ export default function AddReportPage() {
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
   const supabase = createClientSupabaseClient()
   const [pptxEnabled, setPptxEnabled] = useState(true)
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false)
+
+  // دالة توليد 11 رقم عشوائي
+  const generateRandomDigits = (length: number): string => {
+    let result = ''
+    for (let i = 0; i < length; i++) {
+      result += Math.floor(Math.random() * 10).toString()
+    }
+    return result
+  }
+
+  // دالة توليد رمز خدمة فريد (PSL + 11 رقم)
+  const generateUniqueServiceCode = async (): Promise<string> => {
+    const maxAttempts = 10
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const code = 'PSL' + generateRandomDigits(11)
+      // التحقق من عدم وجود الرمز في قاعدة البيانات
+      const { data, error } = await supabase
+        .from('reports')
+        .select('id')
+        .eq('service_code', code)
+        .limit(1)
+
+      if (error || !data || data.length === 0) {
+        return code // الرمز فريد
+      }
+    }
+    // في حال نادر عدم إيجاد رمز فريد، نُرجع رمز مع طابع زمني
+    return 'PSL' + Date.now().toString().slice(-11)
+  }
+
+  // تحميل رمز خدمة تلقائي
+  const loadServiceCode = async () => {
+    setIsGeneratingCode(true)
+    try {
+      const code = await generateUniqueServiceCode()
+      setFormData(prev => ({ ...prev, service_code: code }))
+    } catch (err) {
+      console.error('Error generating service code:', err)
+    }
+    setIsGeneratingCode(false)
+  }
 
   const tabs = ["basic", "dates", "additional"]
   const tabLabels = {
@@ -272,7 +314,7 @@ export default function AddReportPage() {
       localStorage.removeItem("report_template")
 
       setFormData({
-        service_code: parsed.service_code ?? "",
+        service_code: "",
         id_number: parsed.id_number ?? "",
         name_ar: parsed.name_ar ?? "",
         name_en: parsed.name_en ?? "",
@@ -293,6 +335,7 @@ export default function AddReportPage() {
         print_date: formattedDate,
         print_time: formattedTime,
       })
+      loadServiceCode()
       return
     }
 
@@ -303,6 +346,7 @@ export default function AddReportPage() {
       print_date: formattedDate,
       print_time: formattedTime,
     }))
+    loadServiceCode()
   }, [router])
 
   // حساب تاريخ الخروج بناءً على تاريخ الدخول وعدد الأيام
@@ -520,6 +564,7 @@ export default function AddReportPage() {
     })
     setSuccess(false)
     setError(null)
+    loadServiceCode()
   }
 
   const handleDownloadPPTX = async () => {
@@ -745,15 +790,36 @@ export default function AddReportPage() {
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4">
-                  <FormField
-                    label="رمز الخدمة"
-                    name="service_code"
-                    value={formData.service_code}
-                    onChange={handleChange}
-                    placeholder="أدخل رمز الخدمة"
-                    required
-                    icon={Hash}
-                  />
+                  <div className="space-y-2 text-right">
+                    <Label htmlFor="service_code" className="text-indigo-900 flex items-center gap-1.5 justify-end flex-row-reverse w-full">
+                      <Hash className="h-4 w-4 text-indigo-600" />
+                      رمز الخدمة
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        id="service_code"
+                        name="service_code"
+                        value={formData.service_code}
+                        readOnly
+                        required
+                        className={`flex-1 text-right border-indigo-200 bg-gray-50 font-mono tracking-wider ${isGeneratingCode ? 'animate-pulse' : ''}`}
+                        dir="ltr"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0"
+                        onClick={loadServiceCode}
+                        disabled={isGeneratingCode}
+                        title="توليد رمز جديد"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isGeneratingCode ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-right">يتم توليد رمز الخدمة تلقائياً</p>
+                  </div>
 
                   <FormField
                     label="رقم الهوية"

@@ -579,9 +579,12 @@ export default function EditReportPage() {
                       name="serviceCode"
                       value={formData.serviceCode}
                       onChange={handleChange}
-                      placeholder="أدخل رمز الخدمة"
+                      placeholder="رمز الخدمة"
                       required
+                      readOnly
                       icon={Hash}
+                      inputClassName="font-mono tracking-wider"
+                      hint="(لا يمكن تعديل رمز الخدمة)"
                     />
 
                     <FormField

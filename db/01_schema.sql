@@ -171,6 +171,8 @@ create index if not exists idx_reports_user_active on public.reports(user_id, is
 create index if not exists idx_reports_user_service on public.reports(user_id, service_code);
 create index if not exists idx_reports_user_idnumber on public.reports(user_id, id_number);
 create index if not exists idx_reports_created_at on public.reports(created_at desc);
+-- قيد فريد على رمز الخدمة (لل تقارير غير المحذوفة فقط)
+create unique index if not exists idx_reports_service_code_unique on public.reports(service_code) where is_deleted = false;
 
 -- activities
 create index if not exists idx_activities_user_read_created on public.activities(user_id, is_read, created_at desc);
