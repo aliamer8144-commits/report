@@ -681,35 +681,35 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         {/* ── 1. Header ── */}
         <motion.div
           variants={itemVariants}
-          className="flex items-center justify-between mb-1"
+          className="space-y-3 mb-1"
         >
-          <Button
-            variant="ghost"
-            size="icon"
+          {/* الصف الأول: رجوع + العملاء */}
+          <button
             onClick={onBack}
-            className="rounded-full text-[#007AFF] hover:bg-[#007AFF]/5 transition-colors"
+            className="flex items-center gap-1.5 text-[#007AFF] hover:text-[#0062CC] transition-colors group"
           >
-            <ArrowRight className="w-5 h-5" />
-          </Button>
+            <ArrowRight className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-[13px] font-medium">العملاء</span>
+          </button>
 
-          <div className="flex items-center gap-3">
-            <Badge
-              className={
-                userInfo.is_suspended
-                  ? "bg-[#FF3B30]/10 text-[#FF3B30] border-0 font-medium px-3 py-1"
-                  : "bg-[#34C759]/10 text-[#34C759] border-0 font-medium px-3 py-1"
-              }
-            >
-              <span
-                className={`w-2 h-2 rounded-full ml-1.5 ${
-                  userInfo.is_suspended ? "bg-[#FF3B30]" : "bg-[#34C759]"
-                }`}
-              />
-              {userInfo.is_suspended ? "معلق" : "نشط"}
-            </Badge>
-            <h1 className="text-lg font-bold text-gray-800 truncate max-w-[200px]">
+          {/* الصف الثاني: اسم العميل + الحالة */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-[17px] font-bold text-[#1c1c1e] truncate">
               {userInfo.full_name || userInfo.username}
             </h1>
+            <div className="flex items-center gap-1.5 shrink-0 mr-3">
+              {userInfo.is_suspended ? (
+                <>
+                  <XCircle className="w-4 h-4 text-[#FF3B30]" />
+                  <span className="text-[12px] font-medium text-[#FF3B30]">معلّق</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 text-[#34C759]" />
+                  <span className="text-[12px] font-medium text-[#34C759]">نشط</span>
+                </>
+              )}
+            </div>
           </div>
         </motion.div>
 
