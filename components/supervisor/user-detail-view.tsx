@@ -27,7 +27,16 @@ import {
   Edit,
   Ban,
   FileDown,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FileText,
 } from "lucide-react"
+import {
+  downloadPptxViaApi,
+  downloadPdfViaApi,
+  type ReportDataForPptx,
+} from "@/lib/pptx-service"
 import { SuspendUserDialog } from "./suspend-user-dialog"
 import { UnsuspendUserDialog } from "./unsuspend-user-dialog"
 
@@ -79,10 +88,16 @@ interface CurrentLimit {
 
 interface ReportItem {
   id: string
+  service_code: string
   id_number: string
   name_ar: string
+  name_en: string
   days_count: number
+  entry_date_gregorian: string
+  exit_date_gregorian: string
   created_at: string
+  pptx_enabled?: boolean
+  [key: string]: any
 }
 
 interface SuspensionHistoryItem {
@@ -235,54 +250,135 @@ function LoadingSkeleton() {
 }
 
 /* ============================================================
-   Report Card Component
+   Report Card Component (expandable)
    ============================================================ */
 
 function ReportCard({ report, index }: { report: ReportItem; index: number }) {
+  const [expanded, setExpanded] = useState(false)
+  const [downloading, setDownloading] = useState<string | null>(null)
+
+  const toPayload = (): ReportDataForPptx => ({
+    SERVICE_CODE: report.service_code,
+    ID_NUMBER: report.id_number,
+    NAME_AR: report.name_ar,
+    NAME_EN: report.name_en || "",
+    DAYS_COUNT: report.days_count,
+    ENTRY_DATE_GREGORIAN: report.entry_date_gregorian || "",
+    EXIT_DATE_GREGORIAN: report.exit_date_gregorian || "",
+    ENTRY_DATE_HIJRI: report.entry_date_hijri || "",
+    EXIT_DATE_HIJRI: report.exit_date_hijri || "",
+    REPORT_ISSUE_DATE: report.report_issue_date || "",
+    NATIONALITY_AR: report.nationality_ar || "",
+    NATIONALITY_EN: report.nationality_en || "",
+    DOCTOR_NAME_AR: report.doctor_name_ar || "",
+    DOCTOR_NAME_EN: report.doctor_name_en || "",
+    JOB_TITLE_AR: report.job_title_ar || "",
+    JOB_TITLE_EN: report.job_title_en || "",
+    HOSPITAL_NAME_AR: report.hospital_name_ar || "",
+    HOSPITAL_NAME_EN: report.hospital_name_en || "",
+    PRINT_DATE: report.print_date || "",
+    PRINT_TIME: report.print_time || "",
+  })
+
+  const handleDownload = async (kind: "pdf" | "pptx") => {
+    setDownloading(kind)
+    try {
+      const payload = toPayload()
+      if (kind === "pptx") await downloadPptxViaApi(payload)
+      else await downloadPdfViaApi(payload)
+    } catch (err) {
+      console.error(`Download ${kind} error:`, err)
+    } finally {
+      setDownloading(null)
+    }
+  }
+
   return (
     <motion.div
       variants={itemVariants}
-      whileHover="hover"
-      initial="rest"
-      className="group"
+      className="bg-white rounded-xl border border-gray-100 overflow-hidden"
     >
-      <motion.div
-        variants={cardHover}
-        className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white/60 backdrop-blur-sm hover:bg-[#f2f2f7] hover:border-gray-200 hover:shadow-md transition-all duration-300"
+      {/* Card header (always visible) */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 px-3 py-2.5 text-right hover:bg-[#f2f2f7]/60 transition-colors"
       >
-        {/* Report icon */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#007AFF]/10 flex items-center justify-center group-hover:bg-[#007AFF]/15 transition-colors duration-300">
-          <FileBarChart className="w-5 h-5 text-[#007AFF]" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
+          <FileBarChart className="w-4 h-4 text-[#007AFF]" />
         </div>
-
-        {/* Report info */}
-        <div className="flex-1 min-w-0 space-y-0.5">
-          <p className="text-sm font-semibold text-gray-800 truncate">
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-semibold text-[#1c1c1e] truncate leading-tight">
             {report.name_ar}
           </p>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <Hash className="w-3 h-3" />
+          <div className="flex items-center gap-2.5 text-[11px] text-gray-400 mt-0.5">
+            <span className="flex items-center gap-0.5">
+              <Hash className="w-2.5 h-2.5" />
               {report.id_number}
             </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+            <span className="flex items-center gap-0.5">
+              <Clock className="w-2.5 h-2.5" />
               {report.days_count} يوم
             </span>
           </div>
         </div>
-
-        {/* Date */}
-        <div className="flex-shrink-0 text-left">
-          <p className="text-xs text-gray-400">{formatDate(report.created_at)}</p>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] text-gray-300">{formatDate(report.created_at)}</span>
+          {expanded ? (
+            <ChevronUp className="w-4 h-4 text-gray-300" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-300" />
+          )}
         </div>
-      </motion.div>
+      </button>
+
+      {/* Expanded decoration - download options */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-gray-100 px-3 py-2.5">
+              <p className="text-[10px] text-gray-400 font-medium mb-2">تنزيل التقرير</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDownload("pdf")}
+                  disabled={downloading === "pdf"}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#AF52DE]/10 text-[#AF52DE] text-[12px] font-semibold hover:bg-[#AF52DE]/20 active:scale-[0.97] transition-all disabled:opacity-50"
+                >
+                  {downloading === "pdf" ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5" />
+                  )}
+                  PDF
+                </button>
+                <button
+                  onClick={() => handleDownload("pptx")}
+                  disabled={downloading === "pptx"}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#34C759]/10 text-[#34C759] text-[12px] font-semibold hover:bg-[#34C759]/20 active:scale-[0.97] transition-all disabled:opacity-50"
+                >
+                  {downloading === "pptx" ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  PPTX
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
 
 /* ============================================================
-   Reports Section Component
+   Reports Section Component (collapsible)
    ============================================================ */
 
 function ReportsSection({
@@ -291,66 +387,95 @@ function ReportsSection({
   totalCount,
   totalDays,
   isLoading,
+  accentColor = "#007AFF",
 }: {
   title: string
   reports: ReportItem[]
   totalCount: number
   totalDays: number
   isLoading: boolean
+  accentColor?: string
 }) {
+  const [collapsed, setCollapsed] = useState(false)
+
   return (
-    <motion.div variants={itemVariants} className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center gap-2">
+    <motion.div variants={itemVariants}>
+      {/* Section header - clickable to toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="w-full flex items-center gap-2 mb-3 group"
+      >
         <div className="h-px flex-1 bg-gray-100" />
-        <h3 className="text-base font-bold text-gray-800 px-2">
-          {title}
-        </h3>
+        <div className="flex items-center gap-1.5 px-2">
+          <h3 className="text-sm font-bold text-gray-700">{title}</h3>
+          <Badge
+            variant="outline"
+            className="text-[10px] border-0 font-medium px-1.5 py-0"
+            style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
+          >
+            {totalCount}
+          </Badge>
+          {collapsed ? (
+            <ChevronDown className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors" />
+          ) : (
+            <ChevronUp className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors" />
+          )}
+        </div>
         <div className="h-px flex-1 bg-gray-100" />
-      </div>
+      </button>
 
-      {/* Stats summary */}
-      <div className="flex items-center gap-3 px-1">
-        <Badge
-          variant="outline"
-          className="bg-[#007AFF]/10 text-[#007AFF] border-0 font-medium"
-        >
-          <FileBarChart className="w-3 h-3 ml-1" />
-          {totalCount} تقرير
-        </Badge>
-        <Badge
-          variant="outline"
-          className="bg-[#FF9500]/10 text-[#FF9500] border-0 font-medium"
-        >
-          <Clock className="w-3 h-3 ml-1" />
-          {totalDays} يوم
-        </Badge>
-      </div>
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            {/* Stats summary */}
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <Badge
+                variant="outline"
+                className="bg-[#007AFF]/10 text-[#007AFF] border-0 text-[10px] font-medium px-1.5 py-0"
+              >
+                {totalCount} تقرير
+              </Badge>
+              <Badge
+                variant="outline"
+                className="bg-[#FF9500]/10 text-[#FF9500] border-0 text-[10px] font-medium px-1.5 py-0"
+              >
+                {totalDays} يوم
+              </Badge>
+            </div>
 
-      {/* Reports list */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
-          ))}
-        </div>
-      ) : reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
-          <FileBarChart className="w-10 h-10 mb-2 opacity-40" />
-          <p className="text-sm">لا توجد تقارير في هذه الفترة</p>
-        </div>
-      ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-2 max-h-96 overflow-y-auto pr-1 custom-scrollbar"
-        >
-          {reports.map((report, index) => (
-            <ReportCard key={report.id} report={report} index={index} />
-          ))}
-        </motion.div>
-      )}
+            {/* Reports list */}
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 rounded-xl" />
+                ))}
+              </div>
+            ) : reports.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                <FileBarChart className="w-8 h-8 mb-2 opacity-40" />
+                <p className="text-xs">لا توجد تقارير</p>
+              </div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-1.5 max-h-80 overflow-y-auto pr-1"
+              >
+                {reports.map((report, index) => (
+                  <ReportCard key={report.id} report={report} index={index} />
+                ))}
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
@@ -450,7 +575,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         // Period reports (since last unsuspension)
         supabase
           .from("reports")
-          .select("id, id_number, name_ar, days_count, created_at")
+          .select("id, service_code, id_number, name_ar, name_en, days_count, entry_date_gregorian, exit_date_gregorian, entry_date_hijri, exit_date_hijri, report_issue_date, nationality_ar, nationality_en, doctor_name_ar, doctor_name_en, job_title_ar, job_title_en, hospital_name_ar, hospital_name_en, print_date, print_time, created_at")
           .eq("user_id", userId)
           .eq("is_deleted", false)
           .gte("created_at", periodStart || userCreatedAt)
@@ -459,7 +584,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         // All-time reports
         supabase
           .from("reports")
-          .select("id, id_number, name_ar, days_count, created_at")
+          .select("id, service_code, id_number, name_ar, name_en, days_count, entry_date_gregorian, exit_date_gregorian, entry_date_hijri, exit_date_hijri, report_issue_date, nationality_ar, nationality_en, doctor_name_ar, doctor_name_en, job_title_ar, job_title_en, hospital_name_ar, hospital_name_en, print_date, print_time, created_at")
           .eq("user_id", userId)
           .eq("is_deleted", false)
           .gte("created_at", userCreatedAt)
@@ -551,12 +676,12 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="container max-w-lg mx-auto p-4 pb-8 space-y-6"
+        className="container max-w-lg mx-auto px-3 py-2 space-y-3"
       >
         {/* ── 1. Header ── */}
         <motion.div
           variants={itemVariants}
-          className="flex items-center justify-between"
+          className="flex items-center justify-between mb-1"
         >
           <Button
             variant="ghost"
@@ -590,10 +715,10 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
         {/* ── 2. User Info Card ── */}
         <motion.div variants={itemVariants}>
-          <Card className="bg-white rounded-2xl shadow-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
-                <User className="w-5 h-5 text-[#007AFF]" />
+          <Card className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <CardHeader className="pb-2 px-3.5 pt-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-[15px] text-gray-800 flex items-center gap-2">
+                <User className="w-4 h-4 text-[#007AFF]" />
                 معلومات المستخدم
               </CardTitle>
               <div className="flex items-center gap-1">
@@ -628,94 +753,94 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <CardContent className="pt-0 px-3.5 pb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
                 {/* Full name */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
-                    <User className="w-4 h-4 text-[#007AFF]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-[#007AFF]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">الاسم الكامل</p>
-                    <p className="text-sm font-semibold text-gray-800 truncate">
+                    <p className="text-[10px] text-gray-400">الاسم الكامل</p>
+                    <p className="text-[12px] font-semibold text-gray-800 truncate">
                       {userInfo.full_name || "—"}
                     </p>
                   </div>
                 </div>
 
                 {/* Username */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#AF52DE]/10 flex items-center justify-center">
-                    <Hash className="w-4 h-4 text-[#AF52DE]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#AF52DE]/10 flex items-center justify-center">
+                    <Hash className="w-3.5 h-3.5 text-[#AF52DE]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">اسم المستخدم</p>
-                    <p className="text-sm font-semibold text-gray-800 truncate">
+                    <p className="text-[10px] text-gray-400">اسم المستخدم</p>
+                    <p className="text-[12px] font-semibold text-gray-800 truncate">
                       {userInfo.username}
                     </p>
                   </div>
                 </div>
 
                 {/* Phone */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
-                    <Phone className="w-4 h-4 text-[#34C759]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
+                    <Phone className="w-3.5 h-3.5 text-[#34C759]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">الهاتف</p>
-                    <p className="text-sm font-semibold text-gray-800 truncate" dir="ltr">
+                    <p className="text-[10px] text-gray-400">الهاتف</p>
+                    <p className="text-[12px] font-semibold text-gray-800 truncate" dir="ltr">
                       {userInfo.phone || "—"}
                     </p>
                   </div>
                 </div>
 
                 {/* Email */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#FF9500]/10 flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-[#FF9500]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#FF9500]/10 flex items-center justify-center">
+                    <Mail className="w-3.5 h-3.5 text-[#FF9500]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">البريد</p>
-                    <p className="text-sm font-semibold text-gray-800 truncate" dir="ltr">
+                    <p className="text-[10px] text-gray-400">البريد</p>
+                    <p className="text-[12px] font-semibold text-gray-800 truncate" dir="ltr">
                       {userInfo.email || "—"}
                     </p>
                   </div>
                 </div>
 
                 {/* Role */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-[#007AFF]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
+                    <Shield className="w-3.5 h-3.5 text-[#007AFF]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">الدور</p>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-[10px] text-gray-400">الدور</p>
+                    <p className="text-[12px] font-semibold text-gray-800">
                       {getRoleLabel(userInfo.role)}
                     </p>
                   </div>
                 </div>
 
                 {/* Created at */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-[#34C759]" />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
+                    <Calendar className="w-3.5 h-3.5 text-[#34C759]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">تاريخ الإنشاء</p>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-[10px] text-gray-400">تاريخ الإنشاء</p>
+                    <p className="text-[12px] font-semibold text-gray-800">
                       {formatDate(userInfo.created_at)}
                     </p>
                   </div>
                 </div>
 
                 {/* PPTX enabled */}
-                <div className="flex items-start gap-3 p-2">
-                  <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${userInfo.pptx_enabled ? "bg-[#34C759]/10" : "bg-[#FF3B30]/10"}`}>
-                    <FileDown className={`w-4 h-4 ${userInfo.pptx_enabled ? "text-[#34C759]" : "text-[#FF3B30]"}`} />
+                <div className="flex items-center gap-2.5 py-1.5">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${userInfo.pptx_enabled ? "bg-[#34C759]/10" : "bg-[#FF3B30]/10"}`}>
+                    <FileDown className={`w-3.5 h-3.5 ${userInfo.pptx_enabled ? "text-[#34C759]" : "text-[#FF3B30]"}`} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400 mb-0.5">تنزيل PPTX</p>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-[10px] text-gray-400">تنزيل PPTX</p>
+                    <p className="text-[12px] font-semibold text-gray-800">
                       {userInfo.pptx_enabled ? "مسموح ✓" : "غير مسموح ✗"}
                     </p>
                   </div>
@@ -727,33 +852,28 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
         {/* ── 3. Stats Cards ── */}
         <motion.div variants={itemVariants}>
-          <div className="grid grid-cols-3 gap-3">
-            {/* Period reports */}
-            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
-              <span className="text-2xl font-bold text-[#007AFF]">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center justify-center py-3 bg-[#f2f2f7] rounded-xl">
+              <span className="text-xl font-bold text-[#007AFF]">
                 {periodStats?.period_report_count ?? 0}
               </span>
-              <span className="text-xs text-[#007AFF] mt-1 font-medium">
+              <span className="text-[10px] text-[#007AFF] mt-0.5 font-medium">
                 تقارير الفترة
               </span>
             </div>
-
-            {/* Period total days */}
-            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
-              <span className="text-2xl font-bold text-[#FF9500]">
+            <div className="flex flex-col items-center justify-center py-3 bg-[#f2f2f7] rounded-xl">
+              <span className="text-xl font-bold text-[#FF9500]">
                 {periodStats?.period_total_days ?? 0}
               </span>
-              <span className="text-xs text-[#FF9500] mt-1 font-medium">
+              <span className="text-[10px] text-[#FF9500] mt-0.5 font-medium">
                 أيام الفترة
               </span>
             </div>
-
-            {/* Total suspensions */}
-            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
-              <span className="text-2xl font-bold text-[#FF3B30]">
+            <div className="flex flex-col items-center justify-center py-3 bg-[#f2f2f7] rounded-xl">
+              <span className="text-xl font-bold text-[#FF3B30]">
                 {periodStats?.total_suspensions ?? 0}
               </span>
-              <span className="text-xs text-[#FF3B30] mt-1 font-medium">
+              <span className="text-[10px] text-[#FF3B30] mt-0.5 font-medium">
                 مرات التعليق
               </span>
             </div>
@@ -791,29 +911,28 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         {/* ── 4. Current Limit Card ── */}
         {currentLimit && currentLimit.limit_type && (
           <motion.div variants={itemVariants}>
-            <Card className="overflow-hidden bg-white rounded-2xl shadow-sm bg-[#FF9500]/5 border-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[#FF9500]" />
+            <Card className="overflow-hidden bg-white rounded-2xl shadow-sm border-0">
+              <CardHeader className="pb-1.5 px-3.5 pt-3">
+                <CardTitle className="text-[13px] text-gray-800 flex items-center gap-1.5">
+                  <Settings className="w-3.5 h-3.5 text-[#FF9500]" />
                   الحد الحالي
                   <Badge
                     variant="outline"
-                    className="bg-[#FF9500]/10 text-[#FF9500] border-0 font-medium mr-auto"
+                    className="bg-[#FF9500]/10 text-[#FF9500] border-0 text-[10px] font-medium mr-auto"
                   >
                     {getLimitTypeLabel(currentLimit.limit_type)}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Limit value or date */}
-                  <div className="p-3 rounded-lg bg-[#f2f2f7] border-0">
-                    <p className="text-xs text-gray-400 mb-1">
+              <CardContent className="pt-0 px-3.5 pb-3 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-[#f2f2f7]">
+                    <p className="text-[10px] text-gray-400">
                       {currentLimit.limit_type === "specific_date"
                         ? "تاريخ الانتهاء"
                         : "قيمة الحد"}
                     </p>
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-[12px] font-bold text-gray-800">
                       {currentLimit.limit_type === "specific_date"
                         ? formatDate(currentLimit.limit_date)
                         : currentLimit.limit_value
@@ -821,18 +940,15 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                         : "—"}
                     </p>
                   </div>
-
-                  {/* Set by */}
-                  <div className="p-3 rounded-lg bg-[#f2f2f7] border-0">
-                    <p className="text-xs text-gray-400 mb-1">تم التعيين بواسطة</p>
-                    <p className="text-sm font-bold text-gray-800">
+                  <div className="p-2 rounded-lg bg-[#f2f2f7]">
+                    <p className="text-[10px] text-gray-400">تم التعيين بواسطة</p>
+                    <p className="text-[12px] font-bold text-gray-800">
                       {currentLimit.set_by_username || "—"}
                     </p>
                   </div>
                 </div>
-
                 {currentLimit.limit_set_at && (
-                  <p className="text-xs text-gray-400 text-center">
+                  <p className="text-[10px] text-gray-400 text-center">
                     تاريخ التعيين: {formatDateTime(currentLimit.limit_set_at)}
                   </p>
                 )}
@@ -841,8 +957,6 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           </motion.div>
         )}
 
-        <Separator className="bg-gray-100" />
-
         {/* ── 5. Period Reports Section ── */}
         <ReportsSection
           title="تقارير الفترة الحالية"
@@ -850,9 +964,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           totalCount={periodStats?.period_report_count ?? 0}
           totalDays={periodStats?.period_total_days ?? 0}
           isLoading={reportsLoading}
+          accentColor="#007AFF"
         />
-
-        <Separator className="bg-gray-100" />
 
         {/* ── 6. All-Time Reports Section ── */}
         <ReportsSection
@@ -861,6 +974,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           totalCount={allTimeStats?.total_reports ?? 0}
           totalDays={periodStats?.period_total_days ?? 0}
           isLoading={reportsLoading}
+          accentColor="#34C759"
         />
 
         {/* ── 7. Suspension History Section ── */}
@@ -946,7 +1060,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         )}
 
         {/* Bottom spacing */}
-        <div className="h-4" />
+        <div className="h-2" />
       </motion.div>
 
       {/* ── Suspend / Unsuspend Dialogs ── */}
