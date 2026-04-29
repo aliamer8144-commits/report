@@ -8,9 +8,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { BarChart3, PlusCircle, Edit, Trash2, Download, ChevronLeft, ChevronRight, FileText, Eye } from "lucide-react"
+import { BarChart3, PlusCircle, Edit, Trash2, Download, ChevronLeft, ChevronRight } from "lucide-react"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
-import { useHtmlPdfWithPreview } from "@/components/ui-custom/pdf-preview-dialog"
 
 interface Report {
   id: string
@@ -61,18 +60,31 @@ export default function ReportsPage() {
   const supabase = createClientSupabaseClient()
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
-  const { openPreview, previewDialog } = useHtmlPdfWithPreview()
+  const [pptxEnabled, setPptxEnabled] = useState(true)
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
+    const init = async () => {
+      // التحقق من تسجيل الدخول
+      const userId = localStorage.getItem("user_id")
+      if (!userId) {
+        router.push("/")
+        return
+      }
 
-    // جلب التقارير
-    fetchReports(userId, page)
+      // جلب صلاحية PPTX للمستخدم
+      const { data: userData } = await supabase
+        .from("users")
+        .select("pptx_enabled")
+        .eq("id", userId)
+        .single()
+      if (userData) {
+        setPptxEnabled(userData.pptx_enabled !== false)
+      }
+
+      // جلب التقارير
+      fetchReports(userId, page)
+    }
+    init()
   }, [router, page])
 
   const fetchReports = async (userId: string, page: number) => {
@@ -145,10 +157,6 @@ export default function ReportsPage() {
     await downloadPdf(reportToPayload(report))
   }
 
-  const handlePreviewHtmlPdf = async (report: Report) => {
-    await openPreview(reportToPayload(report))
-  }
-
   // تنسيق التاريخ
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -159,7 +167,6 @@ export default function ReportsPage() {
     <div className="container max-w-md mx-auto p-4 pb-20">
       {pptxProgressDialog}
       {pdfProgressDialog}
-      {previewDialog}
       <BackButton />
       <PageHeader
         title="التقارير"
@@ -232,19 +239,11 @@ export default function ReportsPage() {
                       تعديل
                     </Button>
                   </div>
-                  {/* الصف الثاني: حذف + PPTX + PDF */}
-                  <div className="grid grid-cols-3 gap-2 w-full">
+                  {/* الصف الثاني: حذف + PDF + PPTX (اختياري) */}
+                  <div className={`grid gap-2 w-full ${pptxEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
                     <Button onClick={() => handleDelete(report)} className="bg-red-500 hover:bg-red-600" size="sm">
                       <Trash2 className="mr-2 h-4 w-4" />
                       حذف
-                    </Button>
-                    <Button
-                      onClick={() => handleDownloadPPTX(report)}
-                      className="bg-green-500 hover:bg-green-600"
-                      size="sm"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      PPTX
                     </Button>
                     <Button
                       onClick={() => handleDownloadPDF(report)}
@@ -254,17 +253,17 @@ export default function ReportsPage() {
                       <Download className="mr-2 h-4 w-4" />
                       PDF
                     </Button>
+                    {pptxEnabled && (
+                      <Button
+                        onClick={() => handleDownloadPPTX(report)}
+                        className="bg-green-500 hover:bg-green-600"
+                        size="sm"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        PPTX
+                      </Button>
+                    )}
                   </div>
-                  {/* الصف الثالث: زر معاينة وتنزيل القالب الجديد (HTML PDF) */}
-                  <Button
-                    onClick={() => handlePreviewHtmlPdf(report)}
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md"
-                    size="sm"
-                  >
-                    <FileText className="ml-2 h-4 w-4" />
-                    <Eye className="ml-2 h-4 w-4" />
-                    معاينة وتنزيل التقرير
-                  </Button>
                 </CardFooter>
               </Card>
             ))}

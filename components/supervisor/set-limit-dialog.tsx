@@ -29,7 +29,9 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  FileDown,
 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 /* ============================================================
    أنواع البيانات
@@ -217,6 +219,10 @@ export default function SetLimitDialog({
   const [currentLimitInfo, setCurrentLimitInfo] = useState<CurrentLimitInfo | null>(null)
   const [isLoadingCurrentLimit, setIsLoadingCurrentLimit] = useState(false)
 
+  // صلاحية تنزيل PPTX
+  const [pptxEnabled, setPptxEnabled] = useState(true)
+  const [isLoadingPptxEnabled, setIsLoadingPptxEnabled] = useState(false)
+
   // تحقق من صحة النموذج
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -226,15 +232,19 @@ export default function SetLimitDialog({
 
     const fetchCurrentLimit = async () => {
       setIsLoadingCurrentLimit(true)
+      setIsLoadingPptxEnabled(true)
       try {
-        // جلب بيانات المستخدم (inline limit fields)
+        // جلب بيانات المستخدم (inline limit fields + pptx_enabled)
         const { data: userData, error: userError } = await supabase
           .from("users")
-          .select("limit_type, limit_value, limit_date")
+          .select("limit_type, limit_value, limit_date, pptx_enabled")
           .eq("id", userId)
           .single()
 
         if (userError) throw userError
+
+        // تعيين حالة pptx_enabled
+        setPptxEnabled(userData.pptx_enabled !== false)
 
         if (userData.limit_type) {
           // جلب آخر سجل من user_limits لمعرفة من قام بالتحديد ومتى
@@ -294,6 +304,7 @@ export default function SetLimitDialog({
         setSelectedType(currentLimitType ? mapUserLimitTypeToForm(currentLimitType) : "none")
       } finally {
         setIsLoadingCurrentLimit(false)
+        setIsLoadingPptxEnabled(false)
       }
     }
 
@@ -425,6 +436,16 @@ export default function SetLimitDialog({
 
       // نجاح
       setSubmitSuccess(true)
+
+      // حفظ إعداد pptx_enabled بشكل منفصل
+      try {
+        await supabase
+          .from("users")
+          .update({ pptx_enabled: pptxEnabled })
+          .eq("id", userId)
+      } catch (err) {
+        console.error("Error updating pptx_enabled:", err)
+      }
 
       // استدعاء دالة التحديث بعد فترة قصيرة
       setTimeout(() => {
@@ -803,6 +824,46 @@ export default function SetLimitDialog({
               </motion.div>
             )}
           </AnimatePresence>
+
+          <Separator className="bg-indigo-100" />
+
+          {/* ===== صلاحية تنزيل PPTX ===== */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl border-2 border-indigo-200/60 bg-gradient-to-l from-indigo-50/80 to-purple-50/80">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-100 p-2 rounded-xl">
+                  <FileDown className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-800 block">
+                    تنزيل PPTX
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    السماح للمستخدم بتنزيل التقارير بصيغة PPTX
+                  </p>
+                </div>
+              </div>
+              {isLoadingPptxEnabled ? (
+                <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+              ) : (
+                <Switch
+                  checked={pptxEnabled}
+                  onCheckedChange={setPptxEnabled}
+                  className="data-[state=checked]:bg-green-500"
+                />
+              )}
+            </div>
+            {!pptxEnabled && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-amber-600 flex items-center gap-1 px-1"
+              >
+                <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                لن يتمكن المستخدم من رؤية زر تنزيل PPTX في أي مكان
+              </motion.p>
+            )}
+          </div>
 
           {/* ===== رسائل الخطأ والنجاح ===== */}
           <AnimatePresence>

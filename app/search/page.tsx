@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { SearchIcon, PlusCircle, Edit, Trash2, Download, Eye } from "lucide-react"
+import { SearchIcon, PlusCircle, Edit, Trash2, Download } from "lucide-react"
 import { type ReportData } from "@/lib/report-generator"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
@@ -22,6 +22,7 @@ export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<Report[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [pptxEnabled, setPptxEnabled] = useState(true)
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
 
@@ -31,6 +32,19 @@ export default function SearchPage() {
       try {
         const supabase = createClientSupabaseClient()
         setIsInitializing(false)
+
+        // جلب صلاحية PPTX للمستخدم
+        const userId = localStorage.getItem("user_id")
+        if (userId) {
+          const { data: userData } = await supabase
+            .from("users")
+            .select("pptx_enabled")
+            .eq("id", userId)
+            .single()
+          if (userData) {
+            setPptxEnabled(userData.pptx_enabled !== false)
+          }
+        }
       } catch (err) {
         console.error("Failed to initialize Supabase:", err)
         setError("فشل الاتصال بقاعدة البيانات. يرجى المحاولة مرة أخرى.")
@@ -69,11 +83,6 @@ export default function SearchPage() {
   const handleDelete = (report: Report) => {
     localStorage.setItem("report_to_delete", JSON.stringify(report))
     router.push("/delete")
-  }
-
-  const handleView = (report: Report) => {
-    localStorage.setItem("report_to_view", JSON.stringify(report))
-    router.push("/view")
   }
 
   const handleDownloadPPTX = async (report: Report) => {
@@ -217,25 +226,21 @@ export default function SearchPage() {
                     تعديل
                   </Button>
                 </div>
-                <div className="grid grid-cols-3 gap-2 w-full">
+                <div className={`grid gap-2 w-full ${pptxEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <Button onClick={() => handleDelete(report)} className="bg-red-500 hover:bg-red-600" size="sm">
                     <Trash2 className="mr-2 h-4 w-4" />
                     حذف
                   </Button>
-                  <Button onClick={() => handleView(report)} className="bg-green-500 hover:bg-green-600" size="sm">
-                    <Eye className="mr-2 h-4 w-4" />
-                    عرض
-                  </Button>
-                  <Button onClick={() => handleDownloadPPTX(report)} className="bg-purple-500 hover:bg-purple-600" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    PPTX
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 gap-2 w-full">
                   <Button onClick={() => handleDownloadPDF(report)} className="bg-purple-500 hover:bg-purple-600" size="sm">
                     <Download className="mr-2 h-4 w-4" />
                     PDF
                   </Button>
+                  {pptxEnabled && (
+                    <Button onClick={() => handleDownloadPPTX(report)} className="bg-green-500 hover:bg-green-600" size="sm">
+                      <Download className="mr-2 h-4 w-4" />
+                      PPTX
+                    </Button>
+                  )}
                 </div>
               </CardFooter>
             </Card>

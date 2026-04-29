@@ -34,7 +34,10 @@ import {
   User,
   Lock,
   Infinity,
+  FileDown,
+  AlertTriangle,
 } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 /* ============================================================
    الأنواع
@@ -59,6 +62,7 @@ interface FormData {
   limitDays: string
   limitReports: string
   limitDate: string
+  pptxEnabled: boolean
 }
 
 interface FormErrors {
@@ -85,6 +89,7 @@ const initialFormData: FormData = {
   limitDays: "",
   limitReports: "",
   limitDate: "",
+  pptxEnabled: true,
 }
 
 /* ============================================================
@@ -201,6 +206,7 @@ export function AddUserDialog({
         supervisor_id: supervisorId,
         is_suspended: false,
         last_unsuspended_at: new Date().toISOString(),
+        pptx_enabled: formData.pptxEnabled,
       }
 
       // حقول اختيارية
@@ -695,6 +701,50 @@ export function AddUserDialog({
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+          </div>
+
+          {/* ===== فاصل ===== */}
+          <Separator className="bg-indigo-100" />
+
+          {/* ===== صلاحية تنزيل PPTX ===== */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+              <FileDown className="h-4 w-4 text-green-500" />
+              صلاحيات التنزيل
+            </h3>
+
+            <div className="bg-gradient-to-br from-green-50/80 to-emerald-50/80 rounded-xl p-4 space-y-3 border border-green-100/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-xl">
+                    <FileDown className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 text-sm font-medium block">
+                      تنزيل PPTX
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      السماح للمستخدم بتنزيل التقارير بصيغة PPTX
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.pptxEnabled}
+                  onCheckedChange={(checked) => updateField("pptxEnabled", String(checked))}
+                  className="data-[state=checked]:bg-green-500"
+                />
+              </div>
+              {!formData.pptxEnabled && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-amber-600 flex items-center gap-1"
+                >
+                  <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                  لن يتمكن المستخدم من رؤية زر تنزيل PPTX في أي مكان
+                </motion.p>
+              )}
             </div>
           </div>
         </motion.div>

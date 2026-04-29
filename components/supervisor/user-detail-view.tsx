@@ -26,6 +26,7 @@ import {
   Loader2,
   Edit,
   Ban,
+  FileDown,
 } from "lucide-react"
 import { SuspendUserDialog } from "./suspend-user-dialog"
 import { UnsuspendUserDialog } from "./unsuspend-user-dialog"
@@ -51,6 +52,7 @@ interface UserInfo {
   limit_type: string | null
   limit_value: number | null
   limit_date: string | null
+  pptx_enabled: boolean
 }
 
 interface PeriodStats {
@@ -387,7 +389,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select(
-          "id, username, full_name, phone, email, role, created_at, is_suspended, limit_type, limit_value, limit_date"
+          "id, username, full_name, phone, email, role, created_at, is_suspended, limit_type, limit_value, limit_date, pptx_enabled"
         )
         .eq("id", userId)
         .single()
@@ -627,7 +629,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Full name */}
                 <div className="flex items-start gap-3 p-2">
                   <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
@@ -702,6 +704,19 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                     <p className="text-xs text-gray-400 mb-0.5">تاريخ الإنشاء</p>
                     <p className="text-sm font-semibold text-gray-800">
                       {formatDate(userInfo.created_at)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* PPTX enabled */}
+                <div className="flex items-start gap-3 p-2">
+                  <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${userInfo.pptx_enabled ? "bg-green-100" : "bg-red-100"}`}>
+                    <FileDown className={`w-4 h-4 ${userInfo.pptx_enabled ? "text-green-500" : "text-red-500"}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-400 mb-0.5">تنزيل PPTX</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {userInfo.pptx_enabled ? "مسموح ✓" : "غير مسموح ✗"}
                     </p>
                   </div>
                 </div>

@@ -26,7 +26,9 @@ create table if not exists public.users (
   limit_date timestamptz,
   -- حقول التعليق
   is_suspended boolean not null default false,
-  last_unsuspended_at timestamptz not null default now()
+  last_unsuspended_at timestamptz not null default now(),
+  -- صلاحية تنزيل PPTX (يتحكم بها المشرف)
+  pptx_enabled boolean not null default true
 );
 
 -- ============================================================
