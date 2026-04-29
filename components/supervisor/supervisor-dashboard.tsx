@@ -134,6 +134,15 @@ interface WeeklyStats {
   prevWeekDays: number
 }
 
+type StatsPeriod = "today" | "week" | "month" | "all"
+
+interface FilteredStats {
+  clients: number
+  reports: number
+  days: number
+  suspended: number
+}
+
 /* ============================================================
    مساعدات
    ============================================================ */
@@ -247,6 +256,13 @@ export function SupervisorDashboard() {
     prevWeekDays: 0,
   })
   const [showAllActivity, setShowAllActivity] = useState(false)
+  const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>("all")
+  const [filteredStats, setFilteredStats] = useState<FilteredStats>({
+    clients: 0,
+    reports: 0,
+    days: 0,
+    suspended: 0,
+  })
 
   const refreshData = useCallback(async (showLoading = false) => {
     if (!supervisorId) return
@@ -457,6 +473,34 @@ export function SupervisorDashboard() {
       })
       setNearLimitClients(nearLimit)
 
+      // حساب الإحصائيات المفلترة حسب الفترة
+      const calculateFilteredStats = (period: StatsPeriod) => {
+        let reports = 0
+        let days = 0
+        let suspended = suspendedClients
+
+        if (period === "today") {
+          const startOfDay = new Date()
+          startOfDay.setHours(0, 0, 0, 0)
+          // نحتاج نحسب التقارير لليوم من dailyReports
+          reports = todayReports
+          // الأيام لليوم = عدد التقارير لليوم (كل تقرير = يوم)
+          days = todayReports
+        } else if (period === "week") {
+          reports = weeklyStats.weekReports
+          days = weeklyStats.weekReports // كل تقرير = يوم
+        } else if (period === "month") {
+          reports = monthReports
+          days = monthReports
+        } else {
+          reports = totalReports
+          days = totalDays
+        }
+
+        return { clients: period === "all" ? clients.length : clients.length, reports, days, suspended }
+      }
+      setFilteredStats(calculateFilteredStats(statsPeriod))
+
       setLastRefreshed(new Date())
       setConnectionStatus("fresh")
     } catch {
@@ -490,6 +534,34 @@ export function SupervisorDashboard() {
     return () => clearInterval(statusInterval)
   }, [lastRefreshed])
 
+  // تحديث الإحصائيات المفلترة عند تغيير الفترة أو البيانات
+  useEffect(() => {
+    if (loading) return
+    let reports = 0
+    let days = 0
+
+    if (statsPeriod === "today") {
+      reports = stats.todayReports
+      days = stats.todayReports
+    } else if (statsPeriod === "week") {
+      reports = weeklyStats.weekReports
+      days = weeklyStats.weekReports
+    } else if (statsPeriod === "month") {
+      reports = stats.monthReports
+      days = stats.monthReports
+    } else {
+      reports = stats.totalReports
+      days = stats.totalDays
+    }
+
+    setFilteredStats({
+      clients: stats.totalClients,
+      reports,
+      days,
+      suspended: stats.suspendedClients,
+    })
+  }, [statsPeriod, stats, weeklyStats, loading])
+
   const formatLastRefreshed = () => {
     const diff = Math.floor((Date.now() - lastRefreshed.getTime()) / 1000)
     if (diff < 5) return "الآن"
@@ -501,14 +573,6 @@ export function SupervisorDashboard() {
   const navigateTo = (tab: string) => {
     window.dispatchEvent(new CustomEvent("supervisor-navigate", { detail: { tab } }))
   }
-
-  // بطاقات الإحصائيات
-  const statCards = [
-    { label: "إجمالي العملاء", value: stats.totalClients, icon: Users, color: "#007AFF", circleColor: "#5856D6" },
-    { label: "التقارير المنشأة", value: stats.totalReports, icon: FileBarChart, color: "#34C759", circleColor: "#28A745" },
-    { label: "المعلّقون", value: stats.suspendedClients, icon: Ban, color: "#FF3B30", circleColor: "#D70015", clickable: true },
-    { label: "إجمالي الأيام", value: stats.totalDays, icon: CalendarDays, color: "#FF9500", circleColor: "#E68A00" },
-  ]
 
   if (loading) {
     return (
@@ -577,45 +641,80 @@ export function SupervisorDashboard() {
       </motion.div>
 
       {/* ==========================================
-          بطاقات الإحصائيات (2×2)
+          الإحصائيات مع فلتر الفترة
           ========================================== */}
-      <div className="grid grid-cols-2 gap-3">
-        {statCards.map((card, index) => {
-          const Icon = card.icon
-          return (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: index * 0.08 + 0.1, duration: 0.4, ease: "easeOut" }}
-              whileTap={{ scale: 0.97 }}
-              onClick={card.clickable ? () => navigateTo("comments") : undefined}
-              className={`relative rounded-xl p-3 overflow-hidden shadow-sm border border-gray-100/50 ${
-                card.clickable ? "cursor-pointer" : ""
-              }`}
-              style={{ backgroundColor: "#FAFAFA" }}
-            >
-              <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full" style={{ backgroundColor: `${card.circleColor}10` }} />
-              <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full" style={{ backgroundColor: `${card.circleColor}08` }} />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-2">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${card.color}15` }}
-                  >
-                    <Icon className="w-4 h-4" style={{ color: card.color }} />
+      <motion.div variants={fadeUp}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#007AFF]" />
+            <h3 className="text-base font-bold text-[#1c1c1e]">الإحصائيات</h3>
+          </div>
+          <div className="flex gap-1 bg-[#f2f2f7] rounded-xl p-0.5">
+            {([
+              { key: "today" as StatsPeriod, label: "اليوم" },
+              { key: "week" as StatsPeriod, label: "الأسبوع" },
+              { key: "month" as StatsPeriod, label: "الشهر" },
+              { key: "all" as StatsPeriod, label: "الكل" },
+            ]).map((p) => (
+              <button
+                key={p.key}
+                onClick={() => setStatsPeriod(p.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
+                  statsPeriod === p.key ? "bg-white text-[#007AFF] shadow-sm" : "text-gray-500"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "إجمالي العملاء", value: filteredStats.clients, icon: Users, color: "#007AFF", circleColor: "#5856D6", sub: `${stats.activeClients} نشط` },
+            { label: "التقارير المنشأة", value: filteredStats.reports, icon: FileBarChart, color: "#34C759", circleColor: "#28A745", sub: statsPeriod === "all" ? `${stats.monthReports} هذا الشهر` : undefined },
+            { label: "إجمالي الأيام", value: filteredStats.days, icon: CalendarDays, color: "#FF9500", circleColor: "#E68A00", sub: statsPeriod === "all" ? `${stats.todayReports} اليوم` : undefined },
+            { label: "المعلّقون", value: filteredStats.suspended, icon: Ban, color: "#FF3B30", circleColor: "#D70015", clickable: true },
+          ].map((card, index) => {
+            const Icon = card.icon
+            return (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * 0.06 + 0.1, duration: 0.4, ease: "easeOut" }}
+                whileTap={card.clickable ? { scale: 0.97 } : undefined}
+                onClick={card.clickable ? () => navigateTo("comments") : undefined}
+                className={`relative rounded-2xl p-4 overflow-hidden shadow-sm border border-gray-100/50 ${
+                  card.clickable ? "cursor-pointer" : ""
+                }`}
+                style={{ backgroundColor: "#FAFAFA" }}
+              >
+                {/* دوائر زخرفية */}
+                <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full" style={{ backgroundColor: `${card.circleColor}10` }} />
+                <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full" style={{ backgroundColor: `${card.circleColor}08` }} />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${card.color}15` }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: card.color }} />
+                    </div>
+                    {card.clickable && <ArrowUpRight className="w-4 h-4 text-gray-400" />}
                   </div>
-                  {card.clickable && <ArrowUpRight className="w-3.5 h-3.5 text-gray-400" />}
+                  <p className="text-2xl font-bold leading-none" style={{ color: card.color }}>
+                    <AnimatedNumber value={card.value || 0} />
+                  </p>
+                  <p className="text-[11px] text-gray-600 mt-1.5 font-bold">{card.label}</p>
+                  {card.sub && (
+                    <p className="text-[10px] text-gray-400 mt-0.5">{card.sub}</p>
+                  )}
                 </div>
-                <p className="text-xl font-bold leading-none" style={{ color: card.color }}>
-                  <AnimatedNumber value={card.value || 0} />
-                </p>
-                <p className="text-[10px] text-gray-600 mt-1 font-bold">{card.label}</p>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      </motion.div>
 
       {/* ==========================================
           إجراءات سريعة
