@@ -304,8 +304,7 @@ export function ClientsTab() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <div
-                    className="bg-white rounded-2xl px-3.5 py-2.5 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
-                    onClick={() => setSelectedUserId(user.user_id)}
+                    className="bg-white rounded-2xl px-3.5 py-2.5 shadow-sm transition-shadow duration-200 hover:shadow-md"
                   >
                     {/* الصف الأول: التاريخ + أيقونة الحالة + القائمة */}
                     <div className="flex items-center justify-between mb-2">
@@ -450,7 +449,10 @@ export function ClientsTab() {
                               </span>
                             </>
                           ) : (
-                            <span className="text-[11px] text-gray-400">بدون حد</span>
+                            <span className="text-[11px] text-[#FF3B30] font-medium flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              بدون حد
+                            </span>
                           )}
                         </div>
                         <button
