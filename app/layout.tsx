@@ -1,14 +1,14 @@
 import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
-import { Tajawal } from "next/font/google"
+import { Cairo } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const tajawal = Tajawal({
-  subsets: ["arabic"],
-  weight: ["300", "400", "500", "700", "800", "900"],
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-tajawal",
+  variable: "--font-cairo",
 })
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ar" dir="rtl" className={tajawal.variable}>
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <body className="min-h-screen bg-[#f2f2f7] font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <main className="flex min-h-screen flex-col">{children}</main>
