@@ -146,12 +146,16 @@ interface FilteredStats {
 interface PeriodCounts {
   todayReports: number
   todayDays: number
+  todayClients: number
   weekReports: number
   weekDays: number
+  weekClients: number
   monthReports: number
   monthDays: number
+  monthClients: number
   allReports: number
   allDays: number
+  allClients: number
 }
 
 /* ============================================================
@@ -275,10 +279,10 @@ export function SupervisorDashboard() {
     suspended: 0,
   })
   const [periodCounts, setPeriodCounts] = useState<PeriodCounts>({
-    todayReports: 0, todayDays: 0,
-    weekReports: 0, weekDays: 0,
-    monthReports: 0, monthDays: 0,
-    allReports: 0, allDays: 0,
+    todayReports: 0, todayDays: 0, todayClients: 0,
+    weekReports: 0, weekDays: 0, weekClients: 0,
+    monthReports: 0, monthDays: 0, monthClients: 0,
+    allReports: 0, allDays: 0, allClients: 0,
   })
 
   const refreshData = useCallback(async (showLoading = false) => {
@@ -319,7 +323,7 @@ export function SupervisorDashboard() {
           .gte("created_at", startOfMonth.toISOString())
         const { data: todayReportsData } = await supabase
           .from("reports")
-          .select("created_at")
+          .select("days_count, user_id")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", startOfDay.toISOString())
@@ -329,40 +333,52 @@ export function SupervisorDashboard() {
         const todayR = todayReportsData || []
         todayReports = todayR.length
 
-        // حساب عدد الأيام الفريدة التي فيها تقارير (لكل فترة)
-        const countUniqueDays = (reports: any[]) => {
-          return new Set(reports.map((r: any) => r.created_at.split("T")[0])).size
+        // جمع قيمة days_count من كل تقرير (بدل عد الأيام الفريدة)
+        const sumDaysCount = (reports: any[]) => {
+          return reports.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0)
+        }
+
+        // عدد العملاء الفريدين في فترة
+        const countUniqueClients = (reports: any[]) => {
+          return new Set(reports.map((r: any) => r.user_id)).size
         }
 
         const { data: weekPeriodData } = await supabase
           .from("reports")
-          .select("created_at")
+          .select("days_count, user_id")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
 
         const { data: monthReportsData } = await supabase
           .from("reports")
-          .select("created_at")
+          .select("days_count, user_id")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", startOfMonth.toISOString())
 
         const { data: allReportsData } = await supabase
           .from("reports")
-          .select("created_at")
+          .select("days_count, user_id")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
 
+        // حساب totalDays من كل التقارير (بدل الاعتماد على period_total_days من الـ view)
+        totalDays = sumDaysCount(allReportsData || [])
+
         setPeriodCounts({
           todayReports: todayR.length,
-          todayDays: countUniqueDays(todayR),
+          todayDays: sumDaysCount(todayR),
+          todayClients: countUniqueClients(todayR),
           weekReports: weekPeriodData?.length || 0,
-          weekDays: countUniqueDays(weekPeriodData || []),
+          weekDays: sumDaysCount(weekPeriodData || []),
+          weekClients: countUniqueClients(weekPeriodData || []),
           monthReports: monthReportsData?.length || 0,
-          monthDays: countUniqueDays(monthReportsData || []),
+          monthDays: sumDaysCount(monthReportsData || []),
+          monthClients: countUniqueClients(monthReportsData || []),
           allReports: allReportsData?.length || 0,
-          allDays: countUniqueDays(allReportsData || []),
+          allDays: sumDaysCount(allReportsData || []),
+          allClients: countUniqueClients(allReportsData || []),
         })
 
         const { data: activitiesData } = await supabase
@@ -456,7 +472,7 @@ export function SupervisorDashboard() {
 
         const { data: weekReportsData } = await supabase
           .from("reports")
-          .select("created_at, user_id")
+          .select("created_at, user_id, days_count")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", prevWeekStart.toISOString())
@@ -473,8 +489,8 @@ export function SupervisorDashboard() {
             prevWeekReports: prevWeekR.length,
             weekClients: new Set(weekR.map((r: any) => r.user_id)).size,
             prevWeekClients: new Set(prevWeekR.map((r: any) => r.user_id)).size,
-            weekDays: 0,
-            prevWeekDays: 0,
+            weekDays: weekR.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0),
+            prevWeekDays: prevWeekR.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0),
           })
         }
       }
@@ -482,9 +498,12 @@ export function SupervisorDashboard() {
       const activeClients = clients.filter((c) => !c.is_suspended).length
       const suspendedClients = clients.filter((c) => c.is_suspended).length
       clients.forEach((c) => {
-        totalDays += c.period_total_days || 0
         totalSuspensions += c.total_suspensions || 0
       })
+
+      // totalDays يتم حسابه داخل if (clientIds.length > 0) أعلاه
+      // باستخدام sumDaysCount من allReportsData بدل period_total_days من الـ view
+      // لأن الـ view يحسب الأيام فقط منذ آخر فك تعليق ويتصفر لو تم تعليق/فك تعليق
 
       setStats({
         totalClients: clients.length,
