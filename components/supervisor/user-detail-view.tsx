@@ -676,7 +676,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="container max-w-lg mx-auto px-3 py-2 space-y-3"
+        className="max-w-lg mx-auto px-3 py-2 space-y-3"
       >
         {/* ── 1. Header ── */}
         <motion.div
