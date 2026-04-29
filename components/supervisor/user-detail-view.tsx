@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { motion } from "framer-motion"
+import { AnimatePresence } from "framer-motion"
 import {
   ArrowRight,
   User,
@@ -19,10 +20,15 @@ import {
   Hash,
   AlertTriangle,
   Shield,
+  ShieldOff,
+  ShieldCheck,
   Settings,
   Loader2,
   Edit,
+  Ban,
 } from "lucide-react"
+import { SuspendUserDialog } from "./suspend-user-dialog"
+import { UnsuspendUserDialog } from "./unsuspend-user-dialog"
 
 /* ============================================================
    Types
@@ -75,6 +81,15 @@ interface ReportItem {
   name_ar: string
   days_count: number
   created_at: string
+}
+
+interface SuspensionHistoryItem {
+  id: string
+  suspended_at: string
+  suspension_reason: string
+  reactivated_at: string | null
+  days_count_at_suspension: number
+  reports_count_at_suspension: number
 }
 
 /* ============================================================
@@ -352,6 +367,12 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
   const [periodReports, setPeriodReports] = useState<ReportItem[]>([])
   const [allTimeReports, setAllTimeReports] = useState<ReportItem[]>([])
   const [reportsLoading, setReportsLoading] = useState(true)
+  const [suspensionHistory, setSuspensionHistory] = useState<SuspensionHistoryItem[]>([])
+  const [currentSuspension, setCurrentSuspension] = useState<SuspensionHistoryItem | null>(null)
+
+  // Dialogs
+  const [suspendOpen, setSuspendOpen] = useState(false)
+  const [unsuspendOpen, setUnsuspendOpen] = useState(false)
 
   const supabase = createClientSupabaseClient()
 
@@ -448,6 +469,19 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
       }
       if (allTimeReportsRes.data) {
         setAllTimeReports(allTimeReportsRes.data as ReportItem[])
+      }
+
+      // 7. Fetch suspension history
+      const { data: suspensionsData } = await supabase
+        .from("user_suspensions")
+        .select("id, suspended_at, suspension_reason, reactivated_at, days_count_at_suspension, reports_count_at_suspension")
+        .eq("user_id", userId)
+        .order("suspended_at", { ascending: false })
+
+      if (suspensionsData) {
+        setSuspensionHistory(suspensionsData as SuspensionHistoryItem[])
+        const active = suspensionsData.find((s) => !s.reactivated_at)
+        setCurrentSuspension(active || null)
       }
 
       setReportsLoading(false)
@@ -560,14 +594,37 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                 <User className="w-5 h-5 text-indigo-500" />
                 معلومات المستخدم
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors"
-                title="تعديل (قريباً)"
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {userInfo.is_suspended ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 transition-colors"
+                    title="إلغاء التعليق"
+                    onClick={() => setUnsuspendOpen(true)}
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors"
+                    title="تعليق الحساب"
+                    onClick={() => setSuspendOpen(true)}
+                  >
+                    <Ban className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors"
+                  title="تعديل (قريباً)"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -791,9 +848,121 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           isLoading={reportsLoading}
         />
 
+        {/* ── 7. Suspension History Section ── */}
+        {suspensionHistory.length > 0 && (
+          <motion.div variants={itemVariants} className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="h-px flex-1 bg-gradient-to-l from-red-200 to-transparent" />
+              <h3 className="text-base font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent px-2">
+                سجل التعليقات
+              </h3>
+              <div className="h-px flex-1 bg-gradient-to-r from-red-200 to-transparent" />
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-1 custom-scrollbar">
+              {suspensionHistory.map((record) => (
+                <motion.div
+                  key={record.id}
+                  variants={itemVariants}
+                  className={`rounded-xl border p-3 ${
+                    record.reactivated_at
+                      ? "border-gray-100 bg-gray-50/50"
+                      : "border-red-200 bg-red-50/50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div
+                        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5 ${
+                          record.reactivated_at
+                            ? "bg-gray-100"
+                            : "bg-red-100"
+                        }`}
+                      >
+                        {record.reactivated_at ? (
+                          <ShieldCheck className="w-4 h-4 text-gray-500" />
+                        ) : (
+                          <ShieldOff className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] px-2 py-0.5 ${
+                              record.reactivated_at
+                                ? "bg-gray-100 text-gray-600 border-gray-200"
+                                : "bg-red-100 text-red-700 border-red-200"
+                            }`}
+                          >
+                            {record.reactivated_at ? "تم الإلغاء" : "معلّق حالياً"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          {record.suspension_reason || "بدون سبب"}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {record.days_count_at_suspension} يوم
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FileBarChart className="w-3 h-3" />
+                            {record.reports_count_at_suspension} تقرير
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-left flex-shrink-0">
+                      <p className="text-[10px] text-gray-400">
+                        {formatDateTime(record.suspended_at)}
+                      </p>
+                      {record.reactivated_at && (
+                        <p className="text-[10px] text-emerald-500 mt-0.5">
+                          إلغاء: {formatDateTime(record.reactivated_at)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Bottom spacing */}
         <div className="h-4" />
       </motion.div>
+
+      {/* ── Suspend / Unsuspend Dialogs ── */}
+      <SuspendUserDialog
+        open={suspendOpen}
+        onOpenChange={setSuspendOpen}
+        userId={userId}
+        userFullName={userInfo.full_name || userInfo.username}
+        currentStats={{
+          periodReportCount: periodStats?.period_report_count ?? 0,
+          periodTotalDays: periodStats?.period_total_days ?? 0,
+        }}
+        onSuccess={fetchUserData}
+      />
+
+      <UnsuspendUserDialog
+        open={unsuspendOpen}
+        onOpenChange={setUnsuspendOpen}
+        userId={userId}
+        userFullName={userInfo.full_name || userInfo.username}
+        suspensionInfo={currentSuspension
+          ? {
+              suspendedAt: currentSuspension.suspended_at,
+              reason: currentSuspension.suspension_reason,
+              daysCount: currentSuspension.days_count_at_suspension,
+              reportsCount: currentSuspension.reports_count_at_suspension,
+            }
+          : null
+        }
+        onSuccess={fetchUserData}
+      />
     </div>
   )
 }

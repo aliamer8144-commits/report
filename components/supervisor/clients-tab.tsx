@@ -19,10 +19,16 @@ import {
   FileBarChart,
   Clock,
   Hash,
+  Ban,
+  ShieldCheck,
 } from "lucide-react"
 import { AddUserDialog } from "./add-user-dialog"
 import SetLimitDialog from "./set-limit-dialog"
 import UserDetailView from "./user-detail-view"
+import { SuspendUserDialog } from "./suspend-user-dialog"
+import { UnsuspendUserDialog } from "./unsuspend-user-dialog"
+import { AutoSuspendDialog } from "./auto-suspend-dialog"
+import { checkSuspension, type SuspensionCheckResult } from "@/lib/suspension-check"
 
 interface UserCardData {
   user_id: string
@@ -60,6 +66,22 @@ export function ClientsTab() {
   // Detail view
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
+  // Suspend / Unsuspend dialogs
+  const [suspendTarget, setSuspendTarget] = useState<{
+    id: string
+    fullName: string
+    stats: { periodReportCount: number; periodTotalDays: number }
+  } | null>(null)
+  const [unsuspendTarget, setUnsuspendTarget] = useState<{
+    id: string
+    fullName: string
+    suspensionInfo: { suspendedAt: string | null; reason: string | null } | null
+  } | null>(null)
+
+  // Auto-suspend dialog
+  const [autoSuspendOpen, setAutoSuspendOpen] = useState(false)
+  const [usersToAutoSuspend, setUsersToAutoSuspend] = useState<SuspensionCheckResult[]>([])
+
   const supervisorId = typeof window !== "undefined" ? localStorage.getItem("user_id") : ""
 
   const fetchUsers = useCallback(async () => {
@@ -75,6 +97,32 @@ export function ClientsTab() {
       if (error) throw error
       setUsers(data || [])
       setFilteredUsers(data || [])
+
+      // فحص التعليق التلقائي
+      const toSuspend: SuspensionCheckResult[] = []
+      data?.forEach((u) => {
+        const result = checkSuspension(
+          {
+            limit_type: u.limit_type,
+            limit_value: u.limit_value,
+            limit_date: u.limit_date,
+            is_suspended: u.is_suspended ?? false,
+          },
+          {
+            period_report_count: u.period_report_count ?? 0,
+            period_total_days: u.period_total_days ?? 0,
+            last_report_at: u.last_report_at,
+          }
+        )
+        if (result) {
+          toSuspend.push({ ...result, userId: u.user_id, userName: u.full_name || u.username })
+        }
+      })
+
+      if (toSuspend.length > 0) {
+        setUsersToAutoSuspend(toSuspend)
+        setAutoSuspendOpen(true)
+      }
     } catch (err) {
       console.error("Error fetching users:", err)
     } finally {
@@ -302,6 +350,53 @@ export function ClientsTab() {
                           >
                             <Settings className="h-4 w-4" />
                           </Button>
+                          {user.is_suspended ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-600"
+                              onClick={async (e) => {
+                                e.stopPropagation()
+                                const supabaseClient = createClientSupabaseClient()
+                                const { data: susp } = await supabaseClient
+                                  .from("user_suspensions")
+                                  .select("suspended_at, suspension_reason")
+                                  .eq("user_id", user.user_id)
+                                  .is("reactivated_at", null)
+                                  .order("suspended_at", { ascending: false })
+                                  .limit(1)
+                                  .maybeSingle()
+                                setUnsuspendTarget({
+                                  id: user.user_id,
+                                  fullName: user.full_name || user.username,
+                                  suspensionInfo: susp
+                                    ? { suspendedAt: susp.suspended_at, reason: susp.suspension_reason }
+                                    : null,
+                                })
+                              }}
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-red-500 hover:bg-red-100 hover:text-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSuspendTarget({
+                                  id: user.user_id,
+                                  fullName: user.full_name || user.username,
+                                  stats: {
+                                    periodReportCount: user.period_report_count ?? 0,
+                                    periodTotalDays: user.period_total_days ?? 0,
+                                  },
+                                })
+                              }}
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
 
@@ -380,6 +475,54 @@ export function ClientsTab() {
           userFullName={setLimitUser.fullName}
           currentLimitType={setLimitUser.limitType}
           onSuccess={fetchUsers}
+        />
+      )}
+
+      {suspendTarget && (
+        <SuspendUserDialog
+          open={!!suspendTarget}
+          onOpenChange={(open) => {
+            if (!open) setSuspendTarget(null)
+          }}
+          userId={suspendTarget.id}
+          userFullName={suspendTarget.fullName}
+          currentStats={suspendTarget.stats}
+          onSuccess={fetchUsers}
+        />
+      )}
+
+      {unsuspendTarget && (
+        <UnsuspendUserDialog
+          open={!!unsuspendTarget}
+          onOpenChange={(open) => {
+            if (!open) setUnsuspendTarget(null)
+          }}
+          userId={unsuspendTarget.id}
+          userFullName={unsuspendTarget.fullName}
+          suspensionInfo={unsuspendTarget.suspensionInfo}
+          onSuccess={fetchUsers}
+        />
+      )}
+
+      {autoSuspendOpen && usersToAutoSuspend.length > 0 && (
+        <AutoSuspendDialog
+          open={autoSuspendOpen}
+          onOpenChange={setAutoSuspendOpen}
+          usersToSuspend={usersToAutoSuspend.map((u) => ({
+            userId: (u as SuspensionCheckResult & { userId: string }).userId,
+            userName: (u as SuspensionCheckResult & { userName: string }).userName,
+            reason: u.reason,
+            reasonType: u.reasonType,
+            currentValue: u.currentValue,
+            limitValue: u.limitValue,
+          }))}
+          onConfirm={() => {
+            setUsersToAutoSuspend([])
+            fetchUsers()
+          }}
+          onDismiss={() => {
+            setUsersToAutoSuspend([])
+          }}
         />
       )}
     </div>
