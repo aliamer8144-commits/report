@@ -50,7 +50,7 @@ export function LoginForm() {
       // التحقق من بيانات المستخدم
       const { data: users, error: userError } = await supabase
         .from("users")
-        .select("id, username, password, role")
+        .select("id, username, password, role, is_suspended")
         .eq("username", username)
         .single()
 
@@ -61,6 +61,11 @@ export function LoginForm() {
       // التحقق من كلمة المرور (في التطبيق الحقيقي، يجب استخدام تشفير أفضل)
       if (users.password !== password) {
         throw new Error("اسم المستخدم أو كلمة المرور غير صحيحة")
+      }
+
+      // التحقق من حالة التعليق
+      if (users.is_suspended) {
+        throw new Error("تم تعليق هذا الحساب. يرجى التواصل مع المشرف لتفعيل الحساب.")
       }
 
       // التحقق من الجهاز المصرح به

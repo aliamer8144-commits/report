@@ -23,6 +23,8 @@ import {
   FileEdit,
   FileX,
   ChevronRight,
+  ShieldOff,
+  AlertTriangle,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -53,6 +55,8 @@ export default function HomePage() {
   const [username, setUsername] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [showSearch, setShowSearch] = useState(false)
+  const [isSuspended, setIsSuspended] = useState(false)
+  const [suspensionReason, setSuspensionReason] = useState<string | null>(null)
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
@@ -75,10 +79,39 @@ export default function HomePage() {
     // جلب إحصائيات التقارير فقط للمستخدمين العاديين والإدمن
     if (role !== "supervisor") {
       fetchReportStats(userId)
+      checkSuspensionStatus(userId)
     }
 
     setMounted(true)
   }, [router])
+
+  const checkSuspensionStatus = async (userId: string) => {
+    try {
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("is_suspended")
+        .eq("id", userId)
+        .single()
+
+      if (!userError && userData?.is_suspended) {
+        setIsSuspended(true)
+
+        // جلب سبب التعليق
+        const { data: suspensionData } = await supabase
+          .from("user_suspensions")
+          .select("suspension_reason")
+          .eq("user_id", userId)
+          .is("reactivated_at", null)
+          .order("suspended_at", { ascending: false })
+          .limit(1)
+          .single()
+
+        setSuspensionReason(suspensionData?.suspension_reason || "تم تعليق هذا الحساب")
+      }
+    } catch (err) {
+      console.error("Error checking suspension:", err)
+    }
+  }
 
   const fetchReportStats = async (userId: string) => {
     setIsLoading(true)
@@ -349,6 +382,36 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
+        {/* بانر التعليق */}
+        {isSuspended && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4"
+          >
+            <Card className="border-red-200 bg-gradient-to-b from-red-50 to-white overflow-hidden shadow-lg">
+              <div className="h-1.5 bg-gradient-to-r from-red-500 to-red-600"></div>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-red-100 p-2.5 rounded-xl flex-shrink-0">
+                    <ShieldOff className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-red-700 mb-1">حسابك معلق</h3>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      {suspensionReason || "لا يمكنك إنشاء تقارير جديدة حالياً."}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-2 text-amber-600">
+                      <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                      <p className="text-[11px]">يرجى التواصل مع المشرف لتفعيل حسابك.</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-bold text-gray-800">الإجراءات السريعة</h2>
           <Button
@@ -422,7 +485,12 @@ export default function HomePage() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="col-span-2">
             <Button
               onClick={() => router.push("/add")}
-              className="w-full h-auto py-4 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-between"
+              className={`w-full h-auto py-4 px-4 rounded-xl shadow-lg flex items-center justify-between ${
+                isSuspended
+                  ? "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60"
+                  : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/20"
+              }`}
+              disabled={isSuspended}
             >
               <div className="flex items-center">
                 <div className="bg-blue-400/30 p-2 rounded-lg mr-3">

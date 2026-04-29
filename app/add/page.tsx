@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { addActivity } from "@/lib/activities-service"
+import { checkSuspension, buildSuspensionRecord } from "@/lib/suspension-check"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,6 +32,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
+  ShieldOff,
+  AlertTriangle,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -166,6 +169,9 @@ export default function AddReportPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isSuspended, setIsSuspended] = useState(false)
+  const [suspensionReason, setSuspensionReason] = useState<string | null>(null)
+  const [isCheckingSuspension, setIsCheckingSuspension] = useState(true)
   // إضافة متغير حالة للتبويب النشط
   const [activeTab, setActiveTab] = useState("basic")
   const translateSeqRef = useRef<Record<string, number>>({})
@@ -185,7 +191,47 @@ export default function AddReportPage() {
     const userId = localStorage.getItem("user_id")
     if (!userId) {
       router.push("/")
+      return
     }
+
+    // التحقق من حالة التعليق
+    const checkUserSuspension = async () => {
+      try {
+        const supabase = createClientSupabaseClient()
+        const { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("is_suspended, id")
+          .eq("id", userId)
+          .single()
+
+        if (userError) {
+          console.error("Error checking suspension:", userError)
+          setIsCheckingSuspension(false)
+          return
+        }
+
+        if (userData?.is_suspended) {
+          // جلب سبب التعليق
+          const { data: suspensionData } = await supabase
+            .from("user_suspensions")
+            .select("suspension_reason")
+            .eq("user_id", userId)
+            .is("reactivated_at", null)
+            .order("suspended_at", { ascending: false })
+            .limit(1)
+            .single()
+
+          setIsSuspended(true)
+          setSuspensionReason(suspensionData?.suspension_reason || "تم تعليق هذا الحساب")
+        }
+      } catch (err) {
+        console.error("Error checking suspension:", err)
+      } finally {
+        setIsCheckingSuspension(false)
+      }
+    }
+
+    checkUserSuspension()
 
     // تعيين التاريخ والوقت الحاليين
     const now = new Date()
@@ -317,6 +363,21 @@ export default function AddReportPage() {
 
       const supabase = createClientSupabaseClient()
 
+      // التحقق من حالة التعليق قبل إنشاء التقرير
+      const { data: userData, error: userCheckError } = await supabase
+        .from("users")
+        .select("is_suspended")
+        .eq("id", userId)
+        .single()
+
+      if (userCheckError) throw new Error("حدث خطأ أثناء التحقق من حالة الحساب")
+
+      if (userData?.is_suspended) {
+        setIsSuspended(true)
+        setSuspensionReason("حسابك معلق ولا يمكنك إنشاء تقارير جديدة. يرجى التواصل مع المشرف.")
+        throw new Error("حسابك معلق ولا يمكنك إنشاء تقارير جديدة. يرجى التواصل مع المشرف.")
+      }
+
       // تحويل البيانات إلى النموذج المطلوب
       const reportData = {
         ...formData,
@@ -341,6 +402,9 @@ export default function AddReportPage() {
           `تم إضافة تقرير جديد للمريض ${formData.name_ar} برقم هوية ${formData.id_number}`,
           reportId,
         )
+
+        // ===== التحقق التلقائي من تجاوز الحدود بعد إنشاء التقرير =====
+        await checkAndAutoSuspend(userId, supabase)
       }
 
       setSuccess(true)
@@ -348,6 +412,74 @@ export default function AddReportPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // ===== دالة التحقق التلقائي من التعليق بعد إنشاء التقرير =====
+  const checkAndAutoSuspend = async (userId: string, supabase: any) => {
+    try {
+      // جلب بيانات المستخدم مع الحدود
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("limit_type, limit_value, limit_date, is_suspended")
+        .eq("id", userId)
+        .single()
+
+      if (userError || !userData) return
+
+      // إذا كان معلقاً بالفعل أو لا يوجد حد، لا داعي للفحص
+      if (!userData.limit_type || userData.is_suspended) return
+
+      // جلب إحصائيات الفترة الحالية
+      const { data: statsData, error: statsError } = await supabase
+        .from("user_period_stats")
+        .select("period_report_count, period_total_days, last_report_at")
+        .eq("user_id", userId)
+        .single()
+
+      if (statsError || !statsData) return
+
+      // فحص هل يجب تعليق المستخدم
+      const result = checkSuspension(
+        {
+          limit_type: userData.limit_type,
+          limit_value: userData.limit_value,
+          limit_date: userData.limit_date,
+          is_suspended: userData.is_suspended,
+        },
+        {
+          period_report_count: statsData.period_report_count,
+          period_total_days: statsData.period_total_days,
+          last_report_at: statsData.last_report_at,
+        }
+      )
+
+      if (result && result.shouldSuspend) {
+        // إنشاء سجل تعليق تلقائي
+        const suspensionRecord = buildSuspensionRecord(
+          userId,
+          userId, // تعليق تلقائي (النظام)
+          result.reason,
+          {
+            period_report_count: statsData.period_report_count,
+            period_total_days: statsData.period_total_days,
+          }
+        )
+
+        await supabase.from("user_suspensions").insert(suspensionRecord)
+
+        // تحديث حالة المستخدم
+        await supabase
+          .from("users")
+          .update({ is_suspended: true })
+          .eq("id", userId)
+
+        // تحديث حالة العرض
+        setIsSuspended(true)
+        setSuspensionReason(result.reason)
+      }
+    } catch (err) {
+      console.error("Error in auto-suspension check:", err)
     }
   }
 
@@ -494,9 +626,52 @@ export default function AddReportPage() {
         icon={<PlusCircle className="h-8 w-8 text-blue-600" />}
       />
 
+      {/* شاشة التحقق من التعليق */}
+      {isCheckingSuspension && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
+          <p className="text-gray-500">جاري التحقق من حالة الحساب...</p>
+        </div>
+      )}
+
+      {/* رسالة التعليق - تظهر فقط إذا كان معلقاً ولم يسجل نجاح (لم ينشئ تقرير الآن) */}
+      {isSuspended && !success && !isCheckingSuspension && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4"
+        >
+          <Card className="border-red-200 bg-gradient-to-b from-red-50 to-white overflow-hidden">
+            <div className="h-2 bg-gradient-to-r from-red-500 to-red-600"></div>
+            <CardContent className="p-6 text-center space-y-4">
+              <div className="bg-red-100 p-4 rounded-full inline-flex">
+                <ShieldOff className="h-10 w-10 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-red-700 mb-2">
+                  حسابك معلق
+                </h2>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {suspensionReason || "لا يمكنك إنشاء تقارير جديدة حالياً. يرجى التواصل مع المشرف لتفعيل حسابك."}
+                </p>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <div className="flex items-center gap-2 text-amber-700">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  <p className="text-xs">لتفعيل حسابك، يرجى التواصل مع المشرف المسؤول عنك.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* النموذج - يظهر إذا لم يكن معلقاً أصلاً، أو بعد نجاح الإرسال (حتى لو اتعلق تلقائياً) */}
+      {((!isSuspended && !isCheckingSuspension) || success) && (
       <motion.div initial="hidden" animate="visible" variants={containerVariants}>
         <Card className="glass-card overflow-hidden">
           <div className="h-2 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
               <div className="flex items-center">
@@ -833,6 +1008,28 @@ export default function AddReportPage() {
           </CardContent>
           {success && (
             <CardFooter className="flex flex-col space-y-3 bg-blue-50 border-t border-blue-100 p-4">
+              {/* تحذير التعليق التلقائي بعد إنشاء التقرير */}
+              {isSuspended && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3"
+                >
+                  <div className="bg-red-100 p-1.5 rounded-lg flex-shrink-0 mt-0.5">
+                    <ShieldOff className="h-4 w-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-red-700">تم تعليق حسابك تلقائياً</p>
+                    <p className="text-xs text-red-600 mt-0.5">
+                      {suspensionReason || "تجاوزت الحد المسموح لإنشاء التقارير."}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      يرجى التواصل مع المشرف لتفعيل حسابك.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
               <motion.div
                 className="flex gap-2 w-full"
                 initial={{ opacity: 0, y: 20 }}
@@ -854,6 +1051,8 @@ export default function AddReportPage() {
                   تنزيل PDF
                 </Button>
               </motion.div>
+              {/* زر إدخال تقرير جديد - يختفي إذا اتعلق تلقائياً */}
+              {!isSuspended && (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                 <Button
                   onClick={handleReset}
@@ -863,10 +1062,12 @@ export default function AddReportPage() {
                   إدخال تقرير جديد
                 </Button>
               </motion.div>
+              )}
             </CardFooter>
           )}
         </Card>
       </motion.div>
+      )}
     </div>
   )
 }
