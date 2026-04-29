@@ -31,6 +31,8 @@ import {
   ChevronUp,
   Download,
   FileText,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import {
   downloadPptxViaApi,
