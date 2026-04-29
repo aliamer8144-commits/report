@@ -43,6 +43,7 @@ import {
 import { ClientsTab } from "./clients-tab"
 import { SuspensionsTab } from "./suspensions-tab"
 import { AccountTab } from "./account-tab"
+import { SupervisorDashboard } from "./supervisor-dashboard"
 
 const tabs = [
   { id: "home", label: "الرئيسية", icon: Home },
@@ -613,7 +614,7 @@ export default function SupervisorInterface() {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <ComingSoonContent description="سيتم إنشاء هذه الواجهة قريباً لتوفير تجربة أفضل لإدارة المشرفين" />
+                <SupervisorDashboard />
               </motion.div>
             )}
             {activeTab === "reports" && (
