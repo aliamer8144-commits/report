@@ -460,12 +460,15 @@ export default function SupervisorInterface() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("home")
   const [username, setUsername] = useState("")
+  const [fullName, setFullName] = useState("")
   const [mounted, setMounted] = useState(false)
   const [suspensionCount, setSuspensionCount] = useState(0)
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username")
+    const storedFullName = localStorage.getItem("full_name")
     if (storedUsername) setUsername(storedUsername)
+    if (storedFullName) setFullName(storedFullName)
     setMounted(true)
 
     // الاستماع لتحديث عدد المعلّقين من SuspensionsTab
@@ -482,6 +485,7 @@ export default function SupervisorInterface() {
   const handleLogout = () => {
     localStorage.removeItem("user_id")
     localStorage.removeItem("username")
+    localStorage.removeItem("full_name")
     localStorage.removeItem("user_role")
     router.push("/")
   }
@@ -495,6 +499,11 @@ export default function SupervisorInterface() {
       .substring(0, 2)
   }
 
+  const getFirstName = () => {
+    const name = fullName || username || "المشرف"
+    return name.split(" ")[0]
+  }
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center">
@@ -505,38 +514,41 @@ export default function SupervisorInterface() {
 
   return (
     <div className="min-h-screen bg-[#f2f2f7] flex flex-col relative">
-      {/* المحتوى الرئيسي */}
-      <main className="flex-1 pb-20">
-        <div className="container max-w-md mx-auto p-4">
-          {/* الشريط العلوي */}
+      {/* الشريط العلوي الثابت */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-100/50">
+        <div className="max-w-md mx-auto px-4">
           <motion.div
-            className="flex justify-between items-center mb-6"
-            initial={{ opacity: 0, y: -20 }}
+            className="flex justify-between items-center h-14"
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white">
-                <AvatarFallback>{getInitials(username || "مشرف")}</AvatarFallback>
-              </Avatar>
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <Avatar className="h-9 w-9 bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white shadow-sm">
+                  <AvatarFallback className="text-[11px] font-medium bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white">
+                    {getInitials(fullName || username || "مشرف")}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#34C759] rounded-full border-2 border-white" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#1c1c1e]">
-                  مرحباً
-                </h1>
-                <p className="text-gray-600">{username || "المشرف"}</p>
+                <p className="text-[13px] font-semibold text-[#1c1c1e] leading-tight">
+                  مرحباً، {getFirstName()}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full"
+                    className="relative text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full h-9 w-9"
                   >
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF3B30] text-[10px] text-white">
+                    <Bell className="h-[18px] w-[18px]" />
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF3B30] text-[10px] text-white font-medium">
                       2
                     </span>
                   </Button>
@@ -564,9 +576,9 @@ export default function SupervisorInterface() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full"
+                    className="text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full h-9 w-9"
                   >
-                    <User className="h-5 w-5" />
+                    <User className="h-[18px] w-[18px]" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -584,6 +596,12 @@ export default function SupervisorInterface() {
               </DropdownMenu>
             </div>
           </motion.div>
+        </div>
+      </div>
+
+      {/* المحتوى الرئيسي */}
+      <main className="flex-1 pb-20">
+        <div className="container max-w-md mx-auto p-4">
 
           {/* محتوى التبويبات */}
           <AnimatePresence mode="wait">

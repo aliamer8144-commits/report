@@ -50,7 +50,7 @@ export function LoginForm() {
       // التحقق من بيانات المستخدم
       const { data: users, error: userError } = await supabase
         .from("users")
-        .select("id, username, password, role, is_suspended")
+        .select("id, username, full_name, password, role, is_suspended")
         .eq("username", username)
         .single()
 
@@ -102,6 +102,7 @@ export function LoginForm() {
       // تخزين معلومات المستخدم في الجلسة
       localStorage.setItem("user_id", users.id)
       localStorage.setItem("username", users.username)
+      localStorage.setItem("full_name", users.full_name || users.username)
       localStorage.setItem("device_id", deviceId)
       localStorage.setItem("user_role", users.role || "user")
 
