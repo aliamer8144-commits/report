@@ -18,6 +18,9 @@ import {
   FileText,
   ChevronLeft,
   Loader2,
+  Sun,
+  Moon,
+  Sparkles,
 } from "lucide-react"
 
 /* ============================================================
@@ -88,6 +91,43 @@ export function SupervisorDashboard() {
   const [nearLimitClients, setNearLimitClients] = useState<NearLimitClient[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
+  const [greeting, setGreeting] = useState({ text: "", icon: Sun, isMorning: true, date: "", motivational: "" })
+
+  useEffect(() => {
+    // تحية حسب الوقت
+    const hour = new Date().getHours()
+    const isMorning = hour >= 4 && hour < 17
+    const fullName = localStorage.getItem("full_name") || localStorage.getItem("username") || "المشرف"
+    const firstName = fullName.split(" ")[0]
+
+    const motivationalPhrases = [
+      "الإدارة الناجحة تبدأ بمتابعة دقيقة",
+      "فريقك هو أعظم أصولك",
+      "كل يوم هو فرصة لتحقيق إنجاز جديد",
+      "النجاح ليس نهائياً والفشل ليس قاتلاً",
+      "استمر في التطوير والتطوير سيستمر معك",
+      "القيادة الحقيقية تبدأ بخدمة الفريق",
+      "لا يوجد نجاح بدون عمل جاد",
+      "التحديات هي فرص مقنّعة",
+    ]
+    const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)]
+
+    const today = new Date()
+    const dateStr = today.toLocaleDateString("ar-SA", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+
+    setGreeting({
+      text: isMorning ? `صباح الخير، ${firstName}` : `مساء الخير، ${firstName}`,
+      icon: isMorning ? Sun : Moon,
+      isMorning,
+      date: dateStr,
+      motivational: randomPhrase,
+    })
+  }, [])
 
   useEffect(() => {
     if (!supervisorId) return
@@ -307,6 +347,71 @@ export function SupervisorDashboard() {
 
   return (
     <div dir="rtl" className="space-y-4">
+      {/* ==========================================
+          بطاقة التحية
+          ========================================== */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="relative overflow-hidden rounded-2xl p-5"
+          style={{ background: "linear-gradient(135deg, #007AFF 0%, #5856D6 50%, #AF52DE 100%)" }}
+        >
+          {/* زخرفة خلفية */}
+          <div className="absolute top-0 left-0 w-32 h-32 rounded-full opacity-10" style={{ background: "radial-gradient(circle, white, transparent)", transform: "translate(-30%, -30%)" }} />
+          <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: "radial-gradient(circle, white, transparent)", transform: "translate(30%, 30%)" }} />
+
+          {/* المحتوى */}
+          <div className="relative z-10">
+            {/* الصف الأول: الأيقونة + التاريخ */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <greeting.icon className="w-5 h-5 text-yellow-300" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-white/90">{greeting.text}</span>
+                  <span className="text-[10px] text-white/60">{greeting.date}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Sparkles className="w-4 h-4 text-yellow-300/80" />
+              </div>
+            </div>
+
+            {/* العبارة التحفيزية */}
+            <div className="flex items-start gap-2 mb-5">
+              <div className="w-1 h-8 rounded-full bg-white/30 mt-0.5 shrink-0" />
+              <p className="text-[12px] text-white/80 leading-relaxed">{greeting.motivational}</p>
+            </div>
+
+            {/* إجمالي العملاء */}
+            <div className="flex items-center justify-between bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Users className="w-4.5 h-4.5 text-white" />
+                </div>
+                <div>
+                  <p className="text-[11px] text-white/60">إجمالي العملاء</p>
+                  <p className="text-xl font-bold text-white">{loading ? "..." : stats.totalClients}</p>
+                </div>
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-[#34C759]" />
+                  <span className="text-[11px] text-white/70">{loading ? "..." : stats.activeClients} نشط</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <div className="w-2 h-2 rounded-full bg-[#FF3B30]" />
+                  <span className="text-[11px] text-white/70">{loading ? "..." : stats.suspendedClients} معلّق</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* ==========================================
           بطاقات الإحصائيات الرئيسية
           ========================================== */}
