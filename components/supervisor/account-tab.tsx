@@ -284,8 +284,8 @@ export function AccountTab() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin": return "bg-red-100 text-red-700 border-red-200"
-      case "supervisor": return "bg-indigo-100 text-indigo-700 border-indigo-200"
+      case "admin": return "bg-[#FF3B30]/10 text-[#FF3B30] border-0"
+      case "supervisor": return "bg-[#007AFF]/10 text-[#007AFF] border-0"
       case "user": return "bg-gray-100 text-gray-700 border-gray-200"
       default: return "bg-gray-100 text-gray-700 border-gray-200"
     }
@@ -298,7 +298,7 @@ export function AccountTab() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007AFF] mx-auto mb-3" />
           <p className="text-sm text-gray-500">جاري تحميل بيانات الحساب...</p>
         </div>
       </div>
@@ -317,12 +317,12 @@ export function AccountTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
-          <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500" />
+        <Card className="bg-white rounded-2xl shadow-sm">
+          <div className="h-2 bg-[#007AFF]" />
           <CardContent className="p-5">
             <div className="flex items-center gap-4 mb-5">
               {/* صورة رمزية كبيرة */}
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-[#007AFF] flex items-center justify-center text-white text-xl font-bold shadow-lg">
                 {(account.full_name || account.username || "م").charAt(0)}
               </div>
               <div className="flex-1">
@@ -345,7 +345,7 @@ export function AccountTab() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600"
+                  className="text-[#007AFF] hover:bg-[#007AFF]/5"
                   onClick={() => setIsEditing(true)}
                 >
                   <Edit3 className="h-4 w-4" />
@@ -366,7 +366,7 @@ export function AccountTab() {
                     value={editForm.full_name}
                     onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
                     placeholder="أدخل الاسم الكامل"
-                    className="border-indigo-200 focus:border-indigo-400 h-9"
+                    className="bg-[#f2f2f7] border-0 h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                   />
                 </div>
 
@@ -380,7 +380,7 @@ export function AccountTab() {
                     value={editForm.phone}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                     placeholder="أدخل رقم الهاتف"
-                    className="border-indigo-200 focus:border-indigo-400 h-9"
+                    className="bg-[#f2f2f7] border-0 h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                     dir="ltr"
                   />
                 </div>
@@ -396,7 +396,7 @@ export function AccountTab() {
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     placeholder="أدخل البريد الإلكتروني"
-                    className="border-indigo-200 focus:border-indigo-400 h-9"
+                    className="bg-[#f2f2f7] border-0 h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                     dir="ltr"
                   />
                 </div>
@@ -410,8 +410,8 @@ export function AccountTab() {
                       exit={{ opacity: 0, y: 5 }}
                       className={`flex items-center gap-2 rounded-lg p-2.5 text-sm ${
                         saveMessage.type === "success"
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-red-50 text-red-700 border border-red-200"
+                          ? "bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20"
+                          : "bg-[#FF3B30]/10 text-[#FF3B30] border border-[#FF3B30]/20"
                       }`}
                     >
                       {saveMessage.type === "success" ? (
@@ -428,7 +428,7 @@ export function AccountTab() {
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-sm h-9 text-sm"
+                    className="flex-1 bg-[#007AFF] text-white hover:opacity-95 font-semibold h-9 text-sm"
                   >
                     {isSaving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -460,9 +460,9 @@ export function AccountTab() {
               </div>
             ) : (
               <div className="space-y-2.5">
-                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-white/60 border border-gray-100">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-indigo-500" />
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[#f2f2f7] border-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#007AFF]/10 flex items-center justify-center flex-shrink-0">
+                    <User className="h-4 w-4 text-[#007AFF]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-gray-400">الاسم الكامل</p>
@@ -472,9 +472,9 @@ export function AccountTab() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-white/60 border border-gray-100">
-                  <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                    <Phone className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[#f2f2f7] border-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#34C759]/10 flex items-center justify-center flex-shrink-0">
+                    <Phone className="h-4 w-4 text-[#34C759]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-gray-400">رقم الهاتف</p>
@@ -484,9 +484,9 @@ export function AccountTab() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-white/60 border border-gray-100">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                    <Mail className="h-4 w-4 text-amber-500" />
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[#f2f2f7] border-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#FF9500]/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-4 w-4 text-[#FF9500]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-gray-400">البريد الإلكتروني</p>
@@ -508,31 +508,31 @@ export function AccountTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-lg">
+        <Card className="bg-white rounded-2xl shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center justify-between">
               <span className="text-gray-800 flex items-center gap-2">
-                <FileBarChart className="h-4 w-4 text-indigo-500" />
+                <FileBarChart className="h-4 w-4 text-[#007AFF]" />
                 إحصائيات الحساب
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col items-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200/50">
-                <Users className="h-5 w-5 text-indigo-500 mb-1" />
-                <span className="text-xl font-bold text-indigo-600">{stats.managedUsers}</span>
-                <span className="text-[10px] text-indigo-700 leading-tight">العملاء</span>
+              <div className="flex flex-col items-center p-3 bg-[#f2f2f7] rounded-xl border-0">
+                <Users className="h-5 w-5 text-[#007AFF] mb-1" />
+                <span className="text-xl font-bold text-[#007AFF]">{stats.managedUsers}</span>
+                <span className="text-[10px] text-[#007AFF] leading-tight">العملاء</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200/50">
-                <FileBarChart className="h-5 w-5 text-blue-500 mb-1" />
-                <span className="text-xl font-bold text-blue-600">{stats.totalReports}</span>
-                <span className="text-[10px] text-blue-700 leading-tight">تقارير</span>
+              <div className="flex flex-col items-center p-3 bg-[#f2f2f7] rounded-xl border-0">
+                <FileBarChart className="h-5 w-5 text-[#007AFF] mb-1" />
+                <span className="text-xl font-bold text-[#007AFF]">{stats.totalReports}</span>
+                <span className="text-[10px] text-[#007AFF] leading-tight">تقارير</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200/50">
-                <AlertCircle className="h-5 w-5 text-red-500 mb-1" />
-                <span className="text-xl font-bold text-red-600">{stats.suspendedUsers}</span>
-                <span className="text-[10px] text-red-700 leading-tight">معلّقين</span>
+              <div className="flex flex-col items-center p-3 bg-[#f2f2f7] rounded-xl border-0">
+                <AlertCircle className="h-5 w-5 text-[#FF3B30] mb-1" />
+                <span className="text-xl font-bold text-[#FF3B30]">{stats.suspendedUsers}</span>
+                <span className="text-[10px] text-[#FF3B30] leading-tight">معلّقين</span>
               </div>
             </div>
           </CardContent>
@@ -546,7 +546,7 @@ export function AccountTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-lg">
+        <Card className="bg-white rounded-2xl shadow-sm">
           <CardContent className="p-4">
             {!showPasswordDialog ? (
               <Button
@@ -563,7 +563,7 @@ export function AccountTab() {
             ) : (
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                  <Key className="h-4 w-4 text-indigo-500" />
+                  <Key className="h-4 w-4 text-[#007AFF]" />
                   تغيير كلمة المرور
                 </h3>
 
@@ -575,7 +575,7 @@ export function AccountTab() {
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                       placeholder="أدخل كلمة المرور الحالية"
-                      className="border-gray-200 focus:border-indigo-400 h-9 pr-10"
+                      className="bg-[#f2f2f7] border-0 h-9 pr-10 focus:ring-2 focus:ring-[#007AFF]/30"
                       dir="ltr"
                     />
                     <button
@@ -596,7 +596,7 @@ export function AccountTab() {
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       placeholder="أدخل كلمة المرور الجديدة"
-                      className="border-gray-200 focus:border-indigo-400 h-9 pr-10"
+                      className="bg-[#f2f2f7] border-0 h-9 pr-10 focus:ring-2 focus:ring-[#007AFF]/30"
                       dir="ltr"
                     />
                     <button
@@ -616,7 +616,7 @@ export function AccountTab() {
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                     placeholder="أعد إدخال كلمة المرور الجديدة"
-                    className="border-gray-200 focus:border-indigo-400 h-9"
+                    className="bg-[#f2f2f7] border-0 h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                     dir="ltr"
                   />
                 </div>
@@ -630,8 +630,8 @@ export function AccountTab() {
                       exit={{ opacity: 0, y: 5 }}
                       className={`flex items-center gap-2 rounded-lg p-2.5 text-sm ${
                         passwordMessage.type === "success"
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-red-50 text-red-700 border border-red-200"
+                          ? "bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20"
+                          : "bg-[#FF3B30]/10 text-[#FF3B30] border border-[#FF3B30]/20"
                       }`}
                     >
                       {passwordMessage.type === "success" ? (
@@ -648,7 +648,7 @@ export function AccountTab() {
                   <Button
                     onClick={handleChangePassword}
                     disabled={isChangingPassword}
-                    className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-sm h-9 text-sm"
+                    className="flex-1 bg-[#007AFF] text-white hover:opacity-95 font-semibold h-9 text-sm"
                   >
                     {isChangingPassword ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -685,14 +685,14 @@ export function AccountTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.3 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-lg">
+        <Card className="bg-white rounded-2xl shadow-sm">
           <CardContent className="p-4">
             <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
               <Settings className="h-4 w-4 text-gray-500" />
               معلومات عامة
             </h3>
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#f2f2f7] border-0">
                 <span className="text-sm text-gray-600 flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5" />
                   تاريخ إنشاء الحساب
@@ -701,7 +701,7 @@ export function AccountTab() {
                   {formatDate(account.created_at)}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#f2f2f7] border-0">
                 <span className="text-sm text-gray-600 flex items-center gap-1.5">
                   <Shield className="h-3.5 w-3.5" />
                   الدور

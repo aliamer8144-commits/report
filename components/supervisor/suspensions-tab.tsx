@@ -242,13 +242,13 @@ export function SuspensionsTab({}: {}) {
     if (!reason) return null
     const lower = reason.toLowerCase()
     if (lower.includes("أيام")) {
-      return { label: "تجاوز الأيام", color: "bg-blue-100 text-blue-700 border-blue-200" }
+      return { label: "تجاوز الأيام", color: "bg-[#007AFF]/10 text-[#007AFF] border-0" }
     }
     if (lower.includes("تقارير")) {
-      return { label: "تجاوز التقارير", color: "bg-purple-100 text-purple-700 border-purple-200" }
+      return { label: "تجاوز التقارير", color: "bg-[#AF52DE]/10 text-[#AF52DE] border-0" }
     }
     if (lower.includes("صلاحية") || lower.includes("تاريخ")) {
-      return { label: "انتهت الصلاحية", color: "bg-amber-100 text-amber-700 border-amber-200" }
+      return { label: "انتهت الصلاحية", color: "bg-[#FF9500]/10 text-[#FF9500] border-0" }
     }
     return { label: "أخرى", color: "bg-gray-100 text-gray-700 border-gray-200" }
   }
@@ -275,7 +275,7 @@ export function SuspensionsTab({}: {}) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-red-500 mx-auto mb-3" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007AFF] mx-auto mb-3" />
           <p className="text-sm text-gray-500">جاري تحميل سجل التعليقات...</p>
         </div>
       </div>
@@ -293,8 +293,8 @@ export function SuspensionsTab({}: {}) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center shadow-lg mb-4">
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
+          <div className="w-20 h-20 rounded-3xl bg-[#34C759]/10 flex items-center justify-center shadow-lg mb-4">
+            <CheckCircle2 className="h-10 w-10 text-[#34C759]" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">لا توجد تعليقات</h3>
           <p className="text-sm text-gray-500">جميع الحسابات التابعة لك تعمل بشكل طبيعي</p>
@@ -318,7 +318,7 @@ export function SuspensionsTab({}: {}) {
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-gray-800">التعليقات</h2>
           {activeCount > 0 && (
-            <Badge className="bg-red-500 text-white border-red-500 hover:bg-red-600 text-xs px-2">
+            <Badge className="bg-[#FF3B30] text-white border-0 hover:bg-[#FF3B30]/90 text-xs px-2">
               {activeCount} معلّق
             </Badge>
           )}
@@ -350,7 +350,7 @@ export function SuspensionsTab({}: {}) {
           variant={activeOnly ? "default" : "outline"}
           className={
             activeOnly
-              ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm text-xs"
+              ? "bg-[#FF3B30] text-white hover:opacity-95 text-xs"
               : "border-gray-200 text-gray-600 text-xs"
           }
           onClick={() => setActiveOnly(true)}
@@ -368,7 +368,7 @@ export function SuspensionsTab({}: {}) {
           variant={!activeOnly ? "default" : "outline"}
           className={
             !activeOnly
-              ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm text-xs"
+              ? "bg-[#007AFF] text-white hover:opacity-95 text-xs"
               : "border-gray-200 text-gray-600 text-xs"
           }
           onClick={() => setActiveOnly(false)}
@@ -411,7 +411,7 @@ export function SuspensionsTab({}: {}) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="بحث بالاسم، اسم المستخدم، أو السبب..."
-                    className="border-gray-200 text-sm h-9"
+                    className="bg-[#f2f2f7] border-0 text-sm h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                     autoFocus
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -422,7 +422,7 @@ export function SuspensionsTab({}: {}) {
                         value={filterDaysMin}
                         onChange={(e) => setFilterDaysMin(e.target.value)}
                         placeholder="الحد الأدنى"
-                        className="border-gray-200 text-sm h-9"
+                        className="bg-[#f2f2f7] border-0 text-sm h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                         min={0}
                       />
                     </div>
@@ -433,7 +433,7 @@ export function SuspensionsTab({}: {}) {
                         value={filterDaysMax}
                         onChange={(e) => setFilterDaysMax(e.target.value)}
                         placeholder="الحد الأقصى"
-                        className="border-gray-200 text-sm h-9"
+                        className="bg-[#f2f2f7] border-0 text-sm h-9 focus:ring-2 focus:ring-[#007AFF]/30"
                         min={0}
                       />
                     </div>
@@ -477,8 +477,8 @@ export function SuspensionsTab({}: {}) {
                   transition={{ duration: 0.3, delay: index * 0.04 }}
                 >
                   <Card
-                    className={`glass-card overflow-hidden border-none shadow-lg transition-shadow duration-300 hover:shadow-xl ${
-                      isActive ? "border-r-4 border-r-red-400" : "border-r-4 border-r-green-400 opacity-75"
+                    className={`bg-white rounded-2xl p-4 shadow-sm transition-all duration-200 hover:shadow-md ${
+                      isActive ? "border-r-4 border-r-[#FF3B30]" : "border-r-4 border-r-[#34C759] opacity-75"
                     }`}
                   >
                     <CardContent className="p-4">
@@ -489,8 +489,8 @@ export function SuspensionsTab({}: {}) {
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${
                               isActive
-                                ? "bg-gradient-to-br from-red-400 to-red-500"
-                                : "bg-gradient-to-br from-green-400 to-emerald-500"
+                                ? "bg-[#FF3B30]"
+                                : "bg-[#34C759]"
                             }`}
                           >
                             {isActive ? (
@@ -508,12 +508,12 @@ export function SuspensionsTab({}: {}) {
                         </div>
                         <div className="flex items-center gap-1.5">
                           {isActive ? (
-                            <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100 text-[10px] px-2 py-0.5">
+                            <Badge className="bg-[#FF3B30]/10 text-[#FF3B30] border-0 hover:bg-[#FF3B30]/10 text-[10px] px-2 py-0.5">
                               <ShieldOff className="h-3 w-3 ml-0.5" />
                               معلّق
                             </Badge>
                           ) : (
-                            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100 text-[10px] px-2 py-0.5">
+                            <Badge className="bg-[#34C759]/10 text-[#34C759] border-0 hover:bg-[#34C759]/10 text-[10px] px-2 py-0.5">
                               <ShieldCheck className="h-3 w-3 ml-0.5" />
                               مفعّل
                             </Badge>
@@ -531,8 +531,8 @@ export function SuspensionsTab({}: {}) {
 
                       {/* سبب التعليق */}
                       {suspension.suspension_reason && (
-                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-gray-50 border border-gray-100 mb-3">
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[#f2f2f7] border-0 mb-3">
+                          <AlertTriangle className="h-3.5 w-3.5 text-[#FF9500] mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-gray-700 leading-relaxed">
                             {suspension.suspension_reason}
                           </p>
@@ -541,20 +541,20 @@ export function SuspensionsTab({}: {}) {
 
                       {/* إحصائيات */}
                       <div className="grid grid-cols-2 gap-2 mb-3">
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-100/80">
-                          <FileBarChart className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#007AFF]/5 border-0">
+                          <FileBarChart className="h-3.5 w-3.5 text-[#007AFF] flex-shrink-0" />
                           <div>
-                            <p className="text-[10px] text-blue-500">التقارير</p>
-                            <p className="text-sm font-bold text-blue-700">
+                            <p className="text-[10px] text-[#007AFF]">التقارير</p>
+                            <p className="text-sm font-bold text-[#007AFF]">
                               {suspension.reports_count_at_suspension}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-100/80">
-                          <Clock className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FF9500]/5 border-0">
+                          <Clock className="h-3.5 w-3.5 text-[#FF9500] flex-shrink-0" />
                           <div>
-                            <p className="text-[10px] text-amber-500">الأيام</p>
-                            <p className="text-sm font-bold text-amber-700">
+                            <p className="text-[10px] text-[#FF9500]">الأيام</p>
+                            <p className="text-sm font-bold text-[#FF9500]">
                               {suspension.days_count_at_suspension}
                             </p>
                           </div>
@@ -607,7 +607,7 @@ export function SuspensionsTab({}: {}) {
                           transition={{ delay: 0.1 }}
                         >
                           <Button
-                            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-sm h-9 text-sm"
+                            className="w-full bg-[#34C759] hover:opacity-95 text-white shadow-sm h-9 text-sm"
                             onClick={() =>
                               setUnsuspendTarget({
                                 id: suspension.user_id,

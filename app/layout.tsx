@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" className={tajawal.variable}>
-      <body className="min-h-screen bg-gradient-to-b from-indigo-50 to-white font-sans antialiased">
+      <body className="min-h-screen bg-[#f2f2f7] font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <main className="flex min-h-screen flex-col">{children}</main>
         </ThemeProvider>

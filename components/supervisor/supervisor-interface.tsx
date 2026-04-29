@@ -68,9 +68,9 @@ function ComingSoonContent({ description }: { description: string }) {
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shadow-lg">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-            <Construction className="w-10 h-10 text-indigo-500" />
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#007AFF]/20 to-[#5856D6]/20 flex items-center justify-center">
+            <Construction className="w-10 h-10 text-[#007AFF]" />
           </div>
         </div>
         <motion.div
@@ -90,7 +90,7 @@ function ComingSoonContent({ description }: { description: string }) {
       >
         <Badge
           variant="outline"
-          className="bg-indigo-50 text-indigo-600 border-indigo-200 px-4 py-1.5 text-sm font-medium"
+          className="bg-[#007AFF]/10 text-[#007AFF] border-[#007AFF]/20 px-4 py-1.5 text-sm font-medium"
         >
           قريباً
         </Badge>
@@ -215,28 +215,28 @@ function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
+        <Card className="bg-white rounded-2xl p-4 shadow-sm overflow-hidden border-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span className="text-indigo-900">لوحة التحكم</span>
-              <Badge variant="outline" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+              <span className="text-[#1c1c1e]">لوحة التحكم</span>
+              <Badge variant="outline" className="bg-[#007AFF]/10 text-[#007AFF] hover:bg-[#007AFF]/20">
                 {isLoading ? "جاري التحميل..." : `${stats.totalReports} تقرير`}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm">
-                <span className="text-2xl font-bold text-blue-600">{stats.totalReports}</span>
-                <span className="text-xs text-blue-700">إجمالي</span>
+              <div className="flex flex-col items-center justify-center p-3 bg-[#f2f2f7] rounded-xl">
+                <span className="text-2xl font-bold text-[#007AFF]">{stats.totalReports}</span>
+                <span className="text-xs text-[#007AFF]">إجمالي</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm">
-                <span className="text-2xl font-bold text-green-600">{stats.activeReports}</span>
-                <span className="text-xs text-green-700">نشط</span>
+              <div className="flex flex-col items-center justify-center p-3 bg-[#f2f2f7] rounded-xl">
+                <span className="text-2xl font-bold text-[#34C759]">{stats.activeReports}</span>
+                <span className="text-xs text-[#34C759]">نشط</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 shadow-sm">
-                <span className="text-2xl font-bold text-red-600">{stats.deletedReports}</span>
-                <span className="text-xs text-red-700">محذوف</span>
+              <div className="flex flex-col items-center justify-center p-3 bg-[#f2f2f7] rounded-xl">
+                <span className="text-2xl font-bold text-[#FF3B30]">{stats.deletedReports}</span>
+                <span className="text-xs text-[#FF3B30]">محذوف</span>
               </div>
             </div>
 
@@ -248,7 +248,7 @@ function DashboardContent() {
               <Progress
                 value={getCompletionPercentage()}
                 className="h-2 bg-gray-100"
-                indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-500"
+                indicatorClassName="bg-[#007AFF]"
               />
             </div>
           </CardContent>
@@ -267,7 +267,7 @@ function DashboardContent() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 p-1 h-auto"
+            className="text-[#007AFF] hover:bg-[#007AFF]/5 p-1 h-auto"
             onClick={() => setShowSearch(!showSearch)}
           >
             <SearchIcon className="h-5 w-5" />
@@ -283,7 +283,7 @@ function DashboardContent() {
               transition={{ duration: 0.3 }}
               className="mb-4 overflow-hidden"
             >
-              <Card className="glass-card overflow-hidden border-none shadow-lg bg-gradient-to-br from-indigo-500/5 to-purple-500/5">
+              <Card className="bg-white rounded-2xl p-4 shadow-sm overflow-hidden border-none">
                 <CardContent className="p-4">
                   <form onSubmit={handleSearch} className="space-y-3">
                     {error && (
@@ -295,7 +295,7 @@ function DashboardContent() {
                         value={serviceCode}
                         onChange={(e) => setServiceCode(e.target.value)}
                         placeholder="رمز الخدمة"
-                        className="border-indigo-200 focus:border-indigo-400 bg-white/70"
+                        className="bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30"
                       />
                     </div>
                     <div className="space-y-2">
@@ -304,12 +304,12 @@ function DashboardContent() {
                         value={idNumber}
                         onChange={(e) => setIdNumber(e.target.value)}
                         placeholder="رقم الهوية"
-                        className="border-indigo-200 focus:border-indigo-400 bg-white/70"
+                        className="bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30"
                       />
                     </div>
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+                      className="w-full bg-[#007AFF] hover:opacity-95 text-white shadow-md"
                       disabled={loading}
                     >
                       {loading ? (
@@ -332,31 +332,31 @@ function DashboardContent() {
         </AnimatePresence>
 
         <div className="grid grid-cols-2 gap-3">
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="col-span-2">
+          <motion.div whileTap={{ scale: 0.97 }} className="col-span-2">
             <Button
               onClick={() => router.push("/add")}
-              className="w-full h-auto py-4 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-between"
+              className="w-full h-auto py-4 px-4 bg-[#007AFF] text-white rounded-xl flex items-center justify-between"
             >
               <div className="flex items-center">
-                <div className="bg-blue-400/30 p-2 rounded-lg mr-3">
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
                   <FilePlus className="h-6 w-6" />
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-lg">إضافة تقرير</div>
-                  <div className="text-xs text-blue-100">إنشاء تقرير جديد</div>
+                  <div className="text-xs text-white/70">إنشاء تقرير جديد</div>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 opacity-70" />
             </Button>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <motion.div whileTap={{ scale: 0.97 }}>
             <Button
               onClick={() => router.push("/edit")}
-              className="w-full h-auto py-4 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-between"
+              className="w-full h-auto py-4 px-4 bg-[#FF9500] text-white rounded-xl flex items-center justify-between"
             >
               <div className="flex items-center">
-                <div className="bg-amber-400/30 p-2 rounded-lg mr-3">
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
                   <FileEdit className="h-5 w-5" />
                 </div>
                 <span className="font-bold">تعديل</span>
@@ -365,13 +365,13 @@ function DashboardContent() {
             </Button>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <motion.div whileTap={{ scale: 0.97 }}>
             <Button
               onClick={() => router.push("/delete")}
-              className="w-full h-auto py-4 px-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl shadow-lg shadow-red-500/20 flex items-center justify-between"
+              className="w-full h-auto py-4 px-4 bg-[#FF3B30] text-white rounded-xl flex items-center justify-between"
             >
               <div className="flex items-center">
-                <div className="bg-red-400/30 p-2 rounded-lg mr-3">
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
                   <FileX className="h-5 w-5" />
                 </div>
                 <span className="font-bold">حذف</span>
@@ -380,18 +380,18 @@ function DashboardContent() {
             </Button>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="col-span-2">
+          <motion.div whileTap={{ scale: 0.97 }} className="col-span-2">
             <Button
               onClick={() => router.push("/reports")}
-              className="w-full h-auto py-4 px-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-purple-500/20 flex items-center justify-between"
+              className="w-full h-auto py-4 px-4 bg-[#AF52DE] text-white rounded-xl flex items-center justify-between"
             >
               <div className="flex items-center">
-                <div className="bg-purple-400/30 p-2 rounded-lg mr-3">
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
                   <FileBarChart className="h-6 w-6" />
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-lg">التقارير</div>
-                  <div className="text-xs text-purple-100">عرض جميع التقارير</div>
+                  <div className="text-xs text-white/70">عرض جميع التقارير</div>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 opacity-70" />
@@ -406,11 +406,11 @@ function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Card className="glass-card overflow-hidden border-none shadow-lg bg-gradient-to-br from-indigo-500/5 to-purple-500/5">
+        <Card className="bg-white rounded-2xl p-4 shadow-sm overflow-hidden border-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span className="text-indigo-900">آخر النشاطات</span>
-              <Badge variant="outline" className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+              <span className="text-[#1c1c1e]">آخر النشاطات</span>
+              <Badge variant="outline" className="bg-[#007AFF]/10 text-[#007AFF] hover:bg-[#007AFF]/20">
                 جديد
               </Badge>
             </CardTitle>
@@ -427,7 +427,7 @@ function DashboardContent() {
                     <p className="text-xs text-gray-500">منذ 30 دقيقة</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="h-8 text-indigo-600">
+                <Button variant="ghost" size="sm" className="h-8 text-[#007AFF]">
                   عرض
                 </Button>
               </div>
@@ -441,7 +441,7 @@ function DashboardContent() {
                     <p className="text-xs text-gray-500">منذ ساعتين</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="h-8 text-indigo-600">
+                <Button variant="ghost" size="sm" className="h-8 text-[#007AFF]">
                   عرض
                 </Button>
               </div>
@@ -497,14 +497,14 @@ export default function SupervisorInterface() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-[#007AFF] rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50/50 to-white flex flex-col relative">
+    <div className="min-h-screen bg-[#f2f2f7] flex flex-col relative">
       {/* المحتوى الرئيسي */}
       <main className="flex-1 pb-20">
         <div className="container max-w-md mx-auto p-4">
@@ -516,11 +516,11 @@ export default function SupervisorInterface() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg">
+              <Avatar className="h-12 w-12 bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white">
                 <AvatarFallback>{getInitials(username || "مشرف")}</AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-[#1c1c1e]">
                   مرحباً
                 </h1>
                 <p className="text-gray-600">{username || "المشرف"}</p>
@@ -533,10 +533,10 @@ export default function SupervisorInterface() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-full"
+                    className="relative text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full"
                   >
                     <Bell className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF3B30] text-[10px] text-white">
                       2
                     </span>
                   </Button>
@@ -564,7 +564,7 @@ export default function SupervisorInterface() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-full"
+                    className="text-[#007AFF] hover:bg-[#007AFF]/5 rounded-full"
                   >
                     <User className="h-5 w-5" />
                   </Button>
@@ -659,7 +659,7 @@ export default function SupervisorInterface() {
             style={{ borderRadius: "16px", paddingTop: "6px", paddingBottom: "6px" }}
           >
             {/* خلفية التدرج */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to left, #2196F3, #673AB7)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to left, #007AFF, #5856D6)" }} />
             {/* تأثير زجاجي خفيف */}
             <div className="absolute inset-0 backdrop-blur-md" />
             {/* لمعة علوية */}
@@ -686,7 +686,7 @@ export default function SupervisorInterface() {
                         animate={{ scale: 1 }}
                         className="absolute -top-0.5 left-1/2 z-20 flex items-center justify-center"
                       >
-                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm">
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3B30] px-1 text-[9px] font-bold text-white shadow-sm">
                           {suspensionCount}
                         </span>
                       </motion.span>
@@ -695,8 +695,8 @@ export default function SupervisorInterface() {
                     {isActive && (
                       <motion.div
                         layoutId="supervisor-active-bg"
-                        className="absolute rounded-full"
-                        style={{ width: "48px", height: "48px", background: "rgba(255,255,255,0.2)", top: "0px" }}
+                        className="absolute bg-white/20 rounded-xl"
+                        style={{ width: "48px", height: "48px", top: "0px" }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}

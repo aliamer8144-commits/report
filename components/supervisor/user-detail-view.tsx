@@ -119,8 +119,8 @@ const itemVariants = {
 }
 
 const cardHover = {
-  rest: { scale: 1 },
-  hover: { scale: 1.02, transition: { duration: 0.2 } },
+  rest: { y: 0 },
+  hover: { y: -2, transition: { duration: 0.2 } },
 }
 
 /* ============================================================
@@ -200,7 +200,7 @@ function LoadingSkeleton() {
       </div>
 
       {/* User info card skeleton */}
-      <Card className="glass-card overflow-hidden border-none shadow-xl">
+      <Card className="bg-[#f2f2f7] rounded-2xl">
         <CardContent className="p-6">
           <div className="grid grid-cols-2 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -248,11 +248,11 @@ function ReportCard({ report, index }: { report: ReportItem; index: number }) {
     >
       <motion.div
         variants={cardHover}
-        className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white/60 backdrop-blur-sm hover:bg-gradient-to-l hover:from-indigo-50/80 hover:to-purple-50/80 hover:border-indigo-200/60 hover:shadow-md transition-all duration-300"
+        className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white/60 backdrop-blur-sm hover:bg-[#f2f2f7] hover:border-gray-200 hover:shadow-md transition-all duration-300"
       >
         {/* Report icon */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors duration-300">
-          <FileBarChart className="w-5 h-5 text-indigo-500" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#007AFF]/10 flex items-center justify-center group-hover:bg-[#007AFF]/15 transition-colors duration-300">
+          <FileBarChart className="w-5 h-5 text-[#007AFF]" />
         </div>
 
         {/* Report info */}
@@ -302,25 +302,25 @@ function ReportsSection({
     <motion.div variants={itemVariants} className="space-y-4">
       {/* Section header */}
       <div className="flex items-center gap-2">
-        <div className="h-px flex-1 bg-gradient-to-l from-indigo-200 to-transparent" />
-        <h3 className="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent px-2">
+        <div className="h-px flex-1 bg-gray-100" />
+        <h3 className="text-base font-bold text-gray-800 px-2">
           {title}
         </h3>
-        <div className="h-px flex-1 bg-gradient-to-r from-indigo-200 to-transparent" />
+        <div className="h-px flex-1 bg-gray-100" />
       </div>
 
       {/* Stats summary */}
       <div className="flex items-center gap-3 px-1">
         <Badge
           variant="outline"
-          className="bg-blue-50 text-blue-700 border-blue-200 font-medium"
+          className="bg-[#007AFF]/10 text-[#007AFF] border-0 font-medium"
         >
           <FileBarChart className="w-3 h-3 ml-1" />
           {totalCount} تقرير
         </Badge>
         <Badge
           variant="outline"
-          className="bg-amber-50 text-amber-700 border-amber-200 font-medium"
+          className="bg-[#FF9500]/10 text-[#FF9500] border-0 font-medium"
         >
           <Clock className="w-3 h-3 ml-1" />
           {totalDays} يوم
@@ -504,13 +504,13 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
      ============================================================ */
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-50/50 to-white flex items-center justify-center p-4" dir="rtl">
+      <div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center p-4" dir="rtl">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass-card p-8 max-w-sm w-full text-center space-y-4"
+          className="bg-white rounded-2xl p-8 shadow-sm max-w-sm w-full text-center space-y-4"
         >
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-full bg-[#FF3B30]/10 flex items-center justify-center mx-auto">
             <AlertTriangle className="w-8 h-8 text-red-500" />
           </div>
           <div>
@@ -521,7 +521,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           </div>
           <Button
             onClick={onBack}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+            className="bg-[#007AFF] hover:opacity-95 text-white shadow-md"
           >
             <ArrowRight className="w-4 h-4 ml-2" />
             العودة
@@ -536,7 +536,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
      ============================================================ */
   if (loading || !userInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-50/50 to-white" dir="rtl">
+      <div className="min-h-screen bg-[#f2f2f7]" dir="rtl">
         <LoadingSkeleton />
       </div>
     )
@@ -546,7 +546,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
      Render
      ============================================================ */
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50/50 to-white" dir="rtl">
+    <div className="min-h-screen bg-[#f2f2f7]" dir="rtl">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -562,7 +562,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="rounded-full text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+            className="rounded-full text-[#007AFF] hover:bg-[#007AFF]/5 transition-colors"
           >
             <ArrowRight className="w-5 h-5" />
           </Button>
@@ -571,13 +571,13 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
             <Badge
               className={
                 userInfo.is_suspended
-                  ? "bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 font-medium px-3 py-1"
-                  : "bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 font-medium px-3 py-1"
+                  ? "bg-[#FF3B30]/10 text-[#FF3B30] border-0 font-medium px-3 py-1"
+                  : "bg-[#34C759]/10 text-[#34C759] border-0 font-medium px-3 py-1"
               }
             >
               <span
                 className={`w-2 h-2 rounded-full ml-1.5 ${
-                  userInfo.is_suspended ? "bg-red-500" : "bg-emerald-500"
+                  userInfo.is_suspended ? "bg-[#FF3B30]" : "bg-[#34C759]"
                 }`}
               />
               {userInfo.is_suspended ? "معلق" : "نشط"}
@@ -590,10 +590,10 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
         {/* ── 2. User Info Card ── */}
         <motion.div variants={itemVariants}>
-          <Card className="glass-card overflow-hidden border-none shadow-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
+          <Card className="bg-white rounded-2xl shadow-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg text-indigo-900 flex items-center gap-2">
-                <User className="w-5 h-5 text-indigo-500" />
+              <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+                <User className="w-5 h-5 text-[#007AFF]" />
                 معلومات المستخدم
               </CardTitle>
               <div className="flex items-center gap-1">
@@ -621,7 +621,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors"
+                  className="h-8 w-8 rounded-full text-gray-400 hover:text-[#007AFF] hover:bg-[#007AFF]/5 transition-colors"
                   title="تعديل (قريباً)"
                 >
                   <Edit className="w-4 h-4" />
@@ -632,8 +632,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Full name */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <User className="w-4 h-4 text-indigo-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-[#007AFF]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">الاسم الكامل</p>
@@ -645,8 +645,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* Username */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Hash className="w-4 h-4 text-purple-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#AF52DE]/10 flex items-center justify-center">
+                    <Hash className="w-4 h-4 text-[#AF52DE]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">اسم المستخدم</p>
@@ -658,8 +658,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* Phone */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Phone className="w-4 h-4 text-green-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-[#34C759]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">الهاتف</p>
@@ -671,8 +671,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* Email */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-amber-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#FF9500]/10 flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-[#FF9500]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">البريد</p>
@@ -684,8 +684,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* Role */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-blue-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#007AFF]/10 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-[#007AFF]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">الدور</p>
@@ -697,8 +697,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* Created at */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-teal-100 flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-teal-500" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#34C759]/10 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-[#34C759]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">تاريخ الإنشاء</p>
@@ -710,8 +710,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
 
                 {/* PPTX enabled */}
                 <div className="flex items-start gap-3 p-2">
-                  <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${userInfo.pptx_enabled ? "bg-green-100" : "bg-red-100"}`}>
-                    <FileDown className={`w-4 h-4 ${userInfo.pptx_enabled ? "text-green-500" : "text-red-500"}`} />
+                  <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${userInfo.pptx_enabled ? "bg-[#34C759]/10" : "bg-[#FF3B30]/10"}`}>
+                    <FileDown className={`w-4 h-4 ${userInfo.pptx_enabled ? "text-[#34C759]" : "text-[#FF3B30]"}`} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400 mb-0.5">تنزيل PPTX</p>
@@ -729,31 +729,31 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         <motion.div variants={itemVariants}>
           <div className="grid grid-cols-3 gap-3">
             {/* Period reports */}
-            <div className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm">
-              <span className="text-2xl font-bold text-blue-600">
+            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
+              <span className="text-2xl font-bold text-[#007AFF]">
                 {periodStats?.period_report_count ?? 0}
               </span>
-              <span className="text-xs text-blue-700 mt-1 font-medium">
+              <span className="text-xs text-[#007AFF] mt-1 font-medium">
                 تقارير الفترة
               </span>
             </div>
 
             {/* Period total days */}
-            <div className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200 shadow-sm">
-              <span className="text-2xl font-bold text-amber-600">
+            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
+              <span className="text-2xl font-bold text-[#FF9500]">
                 {periodStats?.period_total_days ?? 0}
               </span>
-              <span className="text-xs text-amber-700 mt-1 font-medium">
+              <span className="text-xs text-[#FF9500] mt-1 font-medium">
                 أيام الفترة
               </span>
             </div>
 
             {/* Total suspensions */}
-            <div className="flex flex-col items-center justify-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 shadow-sm">
-              <span className="text-2xl font-bold text-red-600">
+            <div className="flex flex-col items-center justify-center p-4 bg-[#f2f2f7] rounded-xl border-0 shadow-sm">
+              <span className="text-2xl font-bold text-[#FF3B30]">
                 {periodStats?.total_suspensions ?? 0}
               </span>
-              <span className="text-xs text-red-700 mt-1 font-medium">
+              <span className="text-xs text-[#FF3B30] mt-1 font-medium">
                 مرات التعليق
               </span>
             </div>
@@ -768,14 +768,14 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           >
             <Badge
               variant="outline"
-              className="bg-indigo-50 text-indigo-700 border-indigo-200 font-medium"
+              className="bg-[#007AFF]/10 text-[#007AFF] border-0 font-medium"
             >
               <FileBarChart className="w-3 h-3 ml-1" />
               إجمالي: {allTimeStats.total_reports}
             </Badge>
             <Badge
               variant="outline"
-              className="bg-emerald-50 text-emerald-700 border-emerald-200 font-medium"
+              className="bg-[#34C759]/10 text-[#34C759] border-0 font-medium"
             >
               نشط: {allTimeStats.active_reports}
             </Badge>
@@ -791,14 +791,14 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         {/* ── 4. Current Limit Card ── */}
         {currentLimit && currentLimit.limit_type && (
           <motion.div variants={itemVariants}>
-            <Card className="overflow-hidden border-none shadow-lg bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-200/60">
+            <Card className="overflow-hidden bg-white rounded-2xl shadow-sm bg-[#FF9500]/5 border-0">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-amber-900 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-amber-500" />
+                <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-[#FF9500]" />
                   الحد الحالي
                   <Badge
                     variant="outline"
-                    className="bg-amber-100 text-amber-700 border-amber-200 font-medium mr-auto"
+                    className="bg-[#FF9500]/10 text-[#FF9500] border-0 font-medium mr-auto"
                   >
                     {getLimitTypeLabel(currentLimit.limit_type)}
                   </Badge>
@@ -807,7 +807,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
               <CardContent className="pt-0 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   {/* Limit value or date */}
-                  <div className="p-3 rounded-lg bg-white/70 border border-amber-100">
+                  <div className="p-3 rounded-lg bg-[#f2f2f7] border-0">
                     <p className="text-xs text-gray-400 mb-1">
                       {currentLimit.limit_type === "specific_date"
                         ? "تاريخ الانتهاء"
@@ -823,7 +823,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                   </div>
 
                   {/* Set by */}
-                  <div className="p-3 rounded-lg bg-white/70 border border-amber-100">
+                  <div className="p-3 rounded-lg bg-[#f2f2f7] border-0">
                     <p className="text-xs text-gray-400 mb-1">تم التعيين بواسطة</p>
                     <p className="text-sm font-bold text-gray-800">
                       {currentLimit.set_by_username || "—"}
@@ -841,7 +841,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           </motion.div>
         )}
 
-        <Separator className="bg-gradient-to-r from-transparent via-indigo-200 to-transparent" />
+        <Separator className="bg-gray-100" />
 
         {/* ── 5. Period Reports Section ── */}
         <ReportsSection
@@ -852,7 +852,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           isLoading={reportsLoading}
         />
 
-        <Separator className="bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+        <Separator className="bg-gray-100" />
 
         {/* ── 6. All-Time Reports Section ── */}
         <ReportsSection
@@ -867,11 +867,11 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         {suspensionHistory.length > 0 && (
           <motion.div variants={itemVariants} className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-gradient-to-l from-red-200 to-transparent" />
-              <h3 className="text-base font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent px-2">
+              <div className="h-px flex-1 bg-gray-100" />
+              <h3 className="text-base font-bold text-[#FF3B30] px-2">
                 سجل التعليقات
               </h3>
-              <div className="h-px flex-1 bg-gradient-to-r from-red-200 to-transparent" />
+              <div className="h-px flex-1 bg-gray-100" />
             </div>
 
             <div className="space-y-2 max-h-96 overflow-y-auto pr-1 custom-scrollbar">
@@ -881,8 +881,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                   variants={itemVariants}
                   className={`rounded-xl border p-3 ${
                     record.reactivated_at
-                      ? "border-gray-100 bg-gray-50/50"
-                      : "border-red-200 bg-red-50/50"
+                      ? "bg-[#f2f2f7] border-0"
+                      : "bg-[#FF3B30]/5 border-[#FF3B30]/20"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -891,13 +891,13 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5 ${
                           record.reactivated_at
                             ? "bg-gray-100"
-                            : "bg-red-100"
+                            : "bg-[#FF3B30]/10"
                         }`}
                       >
                         {record.reactivated_at ? (
                           <ShieldCheck className="w-4 h-4 text-gray-500" />
                         ) : (
-                          <ShieldOff className="w-4 h-4 text-red-500" />
+                          <ShieldOff className="w-4 h-4 text-[#FF3B30]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -907,7 +907,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                             className={`text-[10px] px-2 py-0.5 ${
                               record.reactivated_at
                                 ? "bg-gray-100 text-gray-600 border-gray-200"
-                                : "bg-red-100 text-red-700 border-red-200"
+                                : "bg-[#FF3B30]/10 text-[#FF3B30] border-0"
                             }`}
                           >
                             {record.reactivated_at ? "تم الإلغاء" : "معلّق حالياً"}

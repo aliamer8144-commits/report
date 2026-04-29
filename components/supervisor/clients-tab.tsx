@@ -199,7 +199,7 @@ export function ClientsTab() {
       >
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-gray-800">العملاء</h2>
-          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-200">
+          <Badge variant="outline" className="bg-[#007AFF]/10 text-[#007AFF]">
             {loading ? "..." : `${filteredUsers.length} عميل`}
           </Badge>
         </div>
@@ -207,14 +207,14 @@ export function ClientsTab() {
           <Button
             variant="ghost"
             size="icon"
-            className="text-indigo-600 hover:bg-indigo-100"
+            className="text-[#007AFF] hover:bg-[#007AFF]/5"
             onClick={() => setShowSearch(!showSearch)}
           >
             <Search className="h-5 w-5" />
           </Button>
           <Button
             onClick={() => setAddUserOpen(true)}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+            className="bg-[#007AFF] text-white hover:opacity-95 font-semibold"
             size="sm"
           >
             <UserPlus className="h-4 w-4 ml-1" />
@@ -238,7 +238,7 @@ export function ClientsTab() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="بحث بالاسم، اسم المستخدم، أو رقم الهاتف..."
-                className="border-indigo-200 focus:border-indigo-400 bg-white/70"
+                className="bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30"
                 autoFocus
               />
             </form>
@@ -250,7 +250,7 @@ export function ClientsTab() {
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mx-auto mb-3" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#007AFF] mx-auto mb-3" />
             <p className="text-sm text-gray-500">جاري تحميل العملاء...</p>
           </div>
         </div>
@@ -260,8 +260,8 @@ export function ClientsTab() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shadow-lg mb-4">
-            <Users className="h-10 w-10 text-indigo-400" />
+          <div className="w-20 h-20 rounded-3xl bg-[#f2f2f7] flex items-center justify-center shadow-lg mb-4">
+            <Users className="h-10 w-10 text-[#007AFF]/50" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">
             {searchQuery ? "لا توجد نتائج" : "لا يوجد عملاء بعد"}
@@ -274,7 +274,7 @@ export function ClientsTab() {
           {!searchQuery && (
             <Button
               onClick={() => setAddUserOpen(true)}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+              className="bg-[#007AFF] text-white hover:opacity-95 font-semibold"
             >
               <UserPlus className="h-4 w-4 ml-1" />
               إضافة عميل جديد
@@ -293,11 +293,11 @@ export function ClientsTab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <Card
-                    className="glass-card overflow-hidden border-none shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300"
+                    className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-all duration-200"
                     onClick={() => setSelectedUserId(user.user_id)}
                   >
                     <CardContent className="p-4">
@@ -308,8 +308,8 @@ export function ClientsTab() {
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${
                               user.is_suspended
-                                ? "bg-gradient-to-br from-red-400 to-red-500"
-                                : "bg-gradient-to-br from-indigo-500 to-purple-500"
+                                ? "bg-[#FF3B30]"
+                                : "bg-[#007AFF]"
                             }`}
                           >
                             {(user.full_name || user.username || "ع").charAt(0)}
@@ -325,12 +325,12 @@ export function ClientsTab() {
                         </div>
                         <div className="flex items-center gap-2">
                           {user.is_suspended ? (
-                            <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100 text-[10px] px-2 py-0.5">
+                            <Badge className="bg-[#FF3B30]/10 text-[#FF3B30] border-0 text-[10px] px-2 py-0.5">
                               <ShieldOff className="h-3 w-3 ml-0.5" />
                               معلّق
                             </Badge>
                           ) : (
-                            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100 text-[10px] px-2 py-0.5">
+                            <Badge className="bg-[#34C759]/10 text-[#34C759] border-0 text-[10px] px-2 py-0.5">
                               <Shield className="h-3 w-3 ml-0.5" />
                               نشط
                             </Badge>
@@ -338,7 +338,7 @@ export function ClientsTab() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600"
+                            className="h-7 w-7 text-[#007AFF] hover:bg-[#007AFF]/5"
                             onClick={(e) => {
                               e.stopPropagation()
                               setSetLimitUser({
@@ -354,7 +354,7 @@ export function ClientsTab() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-600"
+                              className="h-7 w-7 text-[#34C759] hover:bg-[#34C759]/5"
                               onClick={async (e) => {
                                 e.stopPropagation()
                                 const supabaseClient = createClientSupabaseClient()
@@ -381,7 +381,7 @@ export function ClientsTab() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-red-500 hover:bg-red-100 hover:text-red-600"
+                              className="h-7 w-7 text-[#FF3B30] hover:bg-[#FF3B30]/5"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setSuspendTarget({
@@ -402,23 +402,23 @@ export function ClientsTab() {
 
                       {/* الإحصائيات */}
                       <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="flex flex-col items-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200/50">
-                          <span className="text-lg font-bold text-blue-600">
+                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
+                          <span className="text-lg font-bold text-[#007AFF]">
                             {user.period_report_count || 0}
                           </span>
-                          <span className="text-[10px] text-blue-700 leading-tight">تقرير</span>
+                          <span className="text-[10px] text-[#007AFF] leading-tight">تقرير</span>
                         </div>
-                        <div className="flex flex-col items-center p-2 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200/50">
-                          <span className="text-lg font-bold text-amber-600">
+                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
+                          <span className="text-lg font-bold text-[#FF9500]">
                             {user.period_total_days || 0}
                           </span>
-                          <span className="text-[10px] text-amber-700 leading-tight">يوم</span>
+                          <span className="text-[10px] text-[#FF9500] leading-tight">يوم</span>
                         </div>
-                        <div className="flex flex-col items-center p-2 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200/50">
-                          <span className="text-lg font-bold text-red-600">
+                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
+                          <span className="text-lg font-bold text-[#FF3B30]">
                             {user.total_suspensions || 0}
                           </span>
-                          <span className="text-[10px] text-red-700 leading-tight">تعليق</span>
+                          <span className="text-[10px] text-[#FF3B30] leading-tight">تعليق</span>
                         </div>
                       </div>
 

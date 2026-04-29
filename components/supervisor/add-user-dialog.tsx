@@ -332,10 +332,10 @@ export function AddUserDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         dir="rtl"
-        className="glass-card !rounded-2xl !border-indigo-200/30 !shadow-2xl max-w-[95vw] sm:max-w-[520px] max-h-[90vh] overflow-y-auto p-0"
+        className="bg-white rounded-2xl !shadow-xl max-w-[95vw] sm:max-w-[520px] max-h-[90vh] overflow-y-auto p-0"
       >
         {/* الشريط العلوي المتدرج */}
-        <div className="bg-gradient-to-l from-indigo-600 to-purple-600 px-6 py-5 rounded-t-2xl">
+        <div className="bg-[#007AFF] px-6 py-5 rounded-t-2xl">
           <DialogHeader className="text-right">
             <DialogTitle className="text-white text-xl font-bold flex items-center gap-3">
               <motion.div
@@ -353,7 +353,7 @@ export function AddUserDialog({
               </motion.div>
               إضافة مستخدم جديد
             </DialogTitle>
-            <DialogDescription className="text-indigo-100 text-sm mt-1">
+            <DialogDescription className="text-white/70 text-sm mt-1">
               أدخل بيانات المستخدم لإنشاء حساب جديد ضمن إدارتك
             </DialogDescription>
           </DialogHeader>
@@ -376,8 +376,8 @@ export function AddUserDialog({
                 transition={{ duration: 0.25 }}
                 className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2 ${
                   alertMessage.type === "success"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
+                    ? "bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20"
+                    : "bg-[#FF3B30]/10 text-[#FF3B30] border border-[#FF3B30]/20"
                 }`}
               >
                 {alertMessage.type === "success" ? "✓" : "✗"}
@@ -398,12 +398,12 @@ export function AddUserDialog({
                 الاسم الكامل <span className="text-gray-400">(اختياري)</span>
               </Label>
               <div className="relative">
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                 <Input
                   value={formData.fullName}
                   onChange={(e) => updateField("fullName", e.target.value)}
                   placeholder="أدخل الاسم الكامل"
-                  className="border-indigo-200 focus:border-indigo-400 bg-white/70 pr-10 h-11 rounded-xl transition-colors"
+                  className="bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl focus:ring-2 focus:ring-[#007AFF]/30 transition-colors"
                 />
               </div>
             </div>
@@ -411,15 +411,15 @@ export function AddUserDialog({
             {/* اسم المستخدم */}
             <div className="space-y-2">
               <Label className="text-gray-700 text-sm font-medium">
-                اسم المستخدم <span className="text-red-400">*</span>
+                اسم المستخدم <span className="text-[#FF3B30]">*</span>
               </Label>
               <div className="relative">
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                 <Input
                   value={formData.username}
                   onChange={(e) => updateField("username", e.target.value)}
                   placeholder="أدخل اسم المستخدم"
-                  className={`border ${errors.username ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/70 pr-10 h-11 rounded-xl transition-colors`}
+                  className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ${errors.username ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                   autoComplete="off"
                 />
               </div>
@@ -437,16 +437,16 @@ export function AddUserDialog({
             {/* كلمة المرور */}
             <div className="space-y-2">
               <Label className="text-gray-700 text-sm font-medium">
-                كلمة المرور <span className="text-red-400">*</span>
+                كلمة المرور <span className="text-[#FF3B30]">*</span>
               </Label>
               <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                 <Input
                   type="password"
                   value={formData.password}
                   onChange={(e) => updateField("password", e.target.value)}
                   placeholder="أدخل كلمة المرور"
-                  className={`border ${errors.password ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/70 pr-10 h-11 rounded-xl transition-colors`}
+                  className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ${errors.password ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                   autoComplete="new-password"
                 />
               </div>
@@ -467,12 +467,12 @@ export function AddUserDialog({
                 رقم الهاتف <span className="text-gray-400">(اختياري)</span>
               </Label>
               <div className="relative">
-                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                 <Input
                   value={formData.phone}
                   onChange={(e) => updateField("phone", e.target.value)}
                   placeholder="+966 5X XXX XXXX"
-                  className={`border ${errors.phone ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/70 pr-10 h-11 rounded-xl transition-colors ltr-placeholder`}
+                  className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ltr-placeholder ${errors.phone ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                   dir="ltr"
                 />
               </div>
@@ -493,13 +493,13 @@ export function AddUserDialog({
                 البريد الإلكتروني <span className="text-gray-400">(اختياري)</span>
               </Label>
               <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   placeholder="example@domain.com"
-                  className={`border ${errors.email ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/70 pr-10 h-11 rounded-xl transition-colors ltr-placeholder`}
+                  className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ltr-placeholder ${errors.email ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                   dir="ltr"
                   autoComplete="email"
                 />
@@ -517,16 +517,16 @@ export function AddUserDialog({
           </div>
 
           {/* ===== فاصل ===== */}
-          <Separator className="bg-indigo-100" />
+          <Separator className="bg-gray-100" />
 
           {/* ===== قسم ضبط الحد المسموح ===== */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-              <Clock className="h-4 w-4 text-indigo-500" />
+              <Clock className="h-4 w-4 text-[#007AFF]" />
               ضبط الحد المسموح
             </h3>
 
-            <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/80 rounded-xl p-4 space-y-4 border border-indigo-100/50">
+            <div className="bg-[#f2f2f7] rounded-xl p-4 space-y-4 border-0">
               {/* نوع الحد */}
               <div className="space-y-2">
                 <Label className="text-gray-700 text-sm font-medium">
@@ -537,10 +537,10 @@ export function AddUserDialog({
                     value={formData.limitType}
                     onValueChange={(val) => updateField("limitType", val)}
                   >
-                    <SelectTrigger className="border-indigo-200 focus:border-indigo-400 focus:ring-indigo-200 bg-white/80 h-11 rounded-xl text-right">
+                    <SelectTrigger className="bg-[#f2f2f7] border-0 h-11 rounded-xl text-right focus:ring-2 focus:ring-[#007AFF]/30">
                       <SelectValue placeholder="اختر نوع الحد" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-indigo-100">
+                    <SelectContent className="rounded-xl border-gray-200">
                       <SelectItem value="none" className="rounded-lg m-1">
                         <span className="flex items-center gap-2">
                           <Infinity className="h-3.5 w-3.5 text-gray-400" />
@@ -549,19 +549,19 @@ export function AddUserDialog({
                       </SelectItem>
                       <SelectItem value="days_count" className="rounded-lg m-1">
                         <span className="flex items-center gap-2">
-                          <Hash className="h-3.5 w-3.5 text-indigo-500" />
+                          <Hash className="h-3.5 w-3.5 text-[#007AFF]" />
                           بعدد الأيام
                         </span>
                       </SelectItem>
                       <SelectItem value="reports_count" className="rounded-lg m-1">
                         <span className="flex items-center gap-2">
-                          <FileBarChart className="h-3.5 w-3.5 text-indigo-500" />
+                          <FileBarChart className="h-3.5 w-3.5 text-[#007AFF]" />
                           بعدد التقارير
                         </span>
                       </SelectItem>
                       <SelectItem value="specific_date" className="rounded-lg m-1">
                         <span className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-indigo-500" />
+                          <Calendar className="h-3.5 w-3.5 text-[#007AFF]" />
                           إلى تاريخ معين
                         </span>
                       </SelectItem>
@@ -583,17 +583,17 @@ export function AddUserDialog({
                   >
                     <div className="space-y-2">
                       <Label className="text-gray-700 text-sm font-medium">
-                        عدد الأيام <span className="text-red-400">*</span>
+                        عدد الأيام <span className="text-[#FF3B30]">*</span>
                       </Label>
                       <div className="relative">
-                        <Hash className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                        <Hash className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                         <Input
                           type="number"
                           min="1"
                           value={formData.limitDays}
                           onChange={(e) => updateField("limitDays", e.target.value)}
                           placeholder="مثال: 30"
-                          className={`border ${errors.limitDays ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/80 pr-10 h-11 rounded-xl transition-colors`}
+                          className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ${errors.limitDays ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                           dir="ltr"
                         />
                       </div>
@@ -624,10 +624,10 @@ export function AddUserDialog({
                   >
                     <div className="space-y-2">
                       <Label className="text-gray-700 text-sm font-medium">
-                        عدد التقارير <span className="text-red-400">*</span>
+                        عدد التقارير <span className="text-[#FF3B30]">*</span>
                       </Label>
                       <div className="relative">
-                        <FileBarChart className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                        <FileBarChart className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                         <Input
                           type="number"
                           min="1"
@@ -636,7 +636,7 @@ export function AddUserDialog({
                             updateField("limitReports", e.target.value)
                           }
                           placeholder="مثال: 100"
-                          className={`border ${errors.limitReports ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/80 pr-10 h-11 rounded-xl transition-colors`}
+                          className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ${errors.limitReports ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                           dir="ltr"
                         />
                       </div>
@@ -668,10 +668,10 @@ export function AddUserDialog({
                   >
                     <div className="space-y-2">
                       <Label className="text-gray-700 text-sm font-medium">
-                        التاريخ المحدد <span className="text-red-400">*</span>
+                        التاريخ المحدد <span className="text-[#FF3B30]">*</span>
                       </Label>
                       <div className="relative">
-                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-400 pointer-events-none" />
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#007AFF]/40 pointer-events-none" />
                         <Input
                           type="datetime-local"
                           value={formData.limitDate}
@@ -681,7 +681,7 @@ export function AddUserDialog({
                               .toISOString()
                               .slice(0, 16)
                           }
-                          className={`border ${errors.limitDate ? "border-red-300 focus:border-red-400" : "border-indigo-200 focus:border-indigo-400"} bg-white/80 pr-10 h-11 rounded-xl transition-colors`}
+                          className={`bg-[#f2f2f7] border-0 pr-10 h-11 rounded-xl transition-colors ${errors.limitDate ? "ring-2 ring-[#FF3B30]/30" : "focus:ring-2 focus:ring-[#007AFF]/30"}`}
                           dir="ltr"
                         />
                       </div>
@@ -705,7 +705,7 @@ export function AddUserDialog({
           </div>
 
           {/* ===== فاصل ===== */}
-          <Separator className="bg-indigo-100" />
+          <Separator className="bg-gray-100" />
 
           {/* ===== صلاحية تنزيل PPTX ===== */}
           <div className="space-y-3">
@@ -714,11 +714,11 @@ export function AddUserDialog({
               صلاحيات التنزيل
             </h3>
 
-            <div className="bg-gradient-to-br from-green-50/80 to-emerald-50/80 rounded-xl p-4 space-y-3 border border-green-100/50">
+            <div className="bg-[#34C759]/5 rounded-xl p-4 space-y-3 border-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-2 rounded-xl">
-                    <FileDown className="h-4 w-4 text-green-600" />
+                  <div className="bg-[#34C759]/10 p-2 rounded-xl">
+                    <FileDown className="h-4 w-4 text-[#34C759]" />
                   </div>
                   <div>
                     <Label className="text-gray-700 text-sm font-medium block">
@@ -732,14 +732,14 @@ export function AddUserDialog({
                 <Switch
                   checked={formData.pptxEnabled}
                   onCheckedChange={(checked) => updateField("pptxEnabled", String(checked))}
-                  className="data-[state=checked]:bg-green-500"
+                  className="data-[state=checked]:bg-[#34C759]"
                 />
               </div>
               {!formData.pptxEnabled && (
                 <motion.p
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-amber-600 flex items-center gap-1"
+                  className="text-xs text-[#FF9500] flex items-center gap-1"
                 >
                   <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                   لن يتمكن المستخدم من رؤية زر تنزيل PPTX في أي مكان
@@ -755,7 +755,7 @@ export function AddUserDialog({
             type="button"
             onClick={handleSubmit}
             disabled={loading || !!alertMessage?.text?.includes("نجاح")}
-            className="flex-1 sm:flex-none bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white h-11 rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6"
+            className="flex-1 sm:flex-none bg-[#007AFF] text-white hover:opacity-95 font-semibold h-11 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-6"
           >
             {loading ? (
               <motion.span

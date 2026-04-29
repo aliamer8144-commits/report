@@ -79,25 +79,25 @@ const LIMIT_TYPE_OPTIONS: {
     value: "days_count",
     label: "بعدد الأيام",
     description: "تحديد عدد الأيام المسموح للعمل",
-    icon: <Clock className="h-4 w-4 text-indigo-500" />,
+    icon: <Clock className="h-4 w-4 text-[#007AFF]" />,
   },
   {
     value: "reports_count",
     label: "بعدد التقارير",
     description: "تحديد الحد الأقصى لعدد التقارير",
-    icon: <FileBarChart className="h-4 w-4 text-purple-500" />,
+    icon: <FileBarChart className="h-4 w-4 text-[#AF52DE]" />,
   },
   {
     value: "specific_date",
     label: "إلى تاريخ معين",
     description: "تحديد تاريخ انتهاء محدد",
-    icon: <Calendar className="h-4 w-4 text-blue-500" />,
+    icon: <Calendar className="h-4 w-4 text-[#007AFF]" />,
   },
   {
     value: "none",
     label: "بدون حد",
     description: "إزالة الحد المسموح الحالي",
-    icon: <ShieldOff className="h-4 w-4 text-amber-500" />,
+    icon: <ShieldOff className="h-4 w-4 text-[#FF9500]" />,
   },
 ]
 
@@ -490,18 +490,11 @@ export default function SetLimitDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-[480px] p-0 overflow-hidden glass-card border-indigo-200/50 bg-gradient-to-b from-white to-indigo-50/30 backdrop-blur-xl"
+        className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-2xl shadow-xl"
         dir="rtl"
       >
         {/* رأس الحوار مع تدرج الخلفية */}
-        <div className="relative bg-gradient-to-l from-indigo-600 to-purple-600 px-6 py-5 text-white">
-          {/* زخرفة الخلفية */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-8 -left-8 w-32 h-32 bg-white/5 rounded-full" />
-            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-white/5 rounded-full" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white/[0.02] rounded-full" />
-          </div>
-
+        <div className="relative bg-[#007AFF] px-6 py-5 text-white">
           <div className="relative">
             <DialogHeader className="text-right space-y-2">
               <DialogTitle className="text-xl font-bold flex items-center gap-3 text-white">
@@ -510,7 +503,7 @@ export default function SetLimitDialog({
                 </div>
                 <span>تحديد حد مسموح</span>
               </DialogTitle>
-              <DialogDescription className="text-indigo-100 text-sm leading-relaxed">
+              <DialogDescription className="text-white/70 text-sm leading-relaxed">
                 تحديد وتعديل الحد المسموح للمستخدم{" "}
                 <span className="font-semibold text-white">{userFullName}</span>
               </DialogDescription>
@@ -529,7 +522,7 @@ export default function SetLimitDialog({
                 exit={{ opacity: 0, y: -10 }}
                 className="flex items-center justify-center py-3"
               >
-                <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                <Loader2 className="h-5 w-5 animate-spin text-[#007AFF]" />
                 <span className="mr-2 text-sm text-gray-500">جاري تحميل بيانات الحد...</span>
               </motion.div>
             )}
@@ -541,10 +534,10 @@ export default function SetLimitDialog({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="rounded-xl border border-indigo-200/60 bg-gradient-to-l from-indigo-50 to-purple-50/50 p-4 space-y-3">
+                <div className="bg-[#f2f2f7] rounded-xl border-0 p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Info className="h-4 w-4 text-indigo-600" />
-                    <span className="text-sm font-semibold text-indigo-800">الحد المسموح الحالي</span>
+                    <Info className="h-4 w-4 text-[#007AFF]" />
+                    <span className="text-sm font-semibold text-gray-800">الحد المسموح الحالي</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -553,7 +546,7 @@ export default function SetLimitDialog({
                       <div className="flex items-center gap-1.5">
                         <Badge
                           variant="outline"
-                          className="bg-indigo-100 text-indigo-700 border-indigo-200 text-xs"
+                          className="bg-[#007AFF]/10 text-[#007AFF] border-0 text-xs"
                         >
                           {currentLimitInfo.typeLabel}
                         </Badge>
@@ -596,9 +589,9 @@ export default function SetLimitDialog({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="rounded-xl border border-emerald-200/60 bg-gradient-to-l from-emerald-50 to-green-50/50 p-3 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                  <span className="text-sm text-emerald-700">
+                <div className="bg-[#34C759]/5 border-0 rounded-xl p-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-[#34C759] flex-shrink-0" />
+                  <span className="text-sm text-[#34C759]">
                     لا يوجد حد مسموح حالياً لهذا المستخدم
                   </span>
                 </div>
@@ -606,12 +599,12 @@ export default function SetLimitDialog({
             )}
           </AnimatePresence>
 
-          <Separator className="bg-indigo-100" />
+          <Separator className="bg-gray-100" />
 
           {/* ===== اختيار نوع الحد ===== */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              <Settings className="h-4 w-4 text-indigo-600" />
+              <Settings className="h-4 w-4 text-[#007AFF]" />
               نوع الحد
             </Label>
 
@@ -626,7 +619,6 @@ export default function SetLimitDialog({
               {LIMIT_TYPE_OPTIONS.map((option) => (
                 <motion.div
                   key={option.value}
-                  whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
                   <label
@@ -636,9 +628,9 @@ export default function SetLimitDialog({
                       ${
                         selectedType === option.value
                           ? option.value === "none"
-                            ? "border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-200/50"
-                            : "border-indigo-400 bg-indigo-50/80 shadow-sm shadow-indigo-200/50"
-                          : "border-gray-200 bg-white/70 hover:border-gray-300 hover:bg-gray-50/50"
+                            ? "border-[#FF9500] bg-[#FF9500]/5"
+                            : "border-[#007AFF] bg-[#007AFF]/5"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                       }
                     `}
                     htmlFor={`limit-type-${option.value}`}
@@ -654,9 +646,7 @@ export default function SetLimitDialog({
                         <span
                           className={`text-sm font-semibold ${
                             selectedType === option.value
-                              ? option.value === "none"
-                                ? "text-amber-800"
-                                : "text-indigo-800"
+                              ? "text-gray-800"
                               : "text-gray-700"
                           }`}
                         >
@@ -689,7 +679,7 @@ export default function SetLimitDialog({
                     htmlFor="days-input"
                     className="text-sm font-semibold text-gray-800 flex items-center gap-2"
                   >
-                    <Hash className="h-4 w-4 text-indigo-500" />
+                    <Hash className="h-4 w-4 text-[#007AFF]" />
                     عدد الأيام المسموح
                   </Label>
                   <div className="relative">
@@ -704,7 +694,7 @@ export default function SetLimitDialog({
                         setValidationError(null)
                       }}
                       placeholder="مثال: 30"
-                      className="pr-10 pl-4 border-indigo-200 focus:border-indigo-500 bg-white/80 text-right h-11"
+                      className="pr-10 pl-4 bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30 text-right h-11"
                       dir="ltr"
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
@@ -732,7 +722,7 @@ export default function SetLimitDialog({
                     htmlFor="reports-input"
                     className="text-sm font-semibold text-gray-800 flex items-center gap-2"
                   >
-                    <FileBarChart className="h-4 w-4 text-purple-500" />
+                    <FileBarChart className="h-4 w-4 text-[#AF52DE]" />
                     عدد التقارير المسموح
                   </Label>
                   <div className="relative">
@@ -747,7 +737,7 @@ export default function SetLimitDialog({
                         setValidationError(null)
                       }}
                       placeholder="مثال: 50"
-                      className="pr-10 pl-4 border-indigo-200 focus:border-indigo-500 bg-white/80 text-right h-11"
+                      className="pr-10 pl-4 bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30 text-right h-11"
                       dir="ltr"
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
@@ -775,7 +765,7 @@ export default function SetLimitDialog({
                     htmlFor="date-input"
                     className="text-sm font-semibold text-gray-800 flex items-center gap-2"
                   >
-                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <Calendar className="h-4 w-4 text-[#007AFF]" />
                     تاريخ الانتهاء
                   </Label>
                   <div className="relative">
@@ -788,7 +778,7 @@ export default function SetLimitDialog({
                         setDateValue(e.target.value)
                         setValidationError(null)
                       }}
-                      className="pr-10 pl-4 border-indigo-200 focus:border-indigo-500 bg-white/80 h-11"
+                      className="pr-10 pl-4 bg-[#f2f2f7] border-0 focus:ring-2 focus:ring-[#007AFF]/30 h-11"
                       dir="ltr"
                     />
                   </div>
@@ -808,15 +798,15 @@ export default function SetLimitDialog({
                 transition={{ duration: 0.25 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl border border-amber-300/60 bg-gradient-to-l from-amber-50 to-orange-50/50 p-4 flex items-start gap-3">
-                  <div className="bg-amber-100 p-2 rounded-lg flex-shrink-0 mt-0.5">
-                    <ShieldOff className="h-5 w-5 text-amber-600" />
+                <div className="bg-[#FF9500]/5 border-0 rounded-xl p-4 flex items-start gap-3">
+                  <div className="bg-[#FF9500]/10 p-2 rounded-lg flex-shrink-0 mt-0.5">
+                    <ShieldOff className="h-5 w-5 text-[#FF9500]" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-amber-800 mb-1">
+                    <p className="text-sm font-semibold text-gray-800 mb-1">
                       إزالة الحد المسموح
                     </p>
-                    <p className="text-xs text-amber-700/80 leading-relaxed">
+                    <p className="text-xs text-gray-500 leading-relaxed">
                       سيتم إزالة الحد المسموح الحالي وسيتمكن المستخدم من إنشاء تقارير بدون قيود.
                     </p>
                   </div>
@@ -825,14 +815,14 @@ export default function SetLimitDialog({
             )}
           </AnimatePresence>
 
-          <Separator className="bg-indigo-100" />
+          <Separator className="bg-gray-100" />
 
           {/* ===== صلاحية تنزيل PPTX ===== */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-xl border-2 border-indigo-200/60 bg-gradient-to-l from-indigo-50/80 to-purple-50/80">
+            <div className="flex items-center justify-between bg-[#f2f2f7] rounded-xl border-0 p-3">
               <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-xl">
-                  <FileDown className="h-4 w-4 text-green-600" />
+                <div className="bg-[#34C759]/10 p-2 rounded-xl">
+                  <FileDown className="h-4 w-4 text-[#34C759]" />
                 </div>
                 <div>
                   <Label className="text-sm font-semibold text-gray-800 block">
@@ -844,12 +834,12 @@ export default function SetLimitDialog({
                 </div>
               </div>
               {isLoadingPptxEnabled ? (
-                <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                <Loader2 className="h-5 w-5 animate-spin text-[#007AFF]" />
               ) : (
                 <Switch
                   checked={pptxEnabled}
                   onCheckedChange={setPptxEnabled}
-                  className="data-[state=checked]:bg-green-500"
+                  className="data-[state=checked]:bg-[#34C759]"
                 />
               )}
             </div>
@@ -857,7 +847,7 @@ export default function SetLimitDialog({
               <motion.p
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xs text-amber-600 flex items-center gap-1 px-1"
+                className="text-xs text-[#FF9500] flex items-center gap-1 px-1"
               >
                 <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                 لن يتمكن المستخدم من رؤية زر تنزيل PPTX في أي مكان
@@ -916,7 +906,7 @@ export default function SetLimitDialog({
         </div>
 
         {/* ===== التذييل ===== */}
-        <DialogFooter className="px-6 pb-6 pt-2 border-t border-gray-100 bg-gray-50/30 gap-2 sm:gap-2">
+        <DialogFooter className="px-6 pb-6 pt-2 border-t border-gray-100 bg-gray-50 gap-2 sm:gap-2">
           <Button
             type="button"
             variant="outline"
@@ -934,8 +924,8 @@ export default function SetLimitDialog({
               flex-1 h-11 text-white font-semibold shadow-md transition-all duration-200
               ${
                 selectedType === "none"
-                  ? "bg-gradient-to-l from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-300/40"
-                  : "bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-300/40"
+                  ? "bg-[#FF9500] hover:opacity-95"
+                  : "bg-[#007AFF] hover:opacity-95"
               }
             `}
           >
