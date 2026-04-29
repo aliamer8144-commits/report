@@ -304,39 +304,23 @@ export function ClientsTab() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <div
-                    className="bg-white rounded-2xl p-3 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
+                    className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
                     onClick={() => setSelectedUserId(user.user_id)}
                   >
-                    {/* الصف الأول: الأيقونة + الاسم + الحالة + القائمة */}
+                    {/* الصف الأول: التاريخ + أيقونة الحالة + القائمة */}
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        {/* أيقونة دائرية */}
-                        <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 ${
-                            user.is_suspended
-                              ? "bg-gradient-to-br from-[#FF3B30] to-[#D63028] shadow-[#FF3B30]/15"
-                              : "bg-gradient-to-br from-[#007AFF] to-[#0055D4] shadow-[#007AFF]/15"
-                          }`}
-                        >
-                          {(user.full_name || user.username || "ع").charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm text-[#1c1c1e] leading-tight truncate">
-                            {user.full_name || user.username}
-                          </h3>
-                          <p className="text-[11px] text-gray-400 truncate">
-                            @{user.username}
-                          </p>
-                        </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span className="text-[11px] text-gray-400">
+                          {formatDate(user.last_report_at)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {/* أيقونة الحالة */}
                         {user.is_suspended ? (
                           <XCircle className="w-[18px] h-[18px] text-[#FF3B30]" />
                         ) : (
                           <CheckCircle className="w-[18px] h-[18px] text-[#34C759]" />
                         )}
-                        {/* قائمة النقاط الثلاث */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button
@@ -411,8 +395,29 @@ export function ClientsTab() {
                       </div>
                     </div>
 
+                    {/* الصف الثاني: الأيقونة + الاسم + اسم المستخدم */}
+                    <div className="flex items-start gap-2.5 mb-3">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 mt-[-2px] ${
+                          user.is_suspended
+                            ? "bg-gradient-to-br from-[#FF3B30] to-[#D63028] shadow-[#FF3B30]/15"
+                            : "bg-gradient-to-br from-[#007AFF] to-[#0055D4] shadow-[#007AFF]/15"
+                        }`}
+                      >
+                        {(user.full_name || user.username || "ع").charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm text-[#1c1c1e] leading-tight truncate">
+                          {user.full_name || user.username}
+                        </h3>
+                        <p className="text-[11px] text-gray-400 truncate">
+                          @{user.username}
+                        </p>
+                      </div>
+                    </div>
+
                     {/* خط فاصل */}
-                    <div className="border-t border-gray-100 pt-2">
+                    <div className="border-t border-gray-100 pt-2.5">
                       {/* صف الإحصائيات - مكونات في صف واحد */}
                       <div className="flex items-center justify-center gap-3 mb-2">
                         <div className="flex items-center gap-1">
