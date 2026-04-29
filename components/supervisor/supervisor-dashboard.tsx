@@ -20,7 +20,6 @@ import {
   Loader2,
   Sun,
   Moon,
-  Shield,
   Zap,
   UserPlus,
   ScrollText,
@@ -146,6 +145,21 @@ function getTodayArabicDate() {
     day: "numeric",
   })
 }
+
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "صباح الخير"
+  if (hour < 18) return "مساء الخير"
+  return "مساء الخير"
+}
+
+const motivationalMessages = [
+  "استمر في العمل المتميز! 🌟",
+  "كل يوم هو فرصة جديدة للنجاح 💪",
+  "أداؤك اليوم رائع، واصل التقدم! 🚀",
+  "العمل الجاد يصنع النتائج العظيمة ✨",
+  "النجاح يبدأ بخطوة واحدة 🎯",
+]
 
 function formatRelativeTime(dateStr: string) {
   if (!dateStr) return "الآن"
@@ -510,74 +524,53 @@ export function SupervisorDashboard() {
   return (
     <div dir="rtl" className="space-y-6">
       {/* ==========================================
-          بطاقة التحية - Gradient Mesh Background
+          بطاقة التحية - نفس تصميم المندوب بالضبط
           ========================================== */}
       <motion.div variants={fadeUp}>
-        <div
-          className="rounded-2xl p-5 text-white shadow-lg shadow-[#007AFF]/20 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #007AFF 0%, #0055D4 50%, #5856D6 100%)" }}
-        >
-          {/* زخارف */}
+        <div className="gradient-mesh-blue rounded-2xl p-5 text-white shadow-lg shadow-[#007AFF]/20 relative overflow-hidden">
+          {/* زخارف - نفسها بالضبط */}
           <div className="absolute top-0 left-0 w-40 h-40 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/4 translate-y-1/4" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/[0.03] rounded-full blur-2xl" />
-          <div className="absolute top-3 right-3 w-3 h-3 bg-white/20 rounded-full animate-pulse" />
-          <div className="absolute top-3 right-10 w-2 h-2 bg-white/15 rounded-full animate-pulse" style={{ animationDelay: "0.5s" }} />
+          <div className="absolute top-3 right-3 w-3 h-3 bg-white/20 rounded-full animate-badge-pulse" />
+          <div className="absolute top-3 right-10 w-2 h-2 bg-white/15 rounded-full animate-badge-pulse" style={{ animationDelay: "0.5s" }} />
           <div className="absolute bottom-4 left-4 w-20 h-20 border border-white/10 rounded-full" />
           <div className="absolute bottom-6 left-6 w-12 h-12 border border-white/5 rounded-full" />
 
           <div className="relative z-10">
-            {/* الصف الأول: أيقونة + تحية | التاريخ + شمس/قمر */}
+            {/* الصف الأول: أيقونة شمس/قمر + تحية | التاريخ */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#FFD60A]" />
-                <p className="text-sm opacity-80">
-                  {new Date().getHours() < 12 ? "صباح الخير،" : "مساء الخير،"}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-[11px] opacity-60">{getTodayArabicDate()}</p>
                 {new Date().getHours() < 12 ? (
                   <Sun className="w-4 h-4 text-[#FFD60A]" />
                 ) : (
                   <Moon className="w-4 h-4 text-[#FFD60A]" />
                 )}
+                <p className="text-sm opacity-80">{getGreeting()}،</p>
               </div>
+              <p className="text-[11px] opacity-60">{getTodayArabicDate()}</p>
             </div>
             {/* الاسم */}
-            <h2 className="text-2xl font-bold mt-1 drop-shadow-sm">
-              {fullName.split(" ")[0]}
-            </h2>
-            {/* حالة الاتصال + تحديث */}
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-xs opacity-70 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                <motion.div
-                  animate={{ scale: connectionStatus === "lost" ? [1, 1.2, 1] : 1 }}
-                  transition={{ duration: 1.5, repeat: connectionStatus === "lost" ? Infinity : 0 }}
-                  className={`w-2 h-2 rounded-full ${
-                    connectionStatus === "fresh"
-                      ? "bg-[#34C759]"
-                      : connectionStatus === "stale"
-                      ? "bg-[#FF9500]"
-                      : "bg-[#FF3B30]"
-                  }`}
-                />
-                <span>{formatLastRefreshed()}</span>
+            <h2 className="text-2xl font-bold mt-1 drop-shadow-sm">{fullName.split(" ")[0]}</h2>
+            {/* العبارة التحفيزية */}
+            <div className="mt-3 flex items-center gap-2 text-xs opacity-70 bg-white/10 px-3 py-1.5 rounded-full inline-flex backdrop-blur-sm">
+              <span>{motivationalMessages[Math.floor(Date.now() / 86400000) % motivationalMessages.length]}</span>
+            </div>
+            {/* إجمالي العملاء + النشطين + المعلقين */}
+            <div className="mt-3 flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs bg-white/15 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                <Users className="w-3.5 h-3.5" />
+                <span>إجمالي العملاء</span>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => refreshData(true)}
-                disabled={isRefreshing}
-                className="flex items-center gap-1.5 text-xs opacity-70 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm hover:bg-white/20 transition-colors disabled:opacity-50"
-              >
-                <motion.span
-                  animate={isRefreshing ? { rotate: 360 } : { rotate: 0 }}
-                  transition={isRefreshing ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0 }}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </motion.span>
-                <span>تحديث</span>
-              </motion.button>
+              <span className="text-sm font-bold">{stats.totalClients}</span>
+              <div className="flex items-center gap-1.5 text-xs bg-[#34C759]/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                <CheckCircle className="w-3.5 h-3.5 text-[#34C759]" />
+                <span>{stats.activeClients} نشط</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs bg-[#FF3B30]/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                <Ban className="w-3.5 h-3.5 text-[#FF3B30]" />
+                <span>{stats.suspendedClients} معلّق</span>
+              </div>
             </div>
           </div>
         </div>

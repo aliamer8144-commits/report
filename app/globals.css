@@ -587,3 +587,28 @@ html[dir="ltr"] .rtl-only {
 .bg-apple-red { background-color: var(--apple-red); }
 .bg-apple-purple { background-color: var(--apple-purple); }
 .bg-apple-gray6 { background-color: var(--apple-gray6); }
+
+/* ============================================
+   Gradient Mesh Blue (مoyah-jaba-crm style)
+   ============================================ */
+
+.gradient-mesh-blue {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0, 122, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(88, 86, 214, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(175, 82, 222, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, #007AFF, #5856D6);
+}
+
+/* ============================================
+   Badge Pulse Animation
+   ============================================ */
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.animate-badge-pulse {
+  animation: badgePulse 2s ease-in-out infinite;
+}
