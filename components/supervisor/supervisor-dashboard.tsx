@@ -30,6 +30,15 @@ import {
   RefreshCw,
   Eye,
 } from "lucide-react"
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
 
 const stagger = {
   animate: { transition: { staggerChildren: 0.08 } },
@@ -109,6 +118,21 @@ interface RecentActivity {
   username: string
   full_name: string | null
   created_at: string
+}
+
+interface DailyChartData {
+  date: string
+  label: string
+  count: number
+}
+
+interface WeeklyStats {
+  weekReports: number
+  prevWeekReports: number
+  weekClients: number
+  prevWeekClients: number
+  weekDays: number
+  prevWeekDays: number
 }
 
 /* ============================================================
@@ -198,6 +222,17 @@ export function SupervisorDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
   const [connectionStatus, setConnectionStatus] = useState<"fresh" | "stale" | "lost">("fresh")
+  const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "90d">("30d")
+  const [dailyChartData, setDailyChartData] = useState<DailyChartData[]>([])
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({
+    weekReports: 0,
+    prevWeekReports: 0,
+    weekClients: 0,
+    prevWeekClients: 0,
+    weekDays: 0,
+    prevWeekDays: 0,
+  })
+  const [showAllActivity, setShowAllActivity] = useState(false)
 
   const refreshData = useCallback(async (showLoading = false) => {
     if (!supervisorId) return
@@ -273,6 +308,90 @@ export function SupervisorDashboard() {
             created_at: a.created_at,
           }))
           setRecentActivities(mapped)
+        }
+
+        // جلب بيانات الرسم البياني للتقارير اليومية
+        const periodDays = chartPeriod === "7d" ? 7 : chartPeriod === "30d" ? 30 : 90
+        const chartStart = new Date()
+        chartStart.setDate(chartStart.getDate() - periodDays + 1)
+        chartStart.setHours(0, 0, 0, 0)
+
+        const { data: dailyReports } = await supabase
+          .from("reports")
+          .select("created_at, user_id")
+          .in("user_id", clientIds)
+          .eq("is_deleted", false)
+          .gte("created_at", chartStart.toISOString())
+          .order("created_at", { ascending: true })
+
+        if (dailyReports && dailyReports.length > 0) {
+          const dayMap = new Map<string, { count: number; clients: Set<string> }>()
+          for (let i = 0; i < periodDays; i++) {
+            const d = new Date(chartStart)
+            d.setDate(d.getDate() + i)
+            const key = d.toISOString().split("T")[0]
+            dayMap.set(key, { count: 0, clients: new Set() })
+          }
+          dailyReports.forEach((r: any) => {
+            const key = r.created_at.split("T")[0]
+            if (dayMap.has(key)) {
+              const entry = dayMap.get(key)!
+              entry.count += 1
+              entry.clients.add(r.user_id)
+            }
+          })
+          const chart: DailyChartData[] = []
+          dayMap.forEach((val, key) => {
+            const d = new Date(key + "T00:00:00")
+            chart.push({
+              date: key,
+              label: d.toLocaleDateString("ar-SA", { day: "numeric", month: "short" }),
+              count: val.count,
+            })
+          })
+          setDailyChartData(chart)
+        } else {
+          const chart: DailyChartData[] = []
+          for (let i = 0; i < periodDays; i++) {
+            const d = new Date(chartStart)
+            d.setDate(d.getDate() + i)
+            chart.push({
+              date: d.toISOString().split("T")[0],
+              label: d.toLocaleDateString("ar-SA", { day: "numeric", month: "short" }),
+              count: 0,
+            })
+          }
+          setDailyChartData(chart)
+        }
+
+        // حساب إحصائيات الأسبوع (هذا الأسبوع vs الأسبوع الماضي)
+        const now = new Date()
+        const weekStart = new Date(now.getTime() - 7 * 86400000)
+        weekStart.setHours(0, 0, 0, 0)
+        const prevWeekStart = new Date(weekStart.getTime() - 7 * 86400000)
+
+        const { data: weekReportsData } = await supabase
+          .from("reports")
+          .select("created_at, user_id")
+          .in("user_id", clientIds)
+          .eq("is_deleted", false)
+          .gte("created_at", prevWeekStart.toISOString())
+          .order("created_at", { ascending: true })
+
+        if (weekReportsData) {
+          const weekR = weekReportsData.filter((r: any) => new Date(r.created_at) >= weekStart)
+          const prevWeekR = weekReportsData.filter((r: any) => {
+            const d = new Date(r.created_at)
+            return d >= prevWeekStart && d < weekStart
+          })
+          setWeeklyStats({
+            weekReports: weekR.length,
+            prevWeekReports: prevWeekR.length,
+            weekClients: new Set(weekR.map((r: any) => r.user_id)).size,
+            prevWeekClients: new Set(prevWeekR.map((r: any) => r.user_id)).size,
+            weekDays: 0,
+            prevWeekDays: 0,
+          })
         }
       }
 
@@ -577,50 +696,164 @@ export function SupervisorDashboard() {
       </motion.div>
 
       {/* ==========================================
-          اتجاهات الأداء (2×2)
+          اتجاهات الأداء (2×2) - مع نسب التغيير الأسبوعية
+          ========================================== */}
+      {!loading && (() => {
+        const reportsChange = weeklyStats.prevWeekReports > 0
+          ? Math.round(((weeklyStats.weekReports - weeklyStats.prevWeekReports) / weeklyStats.prevWeekReports) * 100)
+          : (weeklyStats.weekReports > 0 ? 100 : 0)
+        const clientsChange = weeklyStats.prevWeekClients > 0
+          ? Math.round(((weeklyStats.weekClients - weeklyStats.prevWeekClients) / weeklyStats.prevWeekClients) * 100)
+          : (weeklyStats.weekClients > 0 ? 100 : 0)
+        const activityRate = stats.totalClients > 0 ? Math.round((stats.activeClients / stats.totalClients) * 100) : 0
+
+        const trends = [
+          { label: "تقارير الأسبوع", value: weeklyStats.weekReports.toString(), change: reportsChange, icon: FileText, color: "#34C759", bgColor: "from-[#34C759]/5 to-white" },
+          { label: "عملاء نشطون الأسبوع", value: weeklyStats.weekClients.toString(), change: clientsChange, icon: Users, color: "#007AFF", bgColor: "from-[#007AFF]/5 to-white" },
+          { label: "تقارير الشهر", value: stats.monthReports.toString(), change: stats.totalReports > 0 ? Math.round((stats.monthReports / stats.totalReports) * 100) : 0, icon: CalendarDays, color: "#FF9500", bgColor: "from-[#FF9500]/5 to-white" },
+          { label: "نسبة النشاط", value: `${activityRate}%`, change: 0, icon: Activity, color: "#AF52DE", bgColor: "from-[#AF52DE]/5 to-white", noChange: true },
+        ]
+
+        return (
+          <motion.div variants={fadeUp}>
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-4 h-4 text-[#007AFF]" />
+              <h3 className="text-base font-bold text-[#1c1c1e]">اتجاهات الأداء</h3>
+              <span className="text-[10px] bg-[#007AFF]/10 text-[#007AFF] px-2 py-0.5 rounded-full font-medium mr-auto">
+                هذا الأسبوع
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {trends.map((trend, i) => {
+                const isPositive = trend.change >= 0
+                return (
+                  <motion.div
+                    key={trend.label}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, type: "spring", stiffness: 300, damping: 25 }}
+                    className={`bg-gradient-to-br ${trend.bgColor} rounded-2xl p-3.5 shadow-sm border border-gray-100/50`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${trend.color}12` }}>
+                        <trend.icon className="w-4 h-4" style={{ color: trend.color }} />
+                      </div>
+                      {!trend.noChange && trend.change !== 0 && (
+                        <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isPositive ? "text-[#34C759] bg-[#34C759]/10" : "text-[#FF3B30] bg-[#FF3B30]/10"}`}>
+                          {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                          {Math.abs(trend.change)}%
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-lg font-bold text-[#1c1c1e]">{trend.value}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{trend.label}</p>
+                    {i < 3 && (
+                      <div className="mt-1.5 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(Math.abs(trend.change) * 2 + 20, 100)}%` }}
+                          transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.1 }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: trend.color, opacity: 0.3 }}
+                        />
+                      </div>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+          </motion.div>
+        )
+      })()}
+
+      {/* ==========================================
+          رسم بياني للتقارير اليومية
           ========================================== */}
       <motion.div variants={fadeUp}>
-        <div className="flex items-center gap-2 mb-3">
-          <Activity className="w-4 h-4 text-[#007AFF]" />
-          <h3 className="text-base font-bold text-[#1c1c1e]">اتجاهات الأداء</h3>
-          <span className="text-[10px] bg-[#007AFF]/10 text-[#007AFF] px-2 py-0.5 rounded-full font-medium mr-auto">
-            هذا الشهر
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: "تقارير الشهر", value: stats.monthReports.toString(), icon: FileText, color: "#34C759", bgColor: "from-[#34C759]/5 to-white" },
-            { label: "عملاء نشطون", value: stats.activeClients.toString(), icon: Users, color: "#007AFF", bgColor: "from-[#007AFF]/5 to-white" },
-            { label: "إجمالي الأيام", value: stats.totalDays.toString(), icon: CalendarDays, color: "#FF9500", bgColor: "from-[#FF9500]/5 to-white" },
-            { label: "نسبة النشاط", value: `${stats.totalClients > 0 ? Math.round((stats.activeClients / stats.totalClients) * 100) : 0}%`, icon: Activity, color: "#AF52DE", bgColor: "from-[#AF52DE]/5 to-white", noChange: true },
-          ].map((trend, i) => (
-            <motion.div
-              key={trend.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, type: "spring", stiffness: 300, damping: 25 }}
-              className={`bg-gradient-to-br ${trend.bgColor} rounded-2xl p-3.5 shadow-sm border border-gray-100/50`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${trend.color}12` }}>
-                  <trend.icon className="w-4 h-4" style={{ color: trend.color }} />
+        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-bold flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-[#007AFF]" />
+              التقارير اليومية
+            </h3>
+            <div className="flex gap-1 bg-[#f2f2f7] rounded-xl p-0.5">
+              {(["7d", "30d", "90d"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => {
+                    setChartPeriod(p)
+                    refreshData(false)
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
+                    chartPeriod === p ? "bg-white text-[#007AFF] shadow-sm" : "text-gray-500"
+                  }`}
+                >
+                  {p === "7d" ? "7 أيام" : p === "30d" ? "30 يوم" : "90 يوم"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-56 md:h-64">
+            {dailyChartData.length === 0 ? (
+              <div className="h-full w-full rounded-xl flex items-center justify-center">
+                <div className="text-center space-y-3">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-[#007AFF]/10 flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-[#007AFF]/50" />
+                  </div>
+                  <p className="text-xs text-gray-400">لا توجد بيانات</p>
                 </div>
               </div>
-              <p className="text-lg font-bold text-[#1c1c1e]">{trend.value}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">{trend.label}</p>
-              {!trend.noChange && (
-                <div className="mt-1.5 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${i === 0 ? Math.min((stats.monthReports / (stats.totalReports || 1)) * 100, 100) : 75}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.1 }}
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: trend.color, opacity: 0.3 }}
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="reportGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#007AFF" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#007AFF" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 10, fill: "#999" }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={chartPeriod === "90d" ? 6 : chartPeriod === "30d" ? 4 : 0}
                   />
-                </div>
-              )}
-            </motion.div>
-          ))}
+                  <YAxis
+                    tick={{ fontSize: 10, fill: "#999" }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-gray-100 p-3 min-w-[120px]">
+                            <p className="text-xs text-gray-500 mb-1 font-medium">{label}</p>
+                            <p className="text-sm font-bold text-[#007AFF]">
+                              {payload[0].value} تقرير
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#007AFF"
+                    strokeWidth={2}
+                    fill="url(#reportGradient)"
+                    name="التقارير"
+                    animationDuration={1000}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -790,7 +1023,7 @@ export function SupervisorDashboard() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-50">
-            {recentActivities.slice(0, 5).map((activity, index) => {
+            {recentActivities.slice(0, showAllActivity ? recentActivities.length : 5).map((activity, index) => {
               const meta = getActivityMeta(activity.activity_type || activity.title)
               const IconComp = meta.icon
               return (
@@ -823,8 +1056,11 @@ export function SupervisorDashboard() {
               )
             })}
             {recentActivities.length > 5 && (
-              <button className="w-full py-2.5 text-[11px] text-[#007AFF] font-medium hover:bg-gray-50 transition-colors">
-                عرض المزيد
+              <button
+                onClick={() => setShowAllActivity(!showAllActivity)}
+                className="w-full py-2.5 text-[11px] text-[#007AFF] font-medium hover:bg-gray-50 transition-colors"
+              >
+                {showAllActivity ? "عرض أقل" : "عرض المزيد"}
               </button>
             )}
           </div>
