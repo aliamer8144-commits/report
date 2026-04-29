@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion"
@@ -12,16 +11,25 @@ import {
   Search,
   Users,
   Loader2,
-  ChevronLeft,
   Settings,
-  Shield,
-  ShieldOff,
   FileBarChart,
   Clock,
   Hash,
   Ban,
   ShieldCheck,
+  CheckCircle,
+  XCircle,
+  MoreVertical,
+  FileText,
+  CalendarDays,
+  AlertTriangle,
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { AddUserDialog } from "./add-user-dialog"
 import SetLimitDialog from "./set-limit-dialog"
 import UserDetailView from "./user-detail-view"
@@ -282,172 +290,176 @@ export function ClientsTab() {
           )}
         </motion.div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <AnimatePresence>
             {filteredUsers.map((user, index) => {
               const limitInfo = getLimitDisplay(user)
               return (
                 <motion.div
                   key={user.user_id}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25, delay: index * 0.03 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Card
-                    className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-all duration-200"
+                  <div
+                    className="bg-white rounded-2xl p-3 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
                     onClick={() => setSelectedUserId(user.user_id)}
                   >
-                    <CardContent className="p-4">
-                      {/* الرأس: الاسم + الحالة + زر الضبط */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {/* صورة رمزية */}
-                          <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${
-                              user.is_suspended
-                                ? "bg-[#FF3B30]"
-                                : "bg-[#007AFF]"
-                            }`}
-                          >
-                            {(user.full_name || user.username || "ع").charAt(0)}
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-gray-800 text-sm">
-                              {user.full_name || user.username}
-                            </h3>
-                            <p className="text-xs text-gray-500">
-                              @{user.username}
-                            </p>
-                          </div>
+                    {/* الصف الأول: الأيقونة + الاسم + الحالة + القائمة */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2.5">
+                        {/* أيقونة دائرية */}
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 ${
+                            user.is_suspended
+                              ? "bg-gradient-to-br from-[#FF3B30] to-[#D63028] shadow-[#FF3B30]/15"
+                              : "bg-gradient-to-br from-[#007AFF] to-[#0055D4] shadow-[#007AFF]/15"
+                          }`}
+                        >
+                          {(user.full_name || user.username || "ع").charAt(0)}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {user.is_suspended ? (
-                            <Badge className="bg-[#FF3B30]/10 text-[#FF3B30] border-0 text-[10px] px-2 py-0.5">
-                              <ShieldOff className="h-3 w-3 ml-0.5" />
-                              معلّق
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-[#34C759]/10 text-[#34C759] border-0 text-[10px] px-2 py-0.5">
-                              <Shield className="h-3 w-3 ml-0.5" />
-                              نشط
-                            </Badge>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-[#007AFF] hover:bg-[#007AFF]/5"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSetLimitUser({
-                                id: user.user_id,
-                                fullName: user.full_name || user.username,
-                                limitType: user.limit_type,
-                              })
-                            }}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          {user.is_suspended ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-[#34C759] hover:bg-[#34C759]/5"
-                              onClick={async (e) => {
-                                e.stopPropagation()
-                                const supabaseClient = createClientSupabaseClient()
-                                const { data: susp } = await supabaseClient
-                                  .from("user_suspensions")
-                                  .select("suspended_at, suspension_reason")
-                                  .eq("user_id", user.user_id)
-                                  .is("reactivated_at", null)
-                                  .order("suspended_at", { ascending: false })
-                                  .limit(1)
-                                  .maybeSingle()
-                                setUnsuspendTarget({
-                                  id: user.user_id,
-                                  fullName: user.full_name || user.username,
-                                  suspensionInfo: susp
-                                    ? { suspendedAt: susp.suspended_at, reason: susp.suspension_reason }
-                                    : null,
-                                })
-                              }}
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm text-[#1c1c1e] leading-tight truncate">
+                            {user.full_name || user.username}
+                          </h3>
+                          <p className="text-[11px] text-gray-400 truncate">
+                            @{user.username}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* أيقونة الحالة */}
+                        {user.is_suspended ? (
+                          <XCircle className="w-[18px] h-[18px] text-[#FF3B30]" />
+                        ) : (
+                          <CheckCircle className="w-[18px] h-[18px] text-[#34C759]" />
+                        )}
+                        {/* قائمة النقاط الثلاث */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-1.5 rounded-full hover:bg-[#f2f2f7] transition-colors"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <ShieldCheck className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-[#FF3B30] hover:bg-[#FF3B30]/5"
+                              <MoreVertical className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-44 rounded-xl">
+                            <DropdownMenuItem
+                              className="gap-2 cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setSuspendTarget({
+                                setSetLimitUser({
                                   id: user.user_id,
                                   fullName: user.full_name || user.username,
-                                  stats: {
-                                    periodReportCount: user.period_report_count ?? 0,
-                                    periodTotalDays: user.period_total_days ?? 0,
-                                  },
+                                  limitType: user.limit_type,
                                 })
                               }}
                             >
-                              <Ban className="h-4 w-4" />
-                            </Button>
-                          )}
+                              <Settings className="w-4 h-4 text-[#007AFF]" />
+                              <span className="text-sm">تحديد الحد المسموح</span>
+                            </DropdownMenuItem>
+                            {user.is_suspended ? (
+                              <DropdownMenuItem
+                                className="gap-2 cursor-pointer"
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  const supabaseClient = createClientSupabaseClient()
+                                  const { data: susp } = await supabaseClient
+                                    .from("user_suspensions")
+                                    .select("suspended_at, suspension_reason")
+                                    .eq("user_id", user.user_id)
+                                    .is("reactivated_at", null)
+                                    .order("suspended_at", { ascending: false })
+                                    .limit(1)
+                                    .maybeSingle()
+                                  setUnsuspendTarget({
+                                    id: user.user_id,
+                                    fullName: user.full_name || user.username,
+                                    suspensionInfo: susp
+                                      ? { suspendedAt: susp.suspended_at, reason: susp.suspension_reason }
+                                      : null,
+                                  })
+                                }}
+                              >
+                                <ShieldCheck className="w-4 h-4 text-[#34C759]" />
+                                <span className="text-sm">إلغاء التعليق</span>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                className="gap-2 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSuspendTarget({
+                                    id: user.user_id,
+                                    fullName: user.full_name || user.username,
+                                    stats: {
+                                      periodReportCount: user.period_report_count ?? 0,
+                                      periodTotalDays: user.period_total_days ?? 0,
+                                    },
+                                  })
+                                }}
+                              >
+                                <Ban className="w-4 h-4 text-[#FF3B30]" />
+                                <span className="text-sm">تعليق المستخدم</span>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+
+                    {/* خط فاصل */}
+                    <div className="border-t border-gray-100 pt-2">
+                      {/* صف الإحصائيات - مكونات في صف واحد */}
+                      <div className="flex items-center justify-center gap-3 mb-2">
+                        <div className="flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5 text-[#007AFF]" />
+                          <span className="text-[11px] font-semibold text-[#007AFF]">{user.period_report_count || 0}</span>
+                          <span className="text-[11px] text-gray-400">تقرير</span>
+                        </div>
+                        <div className="w-px h-3 bg-gray-200" />
+                        <div className="flex items-center gap-1">
+                          <CalendarDays className="w-3.5 h-3.5 text-[#FF9500]" />
+                          <span className="text-[11px] font-semibold text-[#FF9500]">{user.period_total_days || 0}</span>
+                          <span className="text-[11px] text-gray-400">يوم</span>
+                        </div>
+                        <div className="w-px h-3 bg-gray-200" />
+                        <div className="flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-[#FF3B30]" />
+                          <span className="text-[11px] font-semibold text-[#FF3B30]">{user.total_suspensions || 0}</span>
+                          <span className="text-[11px] text-gray-400">تعليق</span>
                         </div>
                       </div>
 
-                      {/* الإحصائيات */}
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
-                          <span className="text-lg font-bold text-[#007AFF]">
-                            {user.period_report_count || 0}
-                          </span>
-                          <span className="text-[10px] text-[#007AFF] leading-tight">تقرير</span>
-                        </div>
-                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
-                          <span className="text-lg font-bold text-[#FF9500]">
-                            {user.period_total_days || 0}
-                          </span>
-                          <span className="text-[10px] text-[#FF9500] leading-tight">يوم</span>
-                        </div>
-                        <div className="flex flex-col items-center bg-[#f2f2f7] rounded-lg p-2">
-                          <span className="text-lg font-bold text-[#FF3B30]">
-                            {user.total_suspensions || 0}
-                          </span>
-                          <span className="text-[10px] text-[#FF3B30] leading-tight">تعليق</span>
-                        </div>
-                      </div>
-
-                      {/* الحد المسموح + تاريخ آخر تقرير */}
+                      {/* الصف الأخير: الحد + عرض التفاصيل */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           {limitInfo ? (
                             <>
-                              <limitInfo.icon className={`h-3.5 w-3.5 ${limitInfo.color}`} />
-                              <span className="text-[11px] text-gray-600">
-                                {limitInfo.label}: <span className="font-medium">{limitInfo.value}</span>
+                              <limitInfo.icon className={`w-3 h-3 ${limitInfo.color}`} />
+                              <span className="text-[11px] text-gray-500">
+                                {limitInfo.label}: <span className="font-semibold text-gray-700">{limitInfo.value}</span>
                               </span>
                             </>
                           ) : (
                             <span className="text-[11px] text-gray-400">بدون حد</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                          <Clock className="h-3 w-3" />
-                          <span>{formatDate(user.last_report_at)}</span>
-                        </div>
+                        <button
+                          className="text-[11px] font-semibold text-[#007AFF] hover:text-[#0062CC] transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedUserId(user.user_id)
+                          }}
+                        >
+                          عرض التفاصيل
+                        </button>
                       </div>
-
-                      {/* سهم العرض */}
-                      <div className="flex justify-center mt-2">
-                        <ChevronLeft className="h-4 w-4 text-gray-300" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
               )
             })}
