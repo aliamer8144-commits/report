@@ -41,6 +41,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { ClientsTab } from "./clients-tab"
+import { SuspensionsTab } from "./suspensions-tab"
 
 const tabs = [
   { id: "home", label: "الرئيسية", icon: Home },
@@ -459,11 +460,22 @@ export default function SupervisorInterface() {
   const [activeTab, setActiveTab] = useState("home")
   const [username, setUsername] = useState("")
   const [mounted, setMounted] = useState(false)
+  const [suspensionCount, setSuspensionCount] = useState(0)
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username")
     if (storedUsername) setUsername(storedUsername)
     setMounted(true)
+
+    // الاستماع لتحديث عدد المعلّقين من SuspensionsTab
+    const handleSuspensionCount = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (detail?.count !== undefined) {
+        setSuspensionCount(detail.count)
+      }
+    }
+    window.addEventListener("suspension-count-update", handleSuspensionCount)
+    return () => window.removeEventListener("suspension-count-update", handleSuspensionCount)
   }, [])
 
   const handleLogout = () => {
@@ -615,7 +627,7 @@ export default function SupervisorInterface() {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <ComingSoonContent description="سيتم إنشاء هذه الواجهة قريباً لتوفير تجربة أفضل لإدارة التعليقات والملاحظات" />
+                <SuspensionsTab />
               </motion.div>
             )}
             {activeTab === "account" && (
@@ -658,6 +670,7 @@ export default function SupervisorInterface() {
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id
                 const Icon = tab.icon
+                const showBadge = tab.id === "comments" && suspensionCount > 0
 
                 return (
                   <button
@@ -665,6 +678,18 @@ export default function SupervisorInterface() {
                     onClick={() => setActiveTab(tab.id)}
                     className="relative flex flex-col items-center justify-center py-1 px-2 min-w-0 flex-1 transition-all duration-300"
                   >
+                    {/* رقم إشعار التعليقات */}
+                    {showBadge && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-0.5 left-1/2 z-20 flex items-center justify-center"
+                      >
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm">
+                          {suspensionCount}
+                        </span>
+                      </motion.span>
+                    )}
                     {/* خلفية التبويب النشط - شكل دائري مضيء */}
                     {isActive && (
                       <motion.div
