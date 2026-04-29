@@ -178,6 +178,7 @@ export default function AddReportPage() {
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
   const supabase = createClientSupabaseClient()
+  const [pptxEnabled, setPptxEnabled] = useState(true)
 
   const tabs = ["basic", "dates", "additional"]
   const tabLabels = {
@@ -230,6 +231,17 @@ export default function AddReportPage() {
         setIsCheckingSuspension(false)
       }
     }
+
+    // جلب صلاحية PPTX للمستخدم
+    supabase
+      .from("users")
+      .select("pptx_enabled")
+      .eq("id", userId)
+      .single()
+      .then(({ data }) => {
+        if (data) setPptxEnabled(data.pptx_enabled !== false)
+      })
+      .catch(() => {})
 
     checkUserSuspension()
 
@@ -1036,6 +1048,7 @@ export default function AddReportPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
+                {pptxEnabled && (
                 <Button
                   onClick={handleDownloadPPTX}
                   className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
@@ -1043,9 +1056,11 @@ export default function AddReportPage() {
                   <Download className="ml-2 h-4 w-4" />
                   تنزيل PPTX
                 </Button>
+                )}
                 <Button
                   onClick={handleDownloadPDF}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md"
+                  style={{ flex: pptxEnabled ? 1 : undefined, width: pptxEnabled ? undefined : '100%' }}
                 >
                   <Download className="ml-2 h-4 w-4" />
                   تنزيل PDF
