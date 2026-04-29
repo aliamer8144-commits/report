@@ -304,7 +304,7 @@ export function ClientsTab() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <div
-                    className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
+                    className="bg-white rounded-2xl px-3.5 py-2.5 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.97]"
                     onClick={() => setSelectedUserId(user.user_id)}
                   >
                     {/* الصف الأول: التاريخ + أيقونة الحالة + القائمة */}
@@ -407,10 +407,10 @@ export function ClientsTab() {
                         {(user.full_name || user.username || "ع").charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm text-[#1c1c1e] leading-tight truncate">
+                        <h3 className="font-semibold text-[15px] text-[#1c1c1e] leading-tight truncate">
                           {user.full_name || user.username}
                         </h3>
-                        <p className="text-[11px] text-gray-400 truncate">
+                        <p className="text-[12px] text-gray-400 truncate">
                           @{user.username}
                         </p>
                       </div>
