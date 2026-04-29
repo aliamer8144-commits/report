@@ -69,11 +69,11 @@ const convertToHijri = (gregorianDate: string): string => {
   try {
     const date = new Date(gregorianDate)
     const hijriDate = toHijri(date)
-    // تنسيق التاريخ بصيغة DD/MM/YYYY
+    // تنسيق التاريخ بصيغة DD-MM-YYYY
     const day = String(hijriDate.day).padStart(2, "0")
     const month = String(hijriDate.month).padStart(2, "0")
     const year = hijriDate.year
-    return `${day}/${month}/${year}`
+    return `${day}-${month}-${year}`
   } catch (error) {
     console.error("Error converting to Hijri:", error)
     return ""
