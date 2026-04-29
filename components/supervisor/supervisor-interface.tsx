@@ -480,7 +480,20 @@ export default function SupervisorInterface() {
       }
     }
     window.addEventListener("suspension-count-update", handleSuspensionCount)
-    return () => window.removeEventListener("suspension-count-update", handleSuspensionCount)
+
+    // الاستماع للتنقل بين التبويبات من الداشبورد
+    const handleNavigate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (detail?.tab) {
+        setActiveTab(detail.tab)
+      }
+    }
+    window.addEventListener("supervisor-navigate", handleNavigate)
+
+    return () => {
+      window.removeEventListener("suspension-count-update", handleSuspensionCount)
+      window.removeEventListener("supervisor-navigate", handleNavigate)
+    }
   }, [])
 
   const handleLogout = () => {
