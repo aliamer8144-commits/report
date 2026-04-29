@@ -143,6 +143,17 @@ interface FilteredStats {
   suspended: number
 }
 
+interface PeriodCounts {
+  todayReports: number
+  todayDays: number
+  weekReports: number
+  weekDays: number
+  monthReports: number
+  monthDays: number
+  allReports: number
+  allDays: number
+}
+
 /* ============================================================
    مساعدات
    ============================================================ */
@@ -263,6 +274,12 @@ export function SupervisorDashboard() {
     days: 0,
     suspended: 0,
   })
+  const [periodCounts, setPeriodCounts] = useState<PeriodCounts>({
+    todayReports: 0, todayDays: 0,
+    weekReports: 0, weekDays: 0,
+    monthReports: 0, monthDays: 0,
+    allReports: 0, allDays: 0,
+  })
 
   const refreshData = useCallback(async (showLoading = false) => {
     if (!supervisorId) return
@@ -300,16 +317,53 @@ export function SupervisorDashboard() {
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", startOfMonth.toISOString())
-        const { count: todayReportCount } = await supabase
+        const { data: todayReportsData } = await supabase
           .from("reports")
-          .select("*", { count: "exact", head: true })
+          .select("created_at")
           .in("user_id", clientIds)
           .eq("is_deleted", false)
           .gte("created_at", startOfDay.toISOString())
 
         totalReports = totalReportCount || 0
         monthReports = monthReportCount || 0
-        todayReports = todayReportCount || 0
+        const todayR = todayReportsData || []
+        todayReports = todayR.length
+
+        // حساب عدد الأيام الفريدة التي فيها تقارير (لكل فترة)
+        const countUniqueDays = (reports: any[]) => {
+          return new Set(reports.map((r: any) => r.created_at.split("T")[0])).size
+        }
+
+        const { data: weekReportsData } = await supabase
+          .from("reports")
+          .select("created_at")
+          .in("user_id", clientIds)
+          .eq("is_deleted", false)
+          .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
+
+        const { data: monthReportsData } = await supabase
+          .from("reports")
+          .select("created_at")
+          .in("user_id", clientIds)
+          .eq("is_deleted", false)
+          .gte("created_at", startOfMonth.toISOString())
+
+        const { data: allReportsData } = await supabase
+          .from("reports")
+          .select("created_at")
+          .in("user_id", clientIds)
+          .eq("is_deleted", false)
+
+        setPeriodCounts({
+          todayReports: todayR.length,
+          todayDays: countUniqueDays(todayR),
+          weekReports: weekReportsData?.length || 0,
+          weekDays: countUniqueDays(weekReportsData || []),
+          monthReports: monthReportsData?.length || 0,
+          monthDays: countUniqueDays(monthReportsData || []),
+          allReports: allReportsData?.length || 0,
+          allDays: countUniqueDays(allReportsData || []),
+        })
 
         const { data: activitiesData } = await supabase
           .from("activities")
@@ -537,21 +591,22 @@ export function SupervisorDashboard() {
   // تحديث الإحصائيات المفلترة عند تغيير الفترة أو البيانات
   useEffect(() => {
     if (loading) return
+
     let reports = 0
     let days = 0
 
     if (statsPeriod === "today") {
-      reports = stats.todayReports
-      days = stats.todayReports
+      reports = periodCounts.todayReports
+      days = periodCounts.todayDays
     } else if (statsPeriod === "week") {
-      reports = weeklyStats.weekReports
-      days = weeklyStats.weekReports
+      reports = periodCounts.weekReports
+      days = periodCounts.weekDays
     } else if (statsPeriod === "month") {
-      reports = stats.monthReports
-      days = stats.monthReports
+      reports = periodCounts.monthReports
+      days = periodCounts.monthDays
     } else {
-      reports = stats.totalReports
-      days = stats.totalDays
+      reports = periodCounts.allReports
+      days = periodCounts.allDays
     }
 
     setFilteredStats({
@@ -560,7 +615,7 @@ export function SupervisorDashboard() {
       days,
       suspended: stats.suspendedClients,
     })
-  }, [statsPeriod, stats, weeklyStats, loading])
+  }, [statsPeriod, stats, periodCounts, loading])
 
   const formatLastRefreshed = () => {
     const diff = Math.floor((Date.now() - lastRefreshed.getTime()) / 1000)
@@ -671,8 +726,8 @@ export function SupervisorDashboard() {
         <div className="grid grid-cols-2 gap-3">
           {[
             { label: "إجمالي العملاء", value: filteredStats.clients, icon: Users, color: "#007AFF", circleColor: "#5856D6", sub: `${stats.activeClients} نشط` },
-            { label: "التقارير المنشأة", value: filteredStats.reports, icon: FileBarChart, color: "#34C759", circleColor: "#28A745", sub: statsPeriod === "all" ? `${stats.monthReports} هذا الشهر` : undefined },
-            { label: "إجمالي الأيام", value: filteredStats.days, icon: CalendarDays, color: "#FF9500", circleColor: "#E68A00", sub: statsPeriod === "all" ? `${stats.todayReports} اليوم` : undefined },
+            { label: "التقارير المنشأة", value: filteredStats.reports, icon: FileBarChart, color: "#34C759", circleColor: "#28A745", sub: `${filteredStats.days} يوم فيه تقارير` },
+            { label: "إجمالي الأيام", value: filteredStats.days, icon: CalendarDays, color: "#FF9500", circleColor: "#E68A00", sub: `${filteredStats.reports} تقرير في الفترة` },
             { label: "المعلّقون", value: filteredStats.suspended, icon: Ban, color: "#FF3B30", circleColor: "#D70015", clickable: true },
           ].map((card, index) => {
             const Icon = card.icon
