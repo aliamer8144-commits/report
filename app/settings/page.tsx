@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { Settings, Fingerprint, Info, User, Github, Code, Shield } from "lucide-react"
+import { Settings, Fingerprint, Shield } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function SettingsPage() {
@@ -157,51 +156,6 @@ export default function SettingsPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div variants={itemVariants}>
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <Info className="ml-2 h-5 w-5 text-indigo-600" />
-              معلومات التطبيق
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <p className="font-medium">إصدار التطبيق</p>
-              <p className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-lg inline-block">1.0.0</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="font-medium">المطور</p>
-              <div className="flex items-center space-x-2 space-x-reverse">
-                <User className="h-5 w-5 text-indigo-600" />
-                <p className="text-sm">امجد الصبري</p>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <p className="font-medium">التقنيات المستخدمة</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-lg">Next.js</span>
-                <span className="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded-lg">Supabase</span>
-                <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-lg">Tailwind CSS</span>
-                <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-lg">TypeScript</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" size="sm" className="text-indigo-600">
-              <Github className="ml-2 h-4 w-4" />
-              GitHub
-            </Button>
-            <Button variant="outline" size="sm" className="text-indigo-600">
-              <Code className="ml-2 h-4 w-4" />
-              API
-            </Button>
-          </CardFooter>
         </Card>
       </motion.div>
     </motion.div>
