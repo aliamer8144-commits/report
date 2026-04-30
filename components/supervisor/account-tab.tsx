@@ -142,7 +142,7 @@ export function AccountTab() {
           .from("reports")
           .select("*", { count: "exact", head: true })
           .in("user_id", ids)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
 
         setStats({
           managedUsers: userCount || 0,

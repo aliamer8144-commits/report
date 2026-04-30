@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { BarChart3, PlusCircle, Edit, Trash2, Download, ChevronLeft, ChevronRight } from "lucide-react"
+import { BarChart3, PlusCircle, Edit, Ban, Download, ChevronLeft, ChevronRight } from "lucide-react"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
 
 interface Report {
@@ -101,7 +101,7 @@ export default function ReportsPage() {
         .from("reports")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("is_deleted", false)
+        .eq("is_disabled", false)
 
       if (countError) {
         throw new Error("حدث خطأ أثناء جلب عدد التقارير")
@@ -115,7 +115,7 @@ export default function ReportsPage() {
         .from("reports")
         .select("*")
         .eq("user_id", userId)
-        .eq("is_deleted", false)
+        .eq("is_disabled", false)
         .order("created_at", { ascending: false })
         .range(from, to)
 
@@ -143,9 +143,9 @@ export default function ReportsPage() {
     router.push("/edit")
   }
 
-  const handleDelete = (report: Report) => {
-    // تخزين بيانات التقرير في التخزين المحلي للاستخدام في صفحة الحذف
-    localStorage.setItem("report_to_delete", JSON.stringify(report))
+  const handleToggleDisable = (report: Report) => {
+    // تخزين بيانات التقرير في التخزين المحلي للاستخدام في صفحة التعطيل
+    localStorage.setItem("report_to_toggle", JSON.stringify(report))
     router.push("/delete")
   }
 
@@ -239,11 +239,11 @@ export default function ReportsPage() {
                       تعديل
                     </Button>
                   </div>
-                  {/* الصف الثاني: حذف + PDF + PPTX (اختياري) */}
+                  {/* الصف الثاني: تعطيل + PDF + PPTX (اختياري) */}
                   <div className={`grid gap-2 w-full ${pptxEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                    <Button onClick={() => handleDelete(report)} className="bg-red-500 hover:bg-red-600" size="sm">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      حذف
+                    <Button onClick={() => handleToggleDisable(report)} className="bg-red-500 hover:bg-red-600" size="sm">
+                      <Ban className="mr-2 h-4 w-4" />
+                      تعطيل
                     </Button>
                     <Button
                       onClick={() => handleDownloadPDF(report)}

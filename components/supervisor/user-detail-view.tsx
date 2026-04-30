@@ -579,7 +579,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           .from("reports")
           .select("id, service_code, id_number, name_ar, name_en, days_count, entry_date_gregorian, exit_date_gregorian, entry_date_hijri, exit_date_hijri, report_issue_date, nationality_ar, nationality_en, doctor_name_ar, doctor_name_en, job_title_ar, job_title_en, hospital_name_ar, hospital_name_en, print_date, print_time, created_at")
           .eq("user_id", userId)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", periodStart || userCreatedAt)
           .order("created_at", { ascending: false }),
 
@@ -588,7 +588,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           .from("reports")
           .select("id, service_code, id_number, name_ar, name_en, days_count, entry_date_gregorian, exit_date_gregorian, entry_date_hijri, exit_date_hijri, report_issue_date, nationality_ar, nationality_en, doctor_name_ar, doctor_name_en, job_title_ar, job_title_en, hospital_name_ar, hospital_name_en, print_date, print_time, created_at")
           .eq("user_id", userId)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", userCreatedAt)
           .order("created_at", { ascending: false }),
       ])

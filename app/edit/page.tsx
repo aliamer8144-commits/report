@@ -256,7 +256,7 @@ export default function EditReportPage() {
 
     try {
       const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_deleted", false)
+      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)

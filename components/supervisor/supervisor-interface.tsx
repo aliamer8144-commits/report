@@ -35,7 +35,7 @@ import {
   Bell,
   FilePlus,
   FileEdit,
-  FileX,
+  Ban,
   ChevronRight,
   Construction,
   Sparkles,
@@ -117,7 +117,7 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState({
     totalReports: 0,
-    deletedReports: 0,
+    disabledReports: 0,
     activeReports: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -137,20 +137,20 @@ function DashboardContent() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
 
-      const { count: deletedCount, error: deletedError } = await supabase
+      const { count: disabledCount, error: disabledError } = await supabase
         .from("reports")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("is_deleted", true)
+        .eq("is_disabled", true)
 
-      if (totalError || deletedError) {
+      if (totalError || disabledError) {
         throw new Error("حدث خطأ أثناء جلب الإحصائيات")
       }
 
       setStats({
         totalReports: totalCount || 0,
-        deletedReports: deletedCount || 0,
-        activeReports: (totalCount || 0) - (deletedCount || 0),
+        disabledReports: disabledCount || 0,
+        activeReports: (totalCount || 0) - (disabledCount || 0),
       })
     } catch (err: any) {
       console.error(err)
@@ -172,7 +172,7 @@ function DashboardContent() {
 
     try {
       const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_deleted", false)
+      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -236,8 +236,8 @@ function DashboardContent() {
                 <span className="text-xs text-[#34C759]">نشط</span>
               </div>
               <div className="flex flex-col items-center justify-center p-3 bg-[#f2f2f7] rounded-xl">
-                <span className="text-2xl font-bold text-[#FF3B30]">{stats.deletedReports}</span>
-                <span className="text-xs text-[#FF3B30]">محذوف</span>
+                <span className="text-2xl font-bold text-[#FF3B30]">{stats.disabledReports}</span>
+                <span className="text-xs text-[#FF3B30]">معطل</span>
               </div>
             </div>
 
@@ -372,10 +372,10 @@ function DashboardContent() {
               className="w-full h-auto py-4 px-4 bg-[#FF3B30] text-white rounded-xl flex items-center justify-between"
             >
               <div className="flex items-center">
-                <div className="bg-white/20 p-2 rounded-lg mr-3">
-                  <FileX className="h-5 w-5" />
+                <div className="bg-red-400/30 p-2 rounded-lg mr-3">
+                  <Ban className="h-5 w-5" />
                 </div>
-                <span className="font-bold">حذف</span>
+                <span className="font-bold">تعطيل</span>
               </div>
               <ChevronRight className="h-5 w-5 opacity-70" />
             </Button>

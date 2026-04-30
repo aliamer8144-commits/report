@@ -202,7 +202,7 @@ function formatRelativeTime(dateStr: string) {
 
 function getActivityMeta(action: string) {
   const lower = action.toLowerCase()
-  if (lower.includes("حذف") || lower.includes("delete"))
+  if (lower.includes("تعطيل") || lower.includes("حذف") || lower.includes("delete") || lower.includes("disable"))
     return { icon: XCircle, color: "#FF3B30", borderColor: "border-r-[#FF3B30]" }
   if (lower.includes("تعديل") || lower.includes("تحديث") || lower.includes("edit"))
     return { icon: RefreshCw, color: "#FF9500", borderColor: "border-r-[#FF9500]" }
@@ -314,18 +314,18 @@ export function SupervisorDashboard() {
           .from("reports")
           .select("*", { count: "exact", head: true })
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
         const { count: monthReportCount } = await supabase
           .from("reports")
           .select("*", { count: "exact", head: true })
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", startOfMonth.toISOString())
         const { data: todayReportsData } = await supabase
           .from("reports")
           .select("days_count, user_id")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", startOfDay.toISOString())
 
         totalReports = totalReportCount || 0
@@ -347,21 +347,21 @@ export function SupervisorDashboard() {
           .from("reports")
           .select("days_count, user_id")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
 
         const { data: monthReportsData } = await supabase
           .from("reports")
           .select("days_count, user_id")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", startOfMonth.toISOString())
 
         const { data: allReportsData } = await supabase
           .from("reports")
           .select("days_count, user_id")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
 
         // حساب totalDays من كل التقارير (بدل الاعتماد على period_total_days من الـ view)
         totalDays = sumDaysCount(allReportsData || [])
@@ -420,7 +420,7 @@ export function SupervisorDashboard() {
           .from("reports")
           .select("created_at, user_id")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", chartStart.toISOString())
           .order("created_at", { ascending: true })
 
@@ -474,7 +474,7 @@ export function SupervisorDashboard() {
           .from("reports")
           .select("created_at, user_id, days_count")
           .in("user_id", clientIds)
-          .eq("is_deleted", false)
+          .eq("is_disabled", false)
           .gte("created_at", prevWeekStart.toISOString())
           .order("created_at", { ascending: true })
 

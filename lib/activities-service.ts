@@ -1,6 +1,6 @@
 import { createClientSupabaseClient } from "./supabase"
 
-export type ActivityType = "add" | "edit" | "delete" | "view" | "download" | "system"
+export type ActivityType = "add" | "edit" | "delete" | "disable" | "enable" | "view" | "download" | "system"
 
 export interface Activity {
   id: string

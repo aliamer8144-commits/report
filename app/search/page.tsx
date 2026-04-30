@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { SearchIcon, PlusCircle, Edit, Trash2, Download } from "lucide-react"
+import { SearchIcon, PlusCircle, Edit, Ban, Download } from "lucide-react"
 import { type ReportData } from "@/lib/report-generator"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
@@ -80,8 +80,8 @@ export default function SearchPage() {
     router.push("/edit")
   }
 
-  const handleDelete = (report: Report) => {
-    localStorage.setItem("report_to_delete", JSON.stringify(report))
+  const handleToggleDisable = (report: Report) => {
+    localStorage.setItem("report_to_toggle", JSON.stringify(report))
     router.push("/delete")
   }
 
@@ -227,9 +227,9 @@ export default function SearchPage() {
                   </Button>
                 </div>
                 <div className={`grid gap-2 w-full ${pptxEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                  <Button onClick={() => handleDelete(report)} className="bg-red-500 hover:bg-red-600" size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    حذف
+                  <Button onClick={() => handleToggleDisable(report)} className="bg-red-500 hover:bg-red-600" size="sm">
+                    <Ban className="mr-2 h-4 w-4" />
+                    تعطيل
                   </Button>
                   <Button onClick={() => handleDownloadPDF(report)} className="bg-purple-500 hover:bg-purple-600" size="sm">
                     <Download className="mr-2 h-4 w-4" />

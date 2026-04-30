@@ -12,7 +12,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { Trash2, SearchIcon, AlertTriangle, Hash, Loader2, ArrowLeft, X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Ban, SearchIcon, AlertTriangle, Hash, Loader2, ArrowLeft, X, CheckCircle2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ interface Report {
   hospital_name_en: string
   print_date: string
   print_time: string
+  is_disabled: boolean
   [key: string]: any
 }
 
@@ -60,6 +62,7 @@ export default function DeleteReportPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
@@ -70,14 +73,13 @@ export default function DeleteReportPage() {
       return
     }
 
-    // التحقق مما إذا كان هناك تقرير للحذف في التخزين المحلي
-    const reportToDelete = localStorage.getItem("report_to_delete")
-    if (reportToDelete) {
-      const parsedReport = JSON.parse(reportToDelete)
+    // التحقق مما إذا كان هناك تقرير في التخزين المحلي
+    const reportToToggle = localStorage.getItem("report_to_toggle")
+    if (reportToToggle) {
+      const parsedReport = JSON.parse(reportToToggle)
       setReport(parsedReport)
       setSearchMode(false)
-      // مسح التخزين المحلي بعد استخدامه
-      localStorage.removeItem("report_to_delete")
+      localStorage.removeItem("report_to_toggle")
     }
   }, [router])
 
@@ -94,7 +96,7 @@ export default function DeleteReportPage() {
 
     try {
       const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_deleted", false)
+      let query = supabase.from("reports").select("*").eq("user_id", userId)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -121,7 +123,7 @@ export default function DeleteReportPage() {
         return
       }
 
-      // إذا وجدنا نتيجة واحدة، نعرضها للحذف
+      // إذا وجدنا نتيجة واحدة، نعرضها
       setReport(data[0])
       setSearchMode(false)
     } catch (err: any) {
@@ -131,7 +133,7 @@ export default function DeleteReportPage() {
     }
   }
 
-  const handleDelete = async () => {
+  const handleToggleDisable = async () => {
     setLoading(true)
     setError(null)
     setConfirmDialogOpen(false)
@@ -146,28 +148,35 @@ export default function DeleteReportPage() {
         throw new Error("يرجى تسجيل الدخول مرة أخرى")
       }
 
-      // تحديث حالة التقرير إلى محذوف
+      const isCurrentlyDisabled = report.is_disabled === true
+      const newIdNumber = isCurrentlyDisabled 
+        ? report.id_number.slice(0, -3)  // Remove last 3 chars
+        : report.id_number + "123"        // Append "123"
+
       const { error: updateError } = await supabase
         .from("reports")
         .update({
-          is_deleted: true,
+          id_number: newIdNumber,
+          is_disabled: !isCurrentlyDisabled,
           updated_at: new Date().toISOString(),
         })
         .eq("id", report.id)
 
       if (updateError) {
-        throw new Error("حدث خطأ أثناء حذف التقرير")
+        throw new Error(isCurrentlyDisabled ? "حدث خطأ أثناء إلغاء تعطيل التقرير" : "حدث خطأ أثناء تعطيل التقرير")
       }
 
-      // إضافة نشاط حذف
       await addActivity(
         userId,
-        "delete",
-        "تم حذف تقرير",
-        `تم حذف تقرير للمريض ${report.name_ar} برقم هوية ${report.id_number}`,
+        isCurrentlyDisabled ? "enable" : "disable",
+        isCurrentlyDisabled ? "تم إلغاء تعطيل تقرير" : "تم تعطيل تقرير",
+        isCurrentlyDisabled 
+          ? `تم إلغاء تعطيل تقرير للمريض ${report.name_ar}` 
+          : `تم تعطيل تقرير للمريض ${report.name_ar} برقم هوية ${report.id_number}`,
         report.id,
       )
 
+      setSuccessMessage(isCurrentlyDisabled ? "تم إلغاء تعطيل التقرير بنجاح" : "تم تعطيل التقرير بنجاح")
       setSuccess(true)
     } catch (err: any) {
       setError(err.message)
@@ -181,6 +190,8 @@ export default function DeleteReportPage() {
     const date = new Date(dateString)
     return date.toLocaleDateString("ar-SA")
   }
+
+  const isCurrentlyDisabled = report?.is_disabled === true
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -208,9 +219,9 @@ export default function DeleteReportPage() {
     <div className="container max-w-md mx-auto p-4 pb-20">
       <BackButton />
       <PageHeader
-        title={<span className="gradient-heading text-2xl">حذف تقرير</span>}
-        description={searchMode ? "البحث عن تقرير للحذف" : "حذف التقرير"}
-        icon={<Trash2 className="h-8 w-8 text-red-500" />}
+        title={<span className="gradient-heading text-2xl">تعطيل / إلغاء تعطيل تقرير</span>}
+        description={searchMode ? "البحث عن تقرير" : isCurrentlyDisabled ? "إلغاء تعطيل التقرير" : "تعطيل التقرير"}
+        icon={<Ban className="h-8 w-8 text-red-500" />}
       />
 
       {searchMode ? (
@@ -289,16 +300,23 @@ export default function DeleteReportPage() {
           <Card className="glass-card overflow-hidden">
             <div className="h-2 bg-gradient-to-r from-red-500 to-red-600"></div>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Trash2 className="ml-2 h-5 w-5 text-red-600" />
-                معلومات التقرير
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center">
+                  <Ban className="ml-2 h-5 w-5 text-red-600" />
+                  معلومات التقرير
+                </div>
+                {isCurrentlyDisabled && (
+                  <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200">
+                    معطّل
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {error && (
-                <AlertMessage type="error" title="خطأ في حذف التقرير" message={error} onClose={() => setError(null)} />
+                <AlertMessage type="error" title="خطأ في تعطيل التقرير" message={error} onClose={() => setError(null)} />
               )}
-              {success && <AlertMessage type="success" title="تم الحذف بنجاح" message="تم حذف التقرير بنجاح" />}
+              {success && <AlertMessage type="success" title={successMessage} message={successMessage} />}
 
               {report && !success && (
                 <motion.div className="space-y-4" variants={containerVariants}>
@@ -389,7 +407,12 @@ export default function DeleteReportPage() {
                     <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-600" />
                     <div>
                       <h4 className="font-bold">تحذير</h4>
-                      <p className="text-sm">سيتم حذف هذا التقرير بشكل نهائي. هل أنت متأكد من أنك تريد المتابعة؟</p>
+                      <p className="text-sm">
+                        {isCurrentlyDisabled 
+                          ? "سيتم إلغاء تعطيل هذا التقرير وإزالة الأرقام المضافة إلى رقم الهوية. هل أنت متأكد من أنك تريد المتابعة؟"
+                          : "سيتم تعطيل هذا التقرير بإضافة أرقام إلى رقم الهوية. هل أنت متأكد من أنك تريد المتابعة؟"
+                        }
+                      </p>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -406,12 +429,12 @@ export default function DeleteReportPage() {
                     {loading ? (
                       <>
                         <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        جاري الحذف...
+                        جاري التعطيل...
                       </>
                     ) : (
                       <>
-                        <Trash2 className="ml-2 h-4 w-4" />
-                        حذف التقرير
+                        <Ban className="ml-2 h-4 w-4" />
+                        {isCurrentlyDisabled ? "إلغاء تعطيل التقرير" : "تعطيل التقرير"}
                       </>
                     )}
                   </Button>
@@ -449,9 +472,12 @@ export default function DeleteReportPage() {
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-red-900">تأكيد الحذف</DialogTitle>
+            <DialogTitle className="text-red-900">تأكيد التعطيل</DialogTitle>
             <DialogDescription>
-              هل أنت متأكد من أنك تريد حذف هذا التقرير؟ لا يمكن التراجع عن هذا الإجراء.
+              {isCurrentlyDisabled
+                ? "هل أنت متأكد من أنك تريد إلغاء تعطيل هذا التقرير؟"
+                : "هل أنت متأكد من أنك تريد تعطيل هذا التقرير؟"
+              }
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2">
@@ -466,18 +492,18 @@ export default function DeleteReportPage() {
             <Button
               type="button"
               className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md"
-              onClick={handleDelete}
+              onClick={handleToggleDisable}
               disabled={loading}
             >
               {loading ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الحذف...
+                  جاري التعطيل...
                 </>
               ) : (
                 <>
-                  <Trash2 className="ml-2 h-4 w-4" />
-                  تأكيد الحذف
+                  <Ban className="ml-2 h-4 w-4" />
+                  {isCurrentlyDisabled ? "تأكيد إلغاء التعطيل" : "تأكيد التعطيل"}
                 </>
               )}
             </Button>

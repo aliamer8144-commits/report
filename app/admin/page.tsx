@@ -423,7 +423,7 @@ export default function AdminPage() {
                       <div>
                         <p className="font-medium">{uc.username}</p>
                         <p className="text-xs text-muted-foreground">
-                          إجمالي: {uc.total_reports} • نشط: {uc.active_reports} • محذوف: {uc.deleted_reports}
+                          إجمالي: {uc.total_reports} • نشط: {uc.active_reports} • معطل: {uc.deleted_reports}
                         </p>
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -564,7 +564,7 @@ export default function AdminPage() {
                                 <p className="font-bold text-green-700">{stats.active_reports}</p>
                               </div>
                               <div className="text-center">
-                                <p className="text-[10px] text-red-400 uppercase">المحذوفة</p>
+                                <p className="text-[10px] text-red-400 uppercase">المعطلة</p>
                                 <p className="font-bold text-red-500">{stats.deleted_reports}</p>
                               </div>
                             </div>

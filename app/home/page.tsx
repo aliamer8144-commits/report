@@ -21,7 +21,7 @@ import {
   FileBarChart,
   FilePlus,
   FileEdit,
-  FileX,
+  Ban,
   ChevronRight,
   ShieldOff,
   AlertTriangle,
@@ -49,7 +49,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState({
     totalReports: 0,
-    deletedReports: 0,
+    disabledReports: 0,
     activeReports: 0,
   })
   const [username, setUsername] = useState("")
@@ -122,21 +122,21 @@ export default function HomePage() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
 
-      // جلب التقارير المحذوفة
-      const { count: deletedCount, error: deletedError } = await supabase
+      // جلب التقارير المعطلة
+      const { count: disabledCount, error: disabledError } = await supabase
         .from("reports")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("is_deleted", true)
+        .eq("is_disabled", true)
 
-      if (totalError || deletedError) {
+      if (totalError || disabledError) {
         throw new Error("حدث خطأ أثناء جلب الإحصائيات")
       }
 
       setStats({
         totalReports: totalCount || 0,
-        deletedReports: deletedCount || 0,
-        activeReports: (totalCount || 0) - (deletedCount || 0),
+        disabledReports: disabledCount || 0,
+        activeReports: (totalCount || 0) - (disabledCount || 0),
       })
     } catch (err: any) {
       console.error(err)
@@ -158,7 +158,7 @@ export default function HomePage() {
 
     try {
       const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_deleted", false)
+      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -356,8 +356,8 @@ export default function HomePage() {
                 <span className="text-xs text-green-700">نشط</span>
               </div>
               <div className="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 shadow-sm">
-                <span className="text-2xl font-bold text-red-600">{stats.deletedReports}</span>
-                <span className="text-xs text-red-700">محذوف</span>
+                <span className="text-2xl font-bold text-red-600">{stats.disabledReports}</span>
+                <span className="text-xs text-red-700">معطل</span>
               </div>
             </div>
 
@@ -527,9 +527,9 @@ export default function HomePage() {
             >
               <div className="flex items-center">
                 <div className="bg-red-400/30 p-2 rounded-lg mr-3">
-                  <FileX className="h-5 w-5" />
+                  <Ban className="h-5 w-5" />
                 </div>
-                <span className="font-bold">حذف</span>
+                <span className="font-bold">تعطيل</span>
               </div>
               <ChevronRight className="h-5 w-5 opacity-70" />
             </Button>

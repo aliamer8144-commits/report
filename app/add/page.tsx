@@ -439,7 +439,7 @@ export default function AddReportPage() {
         ...formData,
         days_count: parseInt(formData.days_count),
         user_id: userId,
-        is_deleted: false,
+        is_disabled: false,
       }
 
       const { data, error: insertError } = await supabase.from("reports").insert(reportData).select()
