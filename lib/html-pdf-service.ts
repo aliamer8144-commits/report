@@ -223,7 +223,7 @@ async function imageToBase64(src: string): Promise<string> {
       reader.onerror = reject
       reader.readAsDataURL(blob)
     })
-  } catch {
+  } catch (_err) {
     return src
   }
 }
@@ -338,7 +338,7 @@ export async function generateHtmlPdf(
       document.fonts.load(`12.8pt "Noto Sans Arabic"`),
       document.fonts.load(`12.8pt "Times New Roman"`),
     ])
-  } catch {
+  } catch (_err) {
     // Fonts might already be loaded or partially available
   }
 
