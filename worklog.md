@@ -40,3 +40,26 @@ Stage Summary:
   - 5 مشاكل أداء (MEDIUM)
   - 8 مشاكل بنية (LOW)
 - بدأ الحل خطوة بخطوة حسب أولوية المستخدم
+---
+Task ID: 6
+Agent: main
+Task: حل المشكلة #6 - لا يوجد حماية من CSRF
+
+Work Log:
+- قراءة الملفات الحالية (middleware.ts, lib/auth.ts, API routes) لفهم البنية
+- إنشاء lib/csrf.ts لتوليد والتحقق من CSRF tokens باستخدام Web Crypto API
+- تحديث middleware.ts لإضافة CSRF cookie تلقائي + التحقق من الطلبات المتغيرة (POST/PUT/DELETE/PATCH)
+- إنشاء lib/fetch-with-csrf.ts كـ wrapper لـ fetch يُرسل CSRF token تلقائياً من Cookie
+- إنشاء app/api/auth/csrf/route.ts لتحديث الـ token عند الحاجة
+- تحديث 5 ملفات frontend لاستخدام fetchWithCsrf بدل fetch العادي
+- استثناء نقاط الدخول العامة (login, register, csrf) من التحقق
+- إصلاح مشكلة Edge Runtime (استبدال Node.js crypto بـ Web Crypto API)
+- اختبار: POST بدون token → 403، مع token صحيح → 200، مع token خاطئ → 403
+- رفع على GitHub
+
+Stage Summary:
+- تم إنشاء 3 ملفات جديدة: lib/csrf.ts, lib/fetch-with-csrf.ts, app/api/auth/csrf/route.ts
+- تم تحديث 7 ملفات موجودة
+- CSRF Protection يعمل بشكل كامل ومختبر
+- commit: 08a2ef5
+
