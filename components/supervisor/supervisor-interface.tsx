@@ -44,6 +44,7 @@ import { ClientsTab } from "./clients-tab"
 import { SuspensionsTab } from "./suspensions-tab"
 import { AccountTab } from "./account-tab"
 import { SupervisorDashboard } from "./supervisor-dashboard"
+import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 
 const tabs = [
   { id: "home", label: "الرئيسية", icon: Home },
@@ -509,7 +510,7 @@ export default function SupervisorInterface() {
   }, [])
 
   const handleLogout = async () => {
-    try { await fetch("/api/auth/logout", { method: "POST" }) } catch {}
+    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch {}
     localStorage.removeItem("username")
     localStorage.removeItem("full_name")
     localStorage.removeItem("user_role")

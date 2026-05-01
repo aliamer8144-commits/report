@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { Fingerprint, Lock, User, Loader2 } from "lucide-react"
+import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 import { motion } from "framer-motion"
 
 export function LoginForm() {
@@ -51,7 +52,7 @@ export function LoginForm() {
       const deviceId = generateDeviceId()
 
       // استدعاء API تسجيل الدخول (التحقق + JWT cookie يتم على السيرفر)
-      const loginRes = await fetch("/api/auth/login", {
+      const loginRes = await fetchWithCsrf("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

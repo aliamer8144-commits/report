@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { Shield, UserPlus, Users, Check, X, Smartphone, Edit3, LogOut, Loader2, Activity, BarChart3, TrendingDown, TrendingUp, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react"
+import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
@@ -262,7 +263,7 @@ export default function AdminPage() {
       }
 
       // استخدام API لتشفير كلمة المرور قبل الحفظ
-      const registerRes = await fetch("/api/auth/register", {
+      const registerRes = await fetchWithCsrf("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -317,7 +318,7 @@ export default function AdminPage() {
 
     try {
       // استخدام API لتشفير كلمة المرور الجديدة
-      const updateRes = await fetch("/api/auth/update-password", {
+      const updateRes = await fetchWithCsrf("/api/auth/update-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

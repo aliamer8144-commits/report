@@ -26,6 +26,7 @@ import {
   ShieldOff,
   AlertTriangle,
 } from "lucide-react"
+import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -199,7 +200,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      await fetchWithCsrf("/api/auth/logout", { method: "POST" })
     } catch (_err) {
       // حتى لو فشل الطلب، نستمر بمسح البيانات المحلية
     }

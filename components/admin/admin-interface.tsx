@@ -41,6 +41,7 @@ import {
   Loader2,
   UsersRound,
 } from "lucide-react"
+import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 
 const tabs = [
   { id: "home", label: "الرئيسية", icon: Home },
@@ -479,7 +480,7 @@ export default function AdminInterface() {
   }, [])
 
   const handleLogout = async () => {
-    try { await fetch("/api/auth/logout", { method: "POST" }) } catch {}
+    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch {}
     localStorage.removeItem("username")
     localStorage.removeItem("user_role")
     router.push("/")
