@@ -13,7 +13,7 @@ import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/compo
 
 interface Report {
   id: string
-  created_at: string
+  user_id: string
   service_code: string
   id_number: string
   name_ar: string
@@ -35,7 +35,8 @@ interface Report {
   print_date: string
   print_time: string
   is_disabled: boolean
-  [key: string]: unknown
+  created_at: string
+  updated_at: string
 }
 
 function SearchPageContent() {
@@ -124,28 +125,27 @@ function SearchPageContent() {
       return
     }
 
-    const r = report as Record<string, unknown>
     await downloadPptx({
-      SERVICE_CODE: String(r.SERVICE_CODE ?? r.service_code ?? ""),
-      ID_NUMBER: String(r.ID_NUMBER ?? r.id_number ?? ""),
-      NAME_AR: String(r.NAME_AR ?? r.name_ar ?? ""),
-      NAME_EN: String(r.NAME_EN ?? r.name_en ?? ""),
-      DAYS_COUNT: Number(r.DAYS_COUNT ?? r.days_count ?? 0),
-      ENTRY_DATE_GREGORIAN: String(r.ENTRY_DATE_GREGORIAN ?? r.entry_date_gregorian ?? ""),
-      EXIT_DATE_GREGORIAN: String(r.EXIT_DATE_GREGORIAN ?? r.exit_date_gregorian ?? ""),
-      ENTRY_DATE_HIJRI: String(r.ENTRY_DATE_HIJRI ?? r.entry_date_hijri ?? ""),
-      EXIT_DATE_HIJRI: String(r.EXIT_DATE_HIJRI ?? r.exit_date_hijri ?? ""),
-      REPORT_ISSUE_DATE: String(r.REPORT_ISSUE_DATE ?? r.report_issue_date ?? ""),
-      NATIONALITY_AR: String(r.NATIONALITY_AR ?? r.nationality_ar ?? ""),
-      NATIONALITY_EN: String(r.NATIONALITY_EN ?? r.nationality_en ?? ""),
-      DOCTOR_NAME_AR: String(r.DOCTOR_NAME_AR ?? r.doctor_name_ar ?? ""),
-      DOCTOR_NAME_EN: String(r.DOCTOR_NAME_EN ?? r.doctor_name_en ?? ""),
-      JOB_TITLE_AR: String(r.JOB_TITLE_AR ?? r.job_title_ar ?? ""),
-      JOB_TITLE_EN: String(r.JOB_TITLE_EN ?? r.job_title_en ?? ""),
-      HOSPITAL_NAME_AR: String(r.HOSPITAL_NAME_AR ?? r.hospital_name_ar ?? ""),
-      HOSPITAL_NAME_EN: String(r.HOSPITAL_NAME_EN ?? r.hospital_name_en ?? ""),
-      PRINT_DATE: String(r.PRINT_DATE ?? r.print_date ?? ""),
-      PRINT_TIME: String(r.PRINT_TIME ?? r.print_time ?? ""),
+      SERVICE_CODE: report.service_code,
+      ID_NUMBER: report.id_number,
+      NAME_AR: report.name_ar,
+      NAME_EN: report.name_en,
+      DAYS_COUNT: report.days_count,
+      ENTRY_DATE_GREGORIAN: report.entry_date_gregorian,
+      EXIT_DATE_GREGORIAN: report.exit_date_gregorian,
+      ENTRY_DATE_HIJRI: report.entry_date_hijri || "",
+      EXIT_DATE_HIJRI: report.exit_date_hijri || "",
+      REPORT_ISSUE_DATE: report.report_issue_date || "",
+      NATIONALITY_AR: report.nationality_ar || "",
+      NATIONALITY_EN: report.nationality_en || "",
+      DOCTOR_NAME_AR: report.doctor_name_ar || "",
+      DOCTOR_NAME_EN: report.doctor_name_en || "",
+      JOB_TITLE_AR: report.job_title_ar || "",
+      JOB_TITLE_EN: report.job_title_en || "",
+      HOSPITAL_NAME_AR: report.hospital_name_ar || "",
+      HOSPITAL_NAME_EN: report.hospital_name_en || "",
+      PRINT_DATE: report.print_date || "",
+      PRINT_TIME: report.print_time || "",
     })
   }
 
@@ -161,28 +161,27 @@ function SearchPageContent() {
       return
     }
 
-    const r = report as Record<string, unknown>
     await downloadPdf({
-      SERVICE_CODE: String(r.SERVICE_CODE ?? r.service_code ?? ""),
-      ID_NUMBER: String(r.ID_NUMBER ?? r.id_number ?? ""),
-      NAME_AR: String(r.NAME_AR ?? r.name_ar ?? ""),
-      NAME_EN: String(r.NAME_EN ?? r.name_en ?? ""),
-      DAYS_COUNT: Number(r.DAYS_COUNT ?? r.days_count ?? 0),
-      ENTRY_DATE_GREGORIAN: String(r.ENTRY_DATE_GREGORIAN ?? r.entry_date_gregorian ?? ""),
-      EXIT_DATE_GREGORIAN: String(r.EXIT_DATE_GREGORIAN ?? r.exit_date_gregorian ?? ""),
-      ENTRY_DATE_HIJRI: String(r.ENTRY_DATE_HIJRI ?? r.entry_date_hijri ?? ""),
-      EXIT_DATE_HIJRI: String(r.EXIT_DATE_HIJRI ?? r.exit_date_hijri ?? ""),
-      REPORT_ISSUE_DATE: String(r.REPORT_ISSUE_DATE ?? r.report_issue_date ?? ""),
-      NATIONALITY_AR: String(r.NATIONALITY_AR ?? r.nationality_ar ?? ""),
-      NATIONALITY_EN: String(r.NATIONALITY_EN ?? r.nationality_en ?? ""),
-      DOCTOR_NAME_AR: String(r.DOCTOR_NAME_AR ?? r.doctor_name_ar ?? ""),
-      DOCTOR_NAME_EN: String(r.DOCTOR_NAME_EN ?? r.doctor_name_en ?? ""),
-      JOB_TITLE_AR: String(r.JOB_TITLE_AR ?? r.job_title_ar ?? ""),
-      JOB_TITLE_EN: String(r.JOB_TITLE_EN ?? r.job_title_en ?? ""),
-      HOSPITAL_NAME_AR: String(r.HOSPITAL_NAME_AR ?? r.hospital_name_ar ?? ""),
-      HOSPITAL_NAME_EN: String(r.HOSPITAL_NAME_EN ?? r.hospital_name_en ?? ""),
-      PRINT_DATE: String(r.PRINT_DATE ?? r.print_date ?? ""),
-      PRINT_TIME: String(r.PRINT_TIME ?? r.print_time ?? ""),
+      SERVICE_CODE: report.service_code,
+      ID_NUMBER: report.id_number,
+      NAME_AR: report.name_ar,
+      NAME_EN: report.name_en,
+      DAYS_COUNT: report.days_count,
+      ENTRY_DATE_GREGORIAN: report.entry_date_gregorian,
+      EXIT_DATE_GREGORIAN: report.exit_date_gregorian,
+      ENTRY_DATE_HIJRI: report.entry_date_hijri || "",
+      EXIT_DATE_HIJRI: report.exit_date_hijri || "",
+      REPORT_ISSUE_DATE: report.report_issue_date || "",
+      NATIONALITY_AR: report.nationality_ar || "",
+      NATIONALITY_EN: report.nationality_en || "",
+      DOCTOR_NAME_AR: report.doctor_name_ar || "",
+      DOCTOR_NAME_EN: report.doctor_name_en || "",
+      JOB_TITLE_AR: report.job_title_ar || "",
+      JOB_TITLE_EN: report.job_title_en || "",
+      HOSPITAL_NAME_AR: report.hospital_name_ar || "",
+      HOSPITAL_NAME_EN: report.hospital_name_en || "",
+      PRINT_DATE: report.print_date || "",
+      PRINT_TIME: report.print_time || "",
     })
   }
 
