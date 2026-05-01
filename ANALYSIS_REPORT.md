@@ -11,7 +11,7 @@
 |-------|-------------|---------|--------|
 | ثغرات أمنية خطيرة | 7 | 🔴 CRITICAL | ✅ #1,#2,#3,#4,#6 محلولة | ⏸️ #5 مؤجلة |
 | مشاكل أمنية متوسطة | 4 | 🟠 HIGH | ⏳ قيد الانتظار |
-| مشاكل جودة الكود | 8 | 🟡 MEDIUM | ⏳ قيد الانتظار |
+| مشاكل جودة الكود | 8 | 🟡 MEDIUM | ✅ #12,#13 محلولة | ⏳ البقية قيد الانتظار |
 | مشاكل UI/UX | 6 | 🔵 LOW | ⏳ قيد الانتظار |
 | مشاكل الأداء | 5 | 🟣 MEDIUM | ⏳ قيد الانتظار |
 | مشاكل البنية | 8 | ⚫ LOW | ⏳ قيد الانتظار |
@@ -95,15 +95,26 @@
 
 ## 🟡 ثالثاً: مشاكل في جودة الكود والأخطاء (MEDIUM)
 
-### #12 إعدادات البناء معطلة تماماً
+### ✅ #12 إعدادات البناء معطلة تماماً — تم الحل
 - **الملف:** `next.config.ts`
-```js
-eslint: { ignoreDuringBuilds: true },
-typescript: { ignoreBuildErrors: true },
-```
+- **المشكلة:** `ignoreDuringBuilds: true` و `ignoreBuildErrors: true` يُعطّلان كل فحوصات البناء
+- **الحل المنفذ:**
+  - إزالة `eslint.ignoreDuringBuilds` و `typescript.ignoreBuildErrors` من `next.config.ts`
+  - ترقية ESLint إلى v9 + eslint-config-next إلى 15.2.8
+  - إصلاح 20+ خطأ TypeScript في ملفات متعددة
+  - إزالة تعليق واجهة `ReportData` من `report-generator.ts`
+  - استبدال `any` بأنواع مناسبة + pattern `as unknown as Type` لـ Supabase
+  - إضافة `skills` إلى `exclude` في tsconfig.json
 
-### #13 كل قواعد ESLint معطلة
-- **الملف:** `eslint.config.mjs` - حوالي 20+ قاعدة معطلة
+### ✅ #13 كل قواعد ESLint معطلة — تم الحل
+- **الملف:** `eslint.config.mjs`
+- **المشكلة:** الملف كان يحتوي فقط على `ignores` بدون أي قواعد فعلية
+- **الحل المنفذ:**
+  - إعداد TypeScript ESLint مع `tseslint.config()`
+  - تفعيل `eslint-plugin-react-hooks` مع `exhaustive-deps`
+  - تفعيل قواعد TypeScript: `no-unused-vars`, `no-non-null-assertion`
+  - تفعيل قواعد أساسية: `no-debugger`, `no-empty`, `prefer-const`, `no-redeclare`, `no-fallthrough`, `no-unreachable`
+  - إصلاح 49 تحذير ESLint في الملفات
 
 ### #14 ملف `report-generator.ts` بأكمله معطّل (Dead Code)
 - **الملف:** `lib/report-generator.ts` (461 سطر - كلها تعليقات)
@@ -212,8 +223,9 @@ typescript: { ignoreBuildErrors: true },
 | الأولوية | المشكلة | الحالة |
 |----------|---------|--------|
 | 1 | تشفير كلمات المرور + إخفائها | ✅ تم الحل |
-| 2 | تنفيذ مصادقة خادم حقيقية (JWT + middleware) | ⏳ التالية |
-| 3 | تفعيل RLS في Supabase | ⏳ |
-| 4 | إصلاح أخطاء البناء في Vercel | ⏳ |
-| 5 | إزالة الكود المعطّل وتوحيد الأنماط | ⏳ |
-| 6 | استبدال الإشعارات الوهمية بإشعارات حقيقية | ⏳ |
+| 2 | تنفيذ مصادقة خادم حقيقية (JWT + middleware) | ✅ تم الحل |
+| 3 | إصلاح إعدادات البناء + ESLint | ✅ تم الحل (#12, #13) |
+| 4 | تفعيل RLS في Supabase | ⏳ |
+| 5 | إصلاح أخطاء البناء في Vercel | ⏳ |
+| 6 | إزالة الكود المعطّل وتوحيد الأنماط | ⏳ |
+| 7 | استبدال الإشعارات الوهمية بإشعارات حقيقية | ⏳ |
