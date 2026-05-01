@@ -143,12 +143,14 @@ export default function EditReportPage() {
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const { user } = await res.json()
 
     // التحقق مما إذا كان هناك تقرير للتعديل في التخزين المحلي
     const reportToEdit = localStorage.getItem("report_to_edit")
@@ -159,7 +161,11 @@ export default function EditReportPage() {
       populateFormData(parsedReport)
       // مسح التخزين المحلي بعد استخدامه
       localStorage.removeItem("report_to_edit")
+      } catch {
+        router.push("/")
+      }
     }
+    checkSession()
   }, [router])
 
   // حساب تاريخ الخروج بناءً على تاريخ الدخول وعدد الأيام
@@ -255,8 +261,13 @@ export default function EditReportPage() {
     setError(null)
 
     try {
-      const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        setError("يرجى تسجيل الدخول مرة أخرى")
+        return
+      }
+      const { user } = await sessionRes.json()
+      let query = supabase.from("reports").select("*").eq("user_id", user.id).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -304,10 +315,11 @@ export default function EditReportPage() {
         throw new Error("لم يتم العثور على التقرير")
       }
 
-      const userId = localStorage.getItem("user_id")
-      if (!userId) {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
         throw new Error("يرجى تسجيل الدخول مرة أخرى")
       }
+      const { user } = await sessionRes.json()
 
       // التحقق من البيانات المطلوبة
       const requiredFields = [
@@ -364,7 +376,7 @@ export default function EditReportPage() {
 
       // إضافة نشاط تعديل
       await addActivity(
-        userId,
+        user.id,
         "edit",
         "تم تعديل تقرير",
         `تم تعديل تقرير للمريض ${formData.nameAr} برقم هوية ${formData.idNumber}`,

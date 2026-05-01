@@ -230,12 +230,14 @@ export default function AddReportPage() {
   }
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const { user } = await res.json()
 
     // التحقق من حالة التعليق
     const checkUserSuspension = async () => {
@@ -244,7 +246,7 @@ export default function AddReportPage() {
         const { data: userData, error: userError } = await supabase
           .from("users")
           .select("is_suspended, id")
-          .eq("id", userId)
+          .eq("id", user.id)
           .single()
 
         if (userError) {
@@ -258,7 +260,7 @@ export default function AddReportPage() {
           const { data: suspensionData } = await supabase
             .from("user_suspensions")
             .select("suspension_reason")
-            .eq("user_id", userId)
+            .eq("user_id", user.id)
             .is("reactivated_at", null)
             .order("suspended_at", { ascending: false })
             .limit(1)
@@ -278,7 +280,7 @@ export default function AddReportPage() {
     supabase
       .from("users")
       .select("pptx_enabled")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data) setPptxEnabled(data.pptx_enabled !== false)
@@ -347,6 +349,11 @@ export default function AddReportPage() {
       print_time: formattedTime,
     }))
     loadServiceCode()
+      } catch {
+        router.push("/")
+      }
+    }
+    checkSession()
   }, [router])
 
   // حساب تاريخ الخروج بناءً على تاريخ الدخول وعدد الأيام
@@ -411,11 +418,12 @@ export default function AddReportPage() {
     setError(null)
 
     try {
-      const userId = localStorage.getItem("user_id")
-      if (!userId) {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
         router.push("/")
         return
       }
+      const { user } = await sessionRes.json()
 
       const supabase = createClientSupabaseClient()
 
@@ -423,7 +431,7 @@ export default function AddReportPage() {
       const { data: userData, error: userCheckError } = await supabase
         .from("users")
         .select("is_suspended")
-        .eq("id", userId)
+        .eq("id", user.id)
         .single()
 
       if (userCheckError) throw new Error("حدث خطأ أثناء التحقق من حالة الحساب")
@@ -438,7 +446,7 @@ export default function AddReportPage() {
       const reportData = {
         ...formData,
         days_count: parseInt(formData.days_count),
-        user_id: userId,
+        user_id: user.id,
         is_disabled: false,
       }
 
@@ -452,7 +460,7 @@ export default function AddReportPage() {
       if (data && data.length > 0) {
         const reportId = String(data[0].id)
         await addActivity(
-          userId,
+          user.id,
           "add",
           "تم إضافة تقرير جديد",
           `تم إضافة تقرير جديد للمريض ${formData.name_ar} برقم هوية ${formData.id_number}`,
@@ -460,7 +468,7 @@ export default function AddReportPage() {
         )
 
         // ===== التحقق التلقائي من تجاوز الحدود بعد إنشاء التقرير =====
-        await checkAndAutoSuspend(userId, supabase)
+        await checkAndAutoSuspend(user.id, supabase)
       }
 
       setSuccess(true)
@@ -568,8 +576,10 @@ export default function AddReportPage() {
   }
 
   const handleDownloadPPTX = async () => {
-    const userId = localStorage.getItem("user_id")
-    if (!userId) return
+    try {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) return
+    } catch { return }
 
     await downloadPptx({
       SERVICE_CODE: formData.service_code,
@@ -596,8 +606,10 @@ export default function AddReportPage() {
   }
 
   const handleDownloadPDF = async () => {
-    const userId = localStorage.getItem("user_id")
-    if (!userId) return
+    try {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) return
+    } catch { return }
     await downloadPdf({
       SERVICE_CODE: formData.service_code,
       ID_NUMBER: formData.id_number,

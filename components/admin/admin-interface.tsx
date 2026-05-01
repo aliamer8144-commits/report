@@ -122,8 +122,15 @@ function DashboardContent() {
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    const userId = localStorage.getItem("user_id")
-    if (userId) fetchReportStats(userId)
+    const initStats = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) return
+        const { user } = await res.json()
+        fetchReportStats(user.id)
+      } catch { /* ignore */ }
+    }
+    initStats()
   }, [])
 
   const fetchReportStats = async (userId: string) => {
@@ -168,8 +175,13 @@ function DashboardContent() {
     setError(null)
 
     try {
-      const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        setError("يرجى تسجيل الدخول مرة أخرى")
+        return
+      }
+      const { user } = await sessionRes.json()
+      let query = supabase.from("reports").select("*").eq("user_id", user.id).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -466,8 +478,8 @@ export default function AdminInterface() {
     setMounted(true)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem("user_id")
+  const handleLogout = async () => {
+    try { await fetch("/api/auth/logout", { method: "POST" }) } catch {}
     localStorage.removeItem("username")
     localStorage.removeItem("user_role")
     router.push("/")

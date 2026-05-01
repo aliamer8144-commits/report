@@ -63,6 +63,7 @@
     "hijri-date-converter": "^1.0.2",
     "html2pdf.js": "^0.14.0",
     "input-otp": "1.4.1",
+    "jose": "^6.2.3",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.454.0",

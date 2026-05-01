@@ -27,44 +27,43 @@ export default function SearchPage() {
   const { downloadPdf, pdfProgressDialog } = usePdfDownloadWithProgress()
 
   useEffect(() => {
-    // تهيئة عميل Supabase
     const init = async () => {
       try {
+        // التحقق من تسجيل الدخول
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const { user } = await res.json()
+
         const supabase = createClientSupabaseClient()
-        setIsInitializing(false)
 
         // جلب صلاحية PPTX للمستخدم
-        const userId = localStorage.getItem("user_id")
-        if (userId) {
-          const { data: userData } = await supabase
-            .from("users")
-            .select("pptx_enabled")
-            .eq("id", userId)
-            .single()
-          if (userData) {
-            setPptxEnabled(userData.pptx_enabled !== false)
-          }
+        const { data: userData } = await supabase
+          .from("users")
+          .select("pptx_enabled")
+          .eq("id", user.id)
+          .single()
+        if (userData) {
+          setPptxEnabled(userData.pptx_enabled !== false)
         }
+
+        setIsInitializing(false)
       } catch (err) {
-        console.error("Failed to initialize Supabase:", err)
+        console.error("Failed to initialize:", err)
         setError("فشل الاتصال بقاعدة البيانات. يرجى المحاولة مرة أخرى.")
         setIsInitializing(false)
+        return
       }
-    }
 
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
-
-    // جلب نتائج البحث من التخزين المحلي
-    const results = localStorage.getItem("search_results")
-    if (results) {
-      setSearchResults(JSON.parse(results))
-    } else {
-      router.push("/home")
+      // جلب نتائج البحث من التخزين المحلي
+      const results = localStorage.getItem("search_results")
+      if (results) {
+        setSearchResults(JSON.parse(results))
+      } else {
+        router.push("/home")
+      }
     }
 
     init()
@@ -86,8 +85,13 @@ export default function SearchPage() {
   }
 
   const handleDownloadPPTX = async (report: Report) => {
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
+    try {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        setError("يجب تسجيل الدخول أولاً")
+        return
+      }
+    } catch {
       setError("يجب تسجيل الدخول أولاً")
       return
     }
@@ -117,8 +121,13 @@ export default function SearchPage() {
   }
 
   const handleDownloadPDF = async (report: Report) => {
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
+    try {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        setError("يجب تسجيل الدخول أولاً")
+        return
+      }
+    } catch {
       setError("يجب تسجيل الدخول أولاً")
       return
     }

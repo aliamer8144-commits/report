@@ -64,25 +64,30 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const init = async () => {
-      // التحقق من تسجيل الدخول
-      const userId = localStorage.getItem("user_id")
-      if (!userId) {
-        router.push("/")
-        return
-      }
+      try {
+        // التحقق من تسجيل الدخول
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const { user } = await res.json()
 
       // جلب صلاحية PPTX للمستخدم
       const { data: userData } = await supabase
         .from("users")
         .select("pptx_enabled")
-        .eq("id", userId)
+        .eq("id", user.id)
         .single()
       if (userData) {
         setPptxEnabled(userData.pptx_enabled !== false)
       }
 
       // جلب التقارير
-      fetchReports(userId, page)
+      fetchReports(user.id, page)
+      } catch {
+        router.push("/")
+      }
     }
     init()
   }, [router, page])

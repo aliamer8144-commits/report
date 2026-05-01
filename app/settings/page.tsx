@@ -22,12 +22,17 @@ export default function SettingsPage() {
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+      } catch {
+        router.push("/")
+        return
+      }
 
     // التحقق من حالة تفعيل البصمة
     const biometricStatus = localStorage.getItem("biometric_enabled")
@@ -36,6 +41,8 @@ export default function SettingsPage() {
     // جلب نوع الحساب واسم المستخدم
     setUserRole(localStorage.getItem("user_role"))
     setUsername(localStorage.getItem("username"))
+    }
+    checkSession()
   }, [router])
 
   const handleBiometricToggle = async () => {

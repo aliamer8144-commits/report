@@ -22,19 +22,24 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const supabase = createClientSupabaseClient()
 
-  // جميع المستخدمين ينتقلون إلى /home بعد تسجيل الدخول
-  // صفحة /home تعرض الواجهة المناسبة حسب نوع الحساب
   const getRedirectPath = (_role: string | null): string => {
     return "/home"
   }
 
   useEffect(() => {
-    // تحقق مما إذا كان المستخدم قد قام بتسجيل الدخول بالفعل
-    const userId = localStorage.getItem("user_id")
-    if (userId) {
-      const userRole = localStorage.getItem("user_role")
-      router.push(getRedirectPath(userRole))
+    // التحقق من الجلسة عبر API بدل localStorage
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (res.ok) {
+          const data = await res.json()
+          router.push(getRedirectPath(data.user.role))
+        }
+      } catch {
+        // لا توجد جلسة صالحة - إبقاء المستخدم في صفحة الدخول
+      }
     }
+    checkSession()
   }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -45,7 +50,7 @@ export function LoginForm() {
     try {
       const deviceId = generateDeviceId()
 
-      // استدعاء API تسجيل الدخول (التحقق يتم على السيرفر مع bcrypt)
+      // استدعاء API تسجيل الدخول (التحقق + JWT cookie يتم على السيرفر)
       const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,7 +78,6 @@ export function LoginForm() {
       }
 
       if (!devices) {
-        // إضافة طلب تصريح للجهاز الجديد
         const { error: insertError } = await supabase.from("authorized_devices").insert({
           user_id: user.id,
           device_id: deviceId,
@@ -91,14 +95,13 @@ export function LoginForm() {
         throw new Error("هذا الجهاز في انتظار الموافقة من قبل المسؤول")
       }
 
-      // تخزين معلومات المستخدم في الجلسة
-      localStorage.setItem("user_id", user.id)
+      // تخزين بيانات العرض فقط في localStorage (الجلسة الحقيقية في cookie)
       localStorage.setItem("username", user.username)
       localStorage.setItem("full_name", user.full_name || user.username)
       localStorage.setItem("device_id", deviceId)
       localStorage.setItem("user_role", user.role || "user")
 
-      // الانتقال إلى الصفحة المناسبة حسب نوع الحساب
+      // الانتقال إلى الصفحة المناسبة
       router.push(getRedirectPath(user.role))
     } catch (err: any) {
       setError(err.message)
@@ -107,7 +110,6 @@ export function LoginForm() {
     }
   }
 
-  // توليد معرف فريد للجهاز (في التطبيق الحقيقي، سنستخدم IMEI)
   const generateDeviceId = () => {
     let deviceId = localStorage.getItem("device_id")
     if (!deviceId) {
@@ -118,15 +120,12 @@ export function LoginForm() {
   }
 
   const handleBiometricLogin = async () => {
-    // في التطبيق الحقيقي، سنستخدم واجهة برمجة التطبيقات للبصمة
-    // لكن هنا سنتحقق فقط من وجود معلومات المستخدم في التخزين المحلي
-    const userId = localStorage.getItem("user_id")
     const storedUsername = localStorage.getItem("username")
     const deviceId = localStorage.getItem("device_id")
     const userRole = localStorage.getItem("user_role")
     const biometricEnabled = localStorage.getItem("biometric_enabled")
 
-    if (!userId || !storedUsername || !deviceId) {
+    if (!storedUsername || !deviceId) {
       setError("لم يتم العثور على بيانات تسجيل الدخول السابقة")
       return
     }
@@ -140,6 +139,15 @@ export function LoginForm() {
     setError(null)
 
     try {
+      // التحقق من وجود جلسة صالحة
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        throw new Error("انتهت صلاحية الجلسة. يرجى تسجيل الدخول بكلمة المرور.")
+      }
+
+      const sessionData = await sessionRes.json()
+      const userId = sessionData.user.id
+
       // محاكاة تأخير للتحقق من البصمة
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -156,14 +164,12 @@ export function LoginForm() {
         throw new Error("هذا الجهاز غير مصرح به أو تم إلغاء التصريح")
       }
 
-      // الانتقال إلى الصفحة المناسبة حسب نوع الحساب
       router.push(getRedirectPath(userRole))
     } catch (err: any) {
       setError(err.message)
-      // مسح بيانات الجلسة في حالة الخطأ
-      localStorage.removeItem("user_id")
+      // مسح بيانات العرض في حالة الخطأ
       localStorage.removeItem("username")
-      localStorage.removeItem("device_id")
+      localStorage.removeItem("full_name")
       localStorage.removeItem("user_role")
     } finally {
       setBiometricLoading(false)

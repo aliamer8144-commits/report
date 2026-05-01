@@ -60,29 +60,32 @@ export default function HomePage() {
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
+    // التحقق من الجلسة عبر API (middleware يحمي المسار أيضاً)
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const data = await res.json()
+        const user = data.user
+
+        setUsername(user.username)
+        setUserRole(user.role || "user")
+
+        // جلب إحصائيات التقارير فقط للمستخدمين العاديين والإدمن
+        if (user.role !== "supervisor") {
+          fetchReportStats(user.id)
+          checkSuspensionStatus(user.id)
+        }
+
+        setMounted(true)
+      } catch {
+        router.push("/")
+      }
     }
-
-    const storedUsername = localStorage.getItem("username")
-    if (storedUsername) {
-      setUsername(storedUsername)
-    }
-
-    // التحقق من نوع المستخدم
-    const role = localStorage.getItem("user_role")
-    setUserRole(role || "user")
-
-    // جلب إحصائيات التقارير فقط للمستخدمين العاديين والإدمن
-    if (role !== "supervisor") {
-      fetchReportStats(userId)
-      checkSuspensionStatus(userId)
-    }
-
-    setMounted(true)
+    checkSession()
   }, [router])
 
   const checkSuspensionStatus = async (userId: string) => {
@@ -157,8 +160,13 @@ export default function HomePage() {
     setError(null)
 
     try {
-      const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId).eq("is_disabled", false)
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        router.push("/")
+        return
+      }
+      const { user: sessionUser } = await sessionRes.json()
+      let query = supabase.from("reports").select("*").eq("user_id", sessionUser.id).eq("is_disabled", false)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -189,9 +197,14 @@ export default function HomePage() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("user_id")
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      // حتى لو فشل الطلب، نستمر بمسح البيانات المحلية
+    }
     localStorage.removeItem("username")
+    localStorage.removeItem("full_name")
     localStorage.removeItem("user_role")
     router.push("/")
   }

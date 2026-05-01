@@ -66,12 +66,14 @@ export default function DeleteReportPage() {
   const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول
-    const userId = localStorage.getItem("user_id")
-    if (!userId) {
-      router.push("/")
-      return
-    }
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          router.push("/")
+          return
+        }
+        const { user } = await res.json()
 
     // التحقق مما إذا كان هناك تقرير في التخزين المحلي
     const reportToToggle = localStorage.getItem("report_to_toggle")
@@ -80,7 +82,11 @@ export default function DeleteReportPage() {
       setReport(parsedReport)
       setSearchMode(false)
       localStorage.removeItem("report_to_toggle")
+      } catch {
+        router.push("/")
+      }
     }
+    checkSession()
   }, [router])
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -95,8 +101,13 @@ export default function DeleteReportPage() {
     setError(null)
 
     try {
-      const userId = localStorage.getItem("user_id")
-      let query = supabase.from("reports").select("*").eq("user_id", userId)
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
+        setError("يرجى تسجيل الدخول مرة أخرى")
+        return
+      }
+      const { user } = await sessionRes.json()
+      let query = supabase.from("reports").select("*").eq("user_id", user.id)
 
       if (serviceCode) {
         query = query.eq("service_code", serviceCode)
@@ -143,10 +154,11 @@ export default function DeleteReportPage() {
         throw new Error("لم يتم العثور على التقرير")
       }
 
-      const userId = localStorage.getItem("user_id")
-      if (!userId) {
+      const sessionRes = await fetch("/api/auth/session")
+      if (!sessionRes.ok) {
         throw new Error("يرجى تسجيل الدخول مرة أخرى")
       }
+      const { user } = await sessionRes.json()
 
       const isCurrentlyDisabled = report.is_disabled === true
       const newIdNumber = isCurrentlyDisabled 
@@ -167,7 +179,7 @@ export default function DeleteReportPage() {
       }
 
       await addActivity(
-        userId,
+        user.id,
         isCurrentlyDisabled ? "enable" : "disable",
         isCurrentlyDisabled ? "تم إلغاء تعطيل تقرير" : "تم تعطيل تقرير",
         isCurrentlyDisabled 

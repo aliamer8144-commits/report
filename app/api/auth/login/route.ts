@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import bcrypt from "bcryptjs"
+import { createToken } from "@/lib/auth"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -68,8 +69,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // إرجاع بيانات المستخدم بدون كلمة المرور
-    return NextResponse.json({
+    // إنشاء JWT token
+    const token = await createToken({
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name || user.username,
+      role: user.role || "user",
+    })
+
+    // إرجاع بيانات المستخدم + تعيين cookie الجلسة
+    const response = NextResponse.json({
       user: {
         id: user.id,
         username: user.username,
@@ -77,6 +86,17 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
     })
+
+    // تعيين cookie الجلسة (httpOnly = لا يمكن الوصول من JavaScript)
+    response.cookies.set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 أيام
+      path: "/",
+    })
+
+    return response
   } catch (err) {
     console.error("Login error:", err)
     return NextResponse.json(

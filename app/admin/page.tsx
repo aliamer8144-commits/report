@@ -86,7 +86,31 @@ export default function AdminPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null)
   const [loadingUsage, setLoadingUsage] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const supabase = createClientSupabaseClient()
+
+  // Auth guard - verify admin role via JWT session
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) {
+          window.location.href = "/"
+          return
+        }
+        const { user } = await res.json()
+        if (user.role !== "admin") {
+          window.location.href = "/home"
+          return
+        }
+      } catch {
+        window.location.href = "/"
+        return
+      }
+      setIsCheckingAuth(false)
+    }
+    checkAdminSession()
+  }, [])
 
   const fetchUsageStats = async () => {
     setLoadingUsage(true)
@@ -134,11 +158,12 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    if (isCheckingAuth) return
     fetchUsers()
     fetchDevices()
     fetchUserCounts()
     fetchUsageStats()
-  }, [])
+  }, [isCheckingAuth])
 
   const fetchUsers = async () => {
     try {
@@ -389,6 +414,14 @@ export default function AdminPage() {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="container max-w-md mx-auto p-4 pb-20 flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
   }
 
   return (
