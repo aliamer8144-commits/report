@@ -83,3 +83,21 @@ Stage Summary:
 - البيانات الآن تأتي من قاعدة البيانات مباشرة بدل client-side storage
 - commit: 5199744
 
+---
+Task ID: data-fix
+Agent: Main Agent
+Task: تحقيق مشكلة عدم عرض البيانات من قاعدة البيانات
+
+Work Log:
+- تم إعادة استنساخ المشروع من GitHub بعد انتهاء الجلسة السابقة
+- تحليل شامل لكل الملفات المتعلقة بعرض البيانات (home, reports, search, API routes, middleware, auth)
+- اكتشاف السبب الرئيسي: متغير JWT_SECRET مفقود من .env.local
+- بدون JWT_SECRET، verifyToken() يفشل → middleware يعيد توجيه لصفحة الدخول → لا تُعرض أي بيانات
+- إصلاح createServerSupabaseClient() لاستخدام NEXT_PUBLIC_* بدل SUPABASE_SERVICE_ROLE_KEY غير الموجود
+- التحقق من أن نوع casting (as unknown as Type) لا يسبب فقدان بيانات (compile-time only)
+
+Stage Summary:
+- السبب الجذري: JWT_SECRET مفقود + متغيرات Supabase السيرفر غير موجودة
+- تم إصلاح lib/supabase.ts لاستخدام متغيرات بيئة موجودة فعلاً
+- كل مستخدم يحتاج تسجيل دخول من جديد بعد إضافة JWT_SECRET
+
