@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { addActivity } from "@/lib/activities-service"
@@ -142,7 +142,7 @@ const FormField = ({
   </motion.div>
 )
 
-export default function AddReportPage() {
+function AddReportPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState<ReportFormFields>({
@@ -1170,5 +1170,13 @@ export default function AddReportPage() {
       </motion.div>
       )}
     </div>
+  )
+}
+
+export default function AddReportPage() {
+  return (
+    <Suspense>
+      <AddReportPageContent />
+    </Suspense>
   )
 }

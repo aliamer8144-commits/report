@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -108,7 +108,7 @@ const convertToHijri = (gregorianDate: string): string => {
   }
 }
 
-export default function EditReportPage() {
+function EditReportPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchMode, setSearchMode] = useState(true)
@@ -866,5 +866,14 @@ export default function EditReportPage() {
         </motion.div>
       )}
     </div>
+  )
+}
+
+
+export default function EditReportPage() {
+  return (
+    <Suspense>
+      <EditReportPageContent />
+    </Suspense>
   )
 }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -52,7 +52,7 @@ interface Report {
   [key: string]: any
 }
 
-export default function DeleteReportPage() {
+function DeleteReportPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchMode, setSearchMode] = useState(true)
@@ -535,5 +535,14 @@ export default function DeleteReportPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+
+export default function DeleteReportPage() {
+  return (
+    <Suspense>
+      <DeleteReportPageContent />
+    </Suspense>
   )
 }
