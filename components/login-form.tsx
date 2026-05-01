@@ -43,36 +43,28 @@ export function LoginForm() {
     setError(null)
 
     try {
-      // في الواقع، سنحتاج إلى الحصول على معرف الجهاز (IMEI)
-      // لكن في بيئة الويب، سنستخدم معرف فريد آخر
       const deviceId = generateDeviceId()
 
-      // التحقق من بيانات المستخدم
-      const { data: users, error: userError } = await supabase
-        .from("users")
-        .select("id, username, full_name, password, role, is_suspended")
-        .eq("username", username)
-        .single()
+      // استدعاء API تسجيل الدخول (التحقق يتم على السيرفر مع bcrypt)
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      })
 
-      if (userError || !users) {
-        throw new Error("اسم المستخدم أو كلمة المرور غير صحيحة")
+      const loginData = await loginRes.json()
+
+      if (!loginRes.ok) {
+        throw new Error(loginData.error || "حدث خطأ أثناء تسجيل الدخول")
       }
 
-      // التحقق من كلمة المرور (في التطبيق الحقيقي، يجب استخدام تشفير أفضل)
-      if (users.password !== password) {
-        throw new Error("اسم المستخدم أو كلمة المرور غير صحيحة")
-      }
-
-      // التحقق من حالة التعليق
-      if (users.is_suspended) {
-        throw new Error("تم تعليق هذا الحساب. يرجى التواصل مع المشرف لتفعيل الحساب.")
-      }
+      const user = loginData.user
 
       // التحقق من الجهاز المصرح به
       const { data: devices, error: deviceError } = await supabase
         .from("authorized_devices")
         .select("*")
-        .eq("user_id", users.id)
+        .eq("user_id", user.id)
         .eq("device_id", deviceId)
         .single()
 
@@ -83,7 +75,7 @@ export function LoginForm() {
       if (!devices) {
         // إضافة طلب تصريح للجهاز الجديد
         const { error: insertError } = await supabase.from("authorized_devices").insert({
-          user_id: users.id,
+          user_id: user.id,
           device_id: deviceId,
           is_approved: false,
         })
@@ -100,14 +92,14 @@ export function LoginForm() {
       }
 
       // تخزين معلومات المستخدم في الجلسة
-      localStorage.setItem("user_id", users.id)
-      localStorage.setItem("username", users.username)
-      localStorage.setItem("full_name", users.full_name || users.username)
+      localStorage.setItem("user_id", user.id)
+      localStorage.setItem("username", user.username)
+      localStorage.setItem("full_name", user.full_name || user.username)
       localStorage.setItem("device_id", deviceId)
-      localStorage.setItem("user_role", users.role || "user")
+      localStorage.setItem("user_role", user.role || "user")
 
       // الانتقال إلى الصفحة المناسبة حسب نوع الحساب
-      router.push(getRedirectPath(users.role))
+      router.push(getRedirectPath(user.role))
     } catch (err: any) {
       setError(err.message)
     } finally {

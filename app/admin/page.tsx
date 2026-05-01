@@ -27,7 +27,6 @@ interface UserCountSummary {
 interface User {
   id: string
   username: string
-  password?: string
   role?: string
   created_at: string
 }
@@ -145,7 +144,7 @@ export default function AdminPage() {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("id, username, password, role, created_at")
+        .select("id, username, role, created_at")
         .order("created_at", { ascending: false })
 
       if (error) {
@@ -237,14 +236,20 @@ export default function AdminPage() {
         throw new Error("اسم المستخدم موجود بالفعل")
       }
 
-      const { error: insertError } = await supabase.from("users").insert({
-        username: newUser.username,
-        password: newUser.password,
-        role: newUser.role,
+      // استخدام API لتشفير كلمة المرور قبل الحفظ
+      const registerRes = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: newUser.username,
+          password: newUser.password,
+          role: newUser.role,
+        }),
       })
 
-      if (insertError) {
-        throw new Error("حدث خطأ أثناء إضافة المستخدم")
+      const registerData = await registerRes.json()
+      if (!registerRes.ok) {
+        throw new Error(registerData.error || "حدث خطأ أثناء إضافة المستخدم")
       }
 
       setSuccess("تمت إضافة المستخدم بنجاح")
@@ -286,17 +291,22 @@ export default function AdminPage() {
     setSuccess(null)
 
     try {
-      const { error } = await supabase
-        .from("users")
-        .update({
+      // استخدام API لتشفير كلمة المرور الجديدة
+      const updateRes = await fetch("/api/auth/update-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: editingUser.id,
           username: editForm.username,
           password: editForm.password,
           role: editForm.role,
-          is_admin: editForm.role === "admin",
-        })
-        .eq("id", editingUser.id)
+        }),
+      })
 
-      if (error) throw error
+      const updateData = await updateRes.json()
+      if (!updateRes.ok) {
+        throw new Error(updateData.error || "حدث خطأ أثناء تحديث بيانات المستخدم")
+      }
 
       setSuccess("تم تحديث بيانات المستخدم بنجاح")
       setIsEditDialogOpen(false)
@@ -350,7 +360,7 @@ export default function AdminPage() {
     setEditingUser(user)
     setEditForm({
       username: user.username,
-      password: user.password || "",
+      password: "",
       role: user.role || "user",
     })
     setIsEditDialogOpen(true)
@@ -523,7 +533,7 @@ export default function AdminPage() {
                               </div>
                               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1">
                                 <span>📅 {formatDate(user.created_at)}</span>
-                                <span className="text-blue-600 font-mono">🔑 {user.password}</span>
+                                <span className="text-muted-foreground">••••••••</span>
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -640,13 +650,14 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-2 text-right">
-                  <Label htmlFor="edit-password">كلمة المرور</Label>
+                  <Label htmlFor="edit-password">كلمة المرور الجديدة (اتركها فارغة للإبقاء على الحالية)</Label>
                   <Input
                     id="edit-password"
+                    type="password"
                     value={editForm.password}
                     onChange={(e) => setEditForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="text-right font-mono"
-                    required
+                    className="text-right"
+                    placeholder="أدخل كلمة المرور الجديدة"
                   />
                 </div>
                 <div className="space-y-2 text-right">
