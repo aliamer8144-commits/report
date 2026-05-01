@@ -198,7 +198,10 @@ async function downloadGenerateEndpointWithProgress(
         const rate = received / Math.max(elapsedDl, 0.001)
         eta = (totalBytes - received) / rate
       } else {
-        smoothPct = Math.min(smoothPct + 2.2, 90)
+        // Unknown content-length: decelerating progress curve
+        // Starts at +2.2/chunk, slows down as it approaches 94% (never appears stuck)
+        const decel = Math.max(0.12, 1 - (smoothPct - 30) / 65)
+        smoothPct = Math.min(smoothPct + 2.2 * decel, 94)
         pct = smoothPct
         eta = linearEtaSeconds((Date.now() - t0) / 1000, pct)
       }
