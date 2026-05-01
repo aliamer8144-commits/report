@@ -405,7 +405,6 @@ export default function AdminPage() {
             loading={loading}
             error={error}
             success={success}
-            editingUser={editingUser}
             isEditDialogOpen={isEditDialogOpen}
             editForm={editForm}
             actionLoading={actionLoading}
