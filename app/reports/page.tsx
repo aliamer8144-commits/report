@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
-import { BarChart3, PlusCircle, Edit, Ban, Download, ChevronLeft, ChevronRight } from "lucide-react"
+import { BarChart3, PlusCircle, Edit, Ban, Download, ChevronLeft, ChevronRight, CheckCircle2, Filter } from "lucide-react"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
 
 interface Report {
@@ -71,6 +71,7 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [filter, setFilter] = useState<"active" | "disabled" | "all">("active")
   const pageSize = 5
   const supabase = createClientSupabaseClient()
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
@@ -99,15 +100,15 @@ export default function ReportsPage() {
       }
 
       // جلب التقارير
-      fetchReports(user.id, page)
+      fetchReports(user.id, page, filter)
       } catch (_err) {
         router.push("/")
       }
     }
     init()
-  }, [router, page])
+  }, [router, page, filter])
 
-  const fetchReports = async (userId: string, page: number) => {
+  const fetchReports = async (userId: string, page: number, currentFilter: string) => {
     setLoading(true)
     setError(null)
 
@@ -116,12 +117,20 @@ export default function ReportsPage() {
       const from = (page - 1) * pageSize
       const to = from + pageSize - 1
 
-      // جلب إجمالي عدد التقارير
-      const { count, error: countError } = await supabase
+      // بناء الاستعلام حسب الفلتر
+      let query = supabase
         .from("reports")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("is_disabled", false)
+
+      if (currentFilter === "active") {
+        query = query.eq("is_disabled", false)
+      } else if (currentFilter === "disabled") {
+        query = query.eq("is_disabled", true)
+      }
+
+      // جلب إجمالي عدد التقارير
+      const { count, error: countError } = await query
 
       if (countError) {
         throw new Error("حدث خطأ أثناء جلب عدد التقارير")
@@ -131,11 +140,18 @@ export default function ReportsPage() {
       setTotalPages(Math.ceil((count || 0) / pageSize))
 
       // جلب التقارير للصفحة الحالية
-      const { data, error: fetchError } = await supabase
+      let dataQuery = supabase
         .from("reports")
         .select("*")
         .eq("user_id", userId)
-        .eq("is_disabled", false)
+
+      if (currentFilter === "active") {
+        dataQuery = dataQuery.eq("is_disabled", false)
+      } else if (currentFilter === "disabled") {
+        dataQuery = dataQuery.eq("is_disabled", true)
+      }
+
+      const { data, error: fetchError } = await dataQuery
         .order("created_at", { ascending: false })
         .range(from, to)
 
@@ -161,9 +177,26 @@ export default function ReportsPage() {
     router.push(`/edit?report_id=${report.id}`)
   }
 
-  const handleToggleDisable = (report: Report) => {
-    // تمرير معرف التقرير عبر URL بدل localStorage
-    router.push(`/delete?report_id=${report.id}`)
+  const handleToggleDisable = async (report: Report) => {
+    if (report.is_disabled) {
+      // إعادة تفعيل التقرير
+      try {
+        const { error: updateError } = await supabase
+          .from("reports")
+          .update({ is_disabled: false })
+          .eq("id", report.id)
+
+        if (updateError) throw updateError
+
+        // تحديث القائمة
+        setReports((prev) => prev.filter((r) => r.id !== report.id))
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err))
+      }
+    } else {
+      // تعطيل التقرير
+      router.push(`/delete?report_id=${report.id}`)
+    }
   }
 
   const handleDownloadPPTX = async (report: Report) => {
@@ -191,6 +224,37 @@ export default function ReportsPage() {
         icon={<BarChart3 className="h-8 w-8" />}
       />
 
+      {/* فلتر التقارير */}
+      <div className="flex items-center gap-2 mb-4">
+        <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="flex gap-2 flex-1">
+          <Button
+            variant={filter === "active" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setFilter("active"); setPage(1) }}
+            className="text-xs"
+          >
+            النشطة
+          </Button>
+          <Button
+            variant={filter === "disabled" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setFilter("disabled"); setPage(1) }}
+            className="text-xs"
+          >
+            المعطلة
+          </Button>
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setFilter("all"); setPage(1) }}
+            className="text-xs"
+          >
+            الكل
+          </Button>
+        </div>
+      </div>
+
       {error && <AlertMessage type="error" title="خطأ" message={error} />}
 
       {loading ? (
@@ -208,9 +272,16 @@ export default function ReportsPage() {
         <>
           <div className="space-y-4">
             {reports.map((report) => (
-              <Card key={report.id}>
+              <Card key={report.id} className={report.is_disabled ? "opacity-70" : ""}>
                 <CardHeader>
-                  <CardTitle className="text-lg">{report.name_ar}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{report.name_ar}</CardTitle>
+                    {report.is_disabled && (
+                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium">
+                        معطل
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -258,9 +329,22 @@ export default function ReportsPage() {
                   </div>
                   {/* الصف الثاني: تعطيل + PDF + PPTX (اختياري) */}
                   <div className={`grid gap-2 w-full ${pptxEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                    <Button onClick={() => handleToggleDisable(report)} className="bg-red-500 hover:bg-red-600" size="sm">
-                      <Ban className="mr-2 h-4 w-4" />
-                      تعطيل
+                    <Button
+                      onClick={() => handleToggleDisable(report)}
+                      className={report.is_disabled ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}
+                      size="sm"
+                    >
+                      {report.is_disabled ? (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          إلغاء التعطيل
+                        </>
+                      ) : (
+                        <>
+                          <Ban className="mr-2 h-4 w-4" />
+                          تعطيل
+                        </>
+                      )}
                     </Button>
                     <Button
                       onClick={() => handleDownloadPDF(report)}
