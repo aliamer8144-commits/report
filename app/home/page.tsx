@@ -188,9 +188,11 @@ export default function HomePage() {
         return
       }
 
-      // تخزين نتائج البحث وتوجيه المستخدم إلى صفحة البحث
-      localStorage.setItem("search_results", JSON.stringify(data))
-      router.push("/search")
+      // تخزين نتائج البحث وتوجيه المستخدم إلى صفحة البحث بمعاملات URL
+      const params = new URLSearchParams()
+      if (serviceCode) params.set("service_code", serviceCode)
+      if (idNumber) params.set("id_number", idNumber)
+      router.push(`/search?${params.toString()}`)
     } catch (err: any) {
       setError(err.message)
     } finally {

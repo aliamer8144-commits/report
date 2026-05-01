@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,6 +54,7 @@ interface Report {
 
 export default function DeleteReportPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [searchMode, setSearchMode] = useState(true)
   const [serviceCode, setServiceCode] = useState("")
   const [idNumber, setIdNumber] = useState("")
@@ -75,13 +76,21 @@ export default function DeleteReportPage() {
         }
         const { user } = await res.json()
 
-        // التحقق مما إذا كان هناك تقرير في التخزين المحلي
-        const reportToToggle = localStorage.getItem("report_to_toggle")
-        if (reportToToggle) {
-          const parsedReport = JSON.parse(reportToToggle)
-          setReport(parsedReport)
-          setSearchMode(false)
-          localStorage.removeItem("report_to_toggle")
+        // التحقق مما إذا كان هناك معرف تقرير في URL
+        const reportId = searchParams.get("report_id")
+        if (reportId) {
+          // جلب بيانات التقرير من Supabase بدل localStorage
+          const { data: reportData, error: reportError } = await supabase
+            .from("reports")
+            .select("*")
+            .eq("id", reportId)
+            .eq("user_id", user.id)
+            .single()
+
+          if (!reportError && reportData) {
+            setReport(reportData)
+            setSearchMode(false)
+          }
         }
       } catch (err) {
         router.push("/")
@@ -128,10 +137,12 @@ export default function DeleteReportPage() {
         throw new Error("لم يتم العثور على نتائج")
       }
 
-      // إذا وجدنا أكثر من نتيجة، نخزنها في التخزين المحلي ونوجه المستخدم إلى صفحة البحث
+      // إذا وجدنا أكثر من نتيجة، نوجه المستخدم إلى صفحة البحث بمعاملات URL
       if (data.length > 1) {
-        localStorage.setItem("search_results", JSON.stringify(data))
-        router.push("/search")
+        const params = new URLSearchParams()
+        if (serviceCode) params.set("service_code", serviceCode)
+        if (idNumber) params.set("id_number", idNumber)
+        router.push(`/search?${params.toString()}`)
         return
       }
 

@@ -76,9 +76,16 @@
 - **المشكلة:** تعديل `id_number` الحقيقي للمريض بإضافة "123"
 - **سبب التأجيل:** طلب المستخدم تأجيلها
 
-### #10 نقل البيانات عبر localStorage بين الصفحات
-- **الملفات:** `app/home/page.tsx`, `app/edit/page.tsx`, `app/delete/page.tsx`, `app/reports/page.tsx`
-- **الخطر:** قد يسبب مشاكل أمنية XSS
+### ✅ #10 نقل البيانات عبر localStorage بين الصفحات — تم الحل
+- **الملفات:** `app/home/page.tsx`, `app/edit/page.tsx`, `app/delete/page.tsx`, `app/reports/page.tsx`, `app/search/page.tsx`, `app/add/page.tsx`, `components/supervisor/supervisor-interface.tsx`, `components/admin/admin-interface.tsx`
+- **المشكلة:** البيانات تتنقل بين الصفحات عن طريق localStorage
+- **الحل المنفذ:**
+  - استبدال `localStorage.setItem("search_results")` بـ URL search params (`/search?service_code=xxx&id_number=xxx`)
+  - استبدال `localStorage.setItem("report_to_edit")` بـ `/edit?report_id=xxx`
+  - استبدال `localStorage.setItem("report_to_toggle")` بـ `/delete?report_id=xxx`
+  - استبدال `localStorage.setItem("report_template")` بـ `/add?template_id=xxx`
+  - الصفحات الوجهة تجلب البيانات من Supabase باستخدام الـ ID من URL
+  - إضافة Suspense boundary لصفحة البحث (استخدام useSearchParams)
 
 ### #11 جلب كلمة المرور عند كل استعلام مستخدم
 - **الملف:** `app/admin/page.tsx` (سطر 148)

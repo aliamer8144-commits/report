@@ -137,21 +137,18 @@ export default function ReportsPage() {
   }
 
   const handleAddSimilar = (report: Report) => {
-    // تخزين بيانات التقرير في التخزين المحلي للاستخدام في صفحة الإضافة
-    localStorage.setItem("report_template", JSON.stringify(report))
-    router.push("/add")
+    // تمرير معرف التقرير عبر URL بدل localStorage
+    router.push(`/add?template_id=${report.id}`)
   }
 
   const handleEdit = (report: Report) => {
-    // تخزين بيانات التقرير في التخزين المحلي للاستخدام في صفحة التعديل
-    localStorage.setItem("report_to_edit", JSON.stringify(report))
-    router.push("/edit")
+    // تمرير معرف التقرير عبر URL بدل localStorage
+    router.push(`/edit?report_id=${report.id}`)
   }
 
   const handleToggleDisable = (report: Report) => {
-    // تخزين بيانات التقرير في التخزين المحلي للاستخدام في صفحة التعطيل
-    localStorage.setItem("report_to_toggle", JSON.stringify(report))
-    router.push("/delete")
+    // تمرير معرف التقرير عبر URL بدل localStorage
+    router.push(`/delete?report_id=${report.id}`)
   }
 
   const handleDownloadPPTX = async (report: Report) => {

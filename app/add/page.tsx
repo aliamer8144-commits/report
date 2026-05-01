@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { addActivity } from "@/lib/activities-service"
 import { checkSuspension, buildSuspensionRecord } from "@/lib/suspension-check"
@@ -144,6 +144,7 @@ const FormField = ({
 
 export default function AddReportPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState<ReportFormFields>({
     service_code: "",
     id_number: "",
@@ -309,36 +310,43 @@ export default function AddReportPage() {
       hour12: true,
     })
 
-    // التحقق من وجود قالب تقرير (إضافة مشابه)
-    const template = localStorage.getItem("report_template")
-    if (template) {
-      const parsed = JSON.parse(template)
-      localStorage.removeItem("report_template")
+    // التحقق من وجود قالب تقرير (إضافة مشابه) عبر URL params
+    const templateId = searchParams.get("template_id")
+    if (templateId) {
+      const supabase = createClientSupabaseClient()
+      const { data: templateData, error: templateError } = await supabase
+        .from("reports")
+        .select("*")
+        .eq("id", templateId)
+        .eq("user_id", user.id)
+        .single()
 
-      setFormData({
-        service_code: "",
-        id_number: parsed.id_number ?? "",
-        name_ar: parsed.name_ar ?? "",
-        name_en: parsed.name_en ?? "",
-        days_count: "",
-        entry_date_gregorian: today,
-        exit_date_gregorian: "",
-        entry_date_hijri: "",
-        exit_date_hijri: "",
-        report_issue_date: today,
-        nationality_ar: parsed.nationality_ar ?? "السعودية",
-        nationality_en: parsed.nationality_en ?? "Saudi Arabia",
-        doctor_name_ar: parsed.doctor_name_ar ?? "",
-        doctor_name_en: parsed.doctor_name_en ?? "",
-        job_title_ar: parsed.job_title_ar ?? "طبيب",
-        job_title_en: parsed.job_title_en ?? "Doctor",
-        hospital_name_ar: parsed.hospital_name_ar ?? "",
-        hospital_name_en: parsed.hospital_name_en ?? "",
-        print_date: formattedDate,
-        print_time: formattedTime,
-      })
-      loadServiceCode()
-      return
+      if (!templateError && templateData) {
+        setFormData({
+          service_code: "",
+          id_number: templateData.id_number ?? "",
+          name_ar: templateData.name_ar ?? "",
+          name_en: templateData.name_en ?? "",
+          days_count: "",
+          entry_date_gregorian: today,
+          exit_date_gregorian: "",
+          entry_date_hijri: "",
+          exit_date_hijri: "",
+          report_issue_date: today,
+          nationality_ar: templateData.nationality_ar ?? "السعودية",
+          nationality_en: templateData.nationality_en ?? "Saudi Arabia",
+          doctor_name_ar: templateData.doctor_name_ar ?? "",
+          doctor_name_en: templateData.doctor_name_en ?? "",
+          job_title_ar: templateData.job_title_ar ?? "طبيب",
+          job_title_en: templateData.job_title_en ?? "Doctor",
+          hospital_name_ar: templateData.hospital_name_ar ?? "",
+          hospital_name_en: templateData.hospital_name_en ?? "",
+          print_date: formattedDate,
+          print_time: formattedTime,
+        })
+        loadServiceCode()
+        return
+      }
     }
 
     setFormData((prev) => ({

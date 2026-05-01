@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -110,6 +110,7 @@ const convertToHijri = (gregorianDate: string): string => {
 
 export default function EditReportPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [searchMode, setSearchMode] = useState(true)
   const [serviceCode, setServiceCode] = useState("")
   const [idNumber, setIdNumber] = useState("")
@@ -152,15 +153,22 @@ export default function EditReportPage() {
         }
         const { user } = await res.json()
 
-        // التحقق مما إذا كان هناك تقرير للتعديل في التخزين المحلي
-        const reportToEdit = localStorage.getItem("report_to_edit")
-        if (reportToEdit) {
-          const parsedReport = JSON.parse(reportToEdit)
-          setReport(parsedReport)
-          setSearchMode(false)
-          populateFormData(parsedReport)
-          // مسح التخزين المحلي بعد استخدامه
-          localStorage.removeItem("report_to_edit")
+        // التحقق مما إذا كان هناك معرف تقرير في URL
+        const reportId = searchParams.get("report_id")
+        if (reportId) {
+          // جلب بيانات التقرير من Supabase بدل localStorage
+          const { data: reportData, error: reportError } = await supabase
+            .from("reports")
+            .select("*")
+            .eq("id", reportId)
+            .eq("user_id", user.id)
+            .single()
+
+          if (!reportError && reportData) {
+            setReport(reportData)
+            setSearchMode(false)
+            populateFormData(reportData)
+          }
         }
       } catch (err) {
         router.push("/")
@@ -288,10 +296,12 @@ export default function EditReportPage() {
         throw new Error("لم يتم العثور على نتائج")
       }
 
-      // إذا وجدنا أكثر من نتيجة، نخزنها في التخزين المحلي ونوجه المستخدم إلى صفحة البحث
+      // إذا وجدنا أكثر من نتيجة، نوجه المستخدم إلى صفحة البحث بمعاملات URL
       if (data.length > 1) {
-        localStorage.setItem("search_results", JSON.stringify(data))
-        router.push("/search")
+        const params = new URLSearchParams()
+        if (serviceCode) params.set("service_code", serviceCode)
+        if (idNumber) params.set("id_number", idNumber)
+        router.push(`/search?${params.toString()}`)
         return
       }
 

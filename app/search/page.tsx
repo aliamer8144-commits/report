@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
@@ -17,8 +17,9 @@ interface Report extends ReportData {
   created_at: string
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [searchResults, setSearchResults] = useState<Report[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
@@ -57,31 +58,37 @@ export default function SearchPage() {
         return
       }
 
-      // جلب نتائج البحث من التخزين المحلي
-      const results = localStorage.getItem("search_results")
-      if (results) {
-        setSearchResults(JSON.parse(results))
-      } else {
-        router.push("/home")
-      }
+        // جلب نتائج البحث باستخدام المعاملات من URL بدل localStorage
+        const serviceCode = searchParams.get("service_code")
+        const idNumber = searchParams.get("id_number")
+
+        if (serviceCode || idNumber) {
+          const supabase = createClientSupabaseClient()
+          let query = supabase.from("reports").select("*")
+          if (serviceCode) query = query.eq("service_code", serviceCode)
+          if (idNumber) query = query.eq("id_number", idNumber)
+          const { data, error: searchError } = await query
+          if (!searchError && data) {
+            setSearchResults(data)
+          }
+        } else {
+          router.push("/home")
+        }
     }
 
     init()
-  }, [router])
+  }, [router, searchParams])
 
   const handleAddSimilar = (report: Report) => {
-    localStorage.setItem("report_template", JSON.stringify(report))
-    router.push("/add")
+    router.push(`/add?template_id=${report.id}`)
   }
 
   const handleEdit = (report: Report) => {
-    localStorage.setItem("report_to_edit", JSON.stringify(report))
-    router.push("/edit")
+    router.push(`/edit?report_id=${report.id}`)
   }
 
   const handleToggleDisable = (report: Report) => {
-    localStorage.setItem("report_to_toggle", JSON.stringify(report))
-    router.push("/delete")
+    router.push(`/delete?report_id=${report.id}`)
   }
 
   const handleDownloadPPTX = async (report: Report) => {
@@ -257,5 +264,19 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container max-w-md mx-auto p-4 pb-20 flex justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   )
 }

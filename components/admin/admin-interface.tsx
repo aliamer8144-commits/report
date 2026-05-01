@@ -203,8 +203,10 @@ function DashboardContent() {
         return
       }
 
-      localStorage.setItem("search_results", JSON.stringify(data))
-      router.push("/search")
+      const params = new URLSearchParams()
+      if (serviceCode) params.set("service_code", serviceCode)
+      if (idNumber) params.set("id_number", idNumber)
+      router.push(`/search?${params.toString()}`)
     } catch (err: any) {
       setError(err.message)
     } finally {
