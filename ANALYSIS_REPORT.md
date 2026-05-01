@@ -11,7 +11,7 @@
 |-------|-------------|---------|--------|
 | ثغرات أمنية خطيرة | 7 | 🔴 CRITICAL | ✅ #1,#2,#3,#4,#6 محلولة | ⏸️ #5 مؤجلة |
 | مشاكل أمنية متوسطة | 4 | 🟠 HIGH | ⏳ قيد الانتظار |
-| مشاكل جودة الكود | 8 | 🟡 MEDIUM | ✅ #12,#13,#14,#15 محلولة | ⏳ البقية قيد الانتظار |
+| مشاكل جودة الكود | 8 | 🟡 MEDIUM | ✅ #12,#13,#14,#15,#16,#17,#18 محلولة | ⏳ #19 قيد الانتظار |
 | مشاكل UI/UX | 6 | 🔵 LOW | ⏳ قيد الانتظار |
 | مشاكل الأداء | 5 | 🟣 MEDIUM | ⏳ قيد الانتظار |
 | مشاكل البنية | 8 | ⚫ LOW | ⏳ قيد الانتظار |
@@ -139,10 +139,15 @@
 ### #17 تصدير ثابت (Static Export) مع API Routes — تم الحل
 - تم حلها بإزالة `output: 'export'`
 
-### #18 استخدام `any` في كل مكان
-- `app/admin/page.tsx` — `selectedUserReports: any[]`
-- `app/edit/page.tsx` — `[key: string]: any`
-- `app/search/page.tsx` — `(report as any)` يستخدم 20+ مرة
+### ✅ #18 استخدام `any` في كل مكان — تم الحل
+- **المشكلة:** استخدام واسع لـ `any` في 13 ملف يُضعف فحص TypeScript
+- **الحل المنفذ:**
+  - إصلاح واجهة `Report` في 4 ملفات (reports, delete, edit, user-detail-view) — إزالة `[key: string]: any` وإضافة كل الحقول المطلوبة (26 حقل)
+  - استبدال 26+ حالة `catch (err: any)` بـ `catch (err: unknown)` مع `err instanceof Error ? err.message : String(err)`
+  - استبدال `(report as any).field` بـ وصول مباشر للخصائص بعد إكمال الواجهة
+  - استبدال `supabase: any` بـ `SupabaseClient` من `@supabase/supabase-js`
+  - إنشاء واجهات نوعية لـ `supervisor-dashboard.tsx` (`ReportRecord`, `ActivityRow` إلخ)
+  - إنشاء واجهة `SelectedUserReport` لـ `admin/page.tsx` بدل `any[]`
 
 ### #19 `search/page.tsx` يستخدم `ReportData` من ملف معطّل
 - **الملف:** `app/search/page.tsx` (سطر 11)

@@ -302,7 +302,7 @@ export default function SetLimitDialog({
 
         // تحديد القيمة الافتراضية لنوع الحد
         setSelectedType(mapUserLimitTypeToForm(ud.limit_type as string))
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching current limit:", err)
         setCurrentLimitInfo(null)
         setSelectedType(currentLimitType ? mapUserLimitTypeToForm(currentLimitType) : "none")
@@ -456,10 +456,10 @@ export default function SetLimitDialog({
         onSuccess()
         onOpenChange(false)
       }, 1200)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error setting limit:", err)
       setSubmitError(
-        err?.message || "حدث خطأ أثناء حفظ إعدادات الحد. يرجى المحاولة مرة أخرى."
+        err instanceof Error ? err.message : "حدث خطأ أثناء حفظ إعدادات الحد. يرجى المحاولة مرة أخرى."
       )
     } finally {
       setIsSubmitting(false)

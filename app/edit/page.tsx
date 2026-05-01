@@ -37,6 +37,7 @@ import { invalidateArToEnSeq, scheduleArToEnSync } from "@/lib/auto-translate-ar
 
 interface Report {
   id: string
+  user_id: string
   service_code: string
   id_number: string
   name_ar: string
@@ -57,7 +58,9 @@ interface Report {
   hospital_name_en: string
   print_date: string
   print_time: string
-  [key: string]: any
+  is_disabled: boolean
+  created_at: string
+  updated_at: string
 }
 
 interface EditFormState {
@@ -311,8 +314,8 @@ function EditReportPageContent() {
       setReport(r)
       setSearchMode(false)
       populateFormData(r)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -397,8 +400,8 @@ function EditReportPageContent() {
       )
 
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

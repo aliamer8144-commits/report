@@ -148,9 +148,9 @@ export function UnsuspendUserDialog({
         onSuccess()
         handleOpenChange(false)
       }, 1200)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error unsuspending user:", err)
-      setSubmitError(err?.message || "حدث خطأ أثناء إلغاء التعليق. يرجى المحاولة مرة أخرى.")
+      setSubmitError(err instanceof Error ? err.message : String(err))
     } finally {
       setIsSubmitting(false)
     }

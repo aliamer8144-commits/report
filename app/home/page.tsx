@@ -142,7 +142,7 @@ export default function HomePage() {
         disabledReports: disabledCount || 0,
         activeReports: (totalCount || 0) - (disabledCount || 0),
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -193,8 +193,8 @@ export default function HomePage() {
       if (serviceCode) params.set("service_code", serviceCode)
       if (idNumber) params.set("id_number", idNumber)
       router.push(`/search?${params.toString()}`)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

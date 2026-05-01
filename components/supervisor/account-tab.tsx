@@ -192,7 +192,7 @@ export function AccountTab() {
       }
 
       setTimeout(() => setSaveMessage(null), 3000)
-    } catch (_err: any) {
+    } catch (_err: unknown) {
       setSaveMessage({ type: "error", text: "حدث خطأ أثناء تحديث البيانات" })
     } finally {
       setIsSaving(false)
@@ -254,7 +254,7 @@ export function AccountTab() {
         setPasswordMessage(null)
         setShowPasswordDialog(false)
       }, 2000)
-    } catch (_err: any) {
+    } catch (_err: unknown) {
       setPasswordMessage({ type: "error", text: "حدث خطأ أثناء تغيير كلمة المرور" })
     } finally {
       setIsChangingPassword(false)

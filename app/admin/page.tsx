@@ -61,12 +61,19 @@ interface UsageStats {
   recentLogs: UsageLog[]
 }
 
+interface SelectedUserReport {
+  id: string
+  service_code: string
+  id_number: string
+  created_at: string
+}
+
 export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [userCounts, setUserCounts] = useState<UserCountSummary[]>([])
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
-  const [selectedUserReports, setSelectedUserReports] = useState<any[]>([])
+  const [selectedUserReports, setSelectedUserReports] = useState<SelectedUserReport[]>([])
   const [loadingUserReports, setLoadingUserReports] = useState(false)
   const [newUser, setNewUser] = useState({
     username: "",
@@ -178,7 +185,7 @@ export default function AdminPage() {
       }
 
       setUsers((data as unknown as User[]) || [])
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
     }
   }
@@ -208,7 +215,7 @@ export default function AdminPage() {
         })) || []
 
       setDevices(formattedDevices as unknown as Device[])
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
     }
   }
@@ -232,7 +239,7 @@ export default function AdminPage() {
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
       if (error) throw error
-      setSelectedUserReports(data || [])
+      setSelectedUserReports((data as unknown as SelectedUserReport[]) || [])
     } catch (err) {
       console.error(err)
       setSelectedUserReports([])
@@ -287,8 +294,8 @@ export default function AdminPage() {
       })
 
       fetchUsers()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -303,7 +310,7 @@ export default function AdminPage() {
       }
 
       fetchDevices()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
     }
   }
@@ -338,8 +345,8 @@ export default function AdminPage() {
       setIsEditDialogOpen(false)
       fetchUsers()
       fetchUserCounts()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -359,8 +366,8 @@ export default function AdminPage() {
 
       setSuccess("تم تسجيل خروج المستخدم من جميع الأجهزة بنجاح")
       fetchDevices()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setActionLoading(null)
     }
@@ -401,7 +408,7 @@ export default function AdminPage() {
       }
 
       fetchDevices()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
     }
   }

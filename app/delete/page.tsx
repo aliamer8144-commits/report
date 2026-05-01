@@ -28,6 +28,7 @@ import { addActivity } from "@/lib/activities-service"
 
 interface Report {
   id: string
+  user_id: string
   service_code: string
   id_number: string
   name_ar: string
@@ -49,7 +50,8 @@ interface Report {
   print_date: string
   print_time: string
   is_disabled: boolean
-  [key: string]: any
+  created_at: string
+  updated_at: string
 }
 
 function DeleteReportPageContent() {
@@ -149,8 +151,8 @@ function DeleteReportPageContent() {
       // إذا وجدنا نتيجة واحدة، نعرضها
       setReport(data[0] as unknown as Report)
       setSearchMode(false)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -202,8 +204,8 @@ function DeleteReportPageContent() {
 
       setSuccessMessage(isCurrentlyDisabled ? "تم إلغاء تعطيل التقرير بنجاح" : "تم تعطيل التقرير بنجاح")
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

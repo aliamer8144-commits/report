@@ -57,7 +57,7 @@ export default function SettingsPage() {
 
       setBiometricEnabled(newStatus)
       setSuccess(newStatus ? "تم تفعيل تسجيل الدخول بالبصمة بنجاح" : "تم إلغاء تفعيل تسجيل الدخول بالبصمة")
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("حدث خطأ أثناء تغيير إعدادات البصمة")
       console.error(err)
     } finally {

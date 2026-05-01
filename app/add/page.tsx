@@ -478,15 +478,15 @@ function AddReportPageContent() {
       }
 
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
   }
 
   // ===== دالة التحقق التلقائي من التعليق بعد إنشاء التقرير =====
-  const checkAndAutoSuspend = async (userId: string, supabase: any) => {
+  const checkAndAutoSuspend = async (userId: string, supabase: import('@supabase/supabase-js').SupabaseClient) => {
     try {
       // جلب بيانات المستخدم مع الحدود
       const { data: userData, error: userError } = await supabase

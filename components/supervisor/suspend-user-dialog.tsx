@@ -117,9 +117,9 @@ export function SuspendUserDialog({
         onSuccess()
         handleOpenChange(false)
       }, 1200)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error suspending user:", err)
-      setSubmitError(err?.message || "حدث خطأ أثناء تعليق الحساب. يرجى المحاولة مرة أخرى.")
+      setSubmitError(err instanceof Error ? err.message : "حدث خطأ أثناء تعليق الحساب. يرجى المحاولة مرة أخرى.")
     } finally {
       setIsSubmitting(false)
     }

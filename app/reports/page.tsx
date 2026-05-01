@@ -13,6 +13,7 @@ import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/compo
 
 interface Report {
   id: string
+  user_id: string
   service_code: string
   id_number: string
   name_ar: string
@@ -20,8 +21,22 @@ interface Report {
   days_count: number
   entry_date_gregorian: string
   exit_date_gregorian: string
+  entry_date_hijri: string
+  exit_date_hijri: string
+  report_issue_date: string
+  nationality_ar: string
+  nationality_en: string
+  doctor_name_ar: string
+  doctor_name_en: string
+  job_title_ar: string
+  job_title_en: string
+  hospital_name_ar: string
+  hospital_name_en: string
+  print_date: string
+  print_time: string
+  is_disabled: boolean
   created_at: string
-  [key: string]: any
+  updated_at: string
 }
 
 function reportToPayload(report: Report) {
@@ -33,19 +48,19 @@ function reportToPayload(report: Report) {
     DAYS_COUNT: report.days_count,
     ENTRY_DATE_GREGORIAN: report.entry_date_gregorian,
     EXIT_DATE_GREGORIAN: report.exit_date_gregorian,
-    ENTRY_DATE_HIJRI: (report as any).entry_date_hijri || "",
-    EXIT_DATE_HIJRI: (report as any).exit_date_hijri || "",
-    REPORT_ISSUE_DATE: (report as any).report_issue_date || "",
-    NATIONALITY_AR: (report as any).nationality_ar || "",
-    NATIONALITY_EN: (report as any).nationality_en || "",
-    DOCTOR_NAME_AR: (report as any).doctor_name_ar || "",
-    DOCTOR_NAME_EN: (report as any).doctor_name_en || "",
-    JOB_TITLE_AR: (report as any).job_title_ar || "",
-    JOB_TITLE_EN: (report as any).job_title_en || "",
-    HOSPITAL_NAME_AR: (report as any).hospital_name_ar || "",
-    HOSPITAL_NAME_EN: (report as any).hospital_name_en || "",
-    PRINT_DATE: (report as any).print_date || "",
-    PRINT_TIME: (report as any).print_time || "",
+    ENTRY_DATE_HIJRI: report.entry_date_hijri || "",
+    EXIT_DATE_HIJRI: report.exit_date_hijri || "",
+    REPORT_ISSUE_DATE: report.report_issue_date || "",
+    NATIONALITY_AR: report.nationality_ar || "",
+    NATIONALITY_EN: report.nationality_en || "",
+    DOCTOR_NAME_AR: report.doctor_name_ar || "",
+    DOCTOR_NAME_EN: report.doctor_name_en || "",
+    JOB_TITLE_AR: report.job_title_ar || "",
+    JOB_TITLE_EN: report.job_title_en || "",
+    HOSPITAL_NAME_AR: report.hospital_name_ar || "",
+    HOSPITAL_NAME_EN: report.hospital_name_en || "",
+    PRINT_DATE: report.print_date || "",
+    PRINT_TIME: report.print_time || "",
   }
 }
 
@@ -129,8 +144,8 @@ export default function ReportsPage() {
       }
 
       setReports((data as unknown as Report[]) || [])
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

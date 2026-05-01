@@ -130,6 +130,31 @@ interface WeeklyStats {
   prevWeekDays: number
 }
 
+interface ReportRecord {
+  days_count: number
+  user_id: string
+}
+
+interface DailyReportRow {
+  created_at: string
+  user_id: string
+}
+
+interface WeekReportRow {
+  created_at: string
+  user_id: string
+  days_count: number
+}
+
+interface ActivityRow {
+  id: string
+  activity_type: string
+  title: string | null
+  description: string | null
+  created_at: string
+  user: { username: string; full_name: string | null } | null
+}
+
 type StatsPeriod = "today" | "week" | "month" | "all"
 
 interface FilteredStats {
@@ -330,13 +355,13 @@ export function SupervisorDashboard() {
         todayReports = todayR.length
 
         // جمع قيمة days_count من كل تقرير (بدل عد الأيام الفريدة)
-        const sumDaysCount = (reports: any[]) => {
-          return reports.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0)
+        const sumDaysCount = (reports: ReportRecord[]) => {
+          return reports.reduce((sum: number, r: ReportRecord) => sum + (r.days_count || 0), 0)
         }
 
         // عدد العملاء الفريدين في فترة
-        const countUniqueClients = (reports: any[]) => {
-          return new Set(reports.map((r: any) => r.user_id)).size
+        const countUniqueClients = (reports: ReportRecord[]) => {
+          return new Set(reports.map((r: ReportRecord) => r.user_id)).size
         }
 
         const { data: weekPeriodData } = await supabase
@@ -359,22 +384,24 @@ export function SupervisorDashboard() {
           .in("user_id", clientIds)
           .eq("is_disabled", false)
 
+        const reportData = (data: unknown[] | null | undefined): ReportRecord[] => (data as ReportRecord[]) || []
+
         // حساب totalDays من كل التقارير (بدل الاعتماد على period_total_days من الـ view)
-        totalDays = sumDaysCount(allReportsData || [])
+        totalDays = sumDaysCount(reportData(allReportsData))
 
         setPeriodCounts({
           todayReports: todayR.length,
-          todayDays: sumDaysCount(todayR),
-          todayClients: countUniqueClients(todayR),
+          todayDays: sumDaysCount(reportData(todayReportsData)),
+          todayClients: countUniqueClients(reportData(todayReportsData)),
           weekReports: weekPeriodData?.length || 0,
-          weekDays: sumDaysCount(weekPeriodData || []),
-          weekClients: countUniqueClients(weekPeriodData || []),
+          weekDays: sumDaysCount(reportData(weekPeriodData)),
+          weekClients: countUniqueClients(reportData(weekPeriodData)),
           monthReports: monthReportsData?.length || 0,
-          monthDays: sumDaysCount(monthReportsData || []),
-          monthClients: countUniqueClients(monthReportsData || []),
+          monthDays: sumDaysCount(reportData(monthReportsData)),
+          monthClients: countUniqueClients(reportData(monthReportsData)),
           allReports: allReportsData?.length || 0,
-          allDays: sumDaysCount(allReportsData || []),
-          allClients: countUniqueClients(allReportsData || []),
+          allDays: sumDaysCount(reportData(allReportsData)),
+          allClients: countUniqueClients(reportData(allReportsData)),
         })
 
         const { data: activitiesData } = await supabase
@@ -394,7 +421,7 @@ export function SupervisorDashboard() {
           .limit(10)
 
         if (activitiesData) {
-          const mapped: RecentActivity[] = activitiesData.map((a: any) => ({
+          const mapped: RecentActivity[] = (activitiesData as unknown as ActivityRow[]).map((a: ActivityRow) => ({
             id: a.id,
             activity_type: a.activity_type,
             title: a.title || "",
@@ -428,7 +455,7 @@ export function SupervisorDashboard() {
             const key = d.toISOString().split("T")[0]
             dayMap.set(key, { count: 0, clients: new Set() })
           }
-          dailyReports.forEach((r: any) => {
+          ;(dailyReports as DailyReportRow[]).forEach((r: DailyReportRow) => {
             const key = r.created_at.split("T")[0]
             if (dayMap.has(key)) {
               const entry = dayMap.get(key)!
@@ -475,18 +502,19 @@ export function SupervisorDashboard() {
           .order("created_at", { ascending: true })
 
         if (weekReportsData) {
-          const weekR = weekReportsData.filter((r: any) => new Date(r.created_at) >= weekStart)
-          const prevWeekR = weekReportsData.filter((r: any) => {
+          const weekData = weekReportsData as unknown as WeekReportRow[]
+          const weekR = weekData.filter((r: WeekReportRow) => new Date(r.created_at) >= weekStart)
+          const prevWeekR = weekData.filter((r: WeekReportRow) => {
             const d = new Date(r.created_at)
             return d >= prevWeekStart && d < weekStart
           })
           setWeeklyStats({
             weekReports: weekR.length,
             prevWeekReports: prevWeekR.length,
-            weekClients: new Set(weekR.map((r: any) => r.user_id)).size,
-            prevWeekClients: new Set(prevWeekR.map((r: any) => r.user_id)).size,
-            weekDays: weekR.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0),
-            prevWeekDays: prevWeekR.reduce((sum: number, r: any) => sum + (r.days_count || 0), 0),
+            weekClients: new Set(weekR.map((r: WeekReportRow) => r.user_id)).size,
+            prevWeekClients: new Set(prevWeekR.map((r: WeekReportRow) => r.user_id)).size,
+            weekDays: weekR.reduce((sum: number, r: WeekReportRow) => sum + (r.days_count || 0), 0),
+            prevWeekDays: prevWeekR.reduce((sum: number, r: WeekReportRow) => sum + (r.days_count || 0), 0),
           })
         }
       }

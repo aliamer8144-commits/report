@@ -104,8 +104,8 @@ export function LoginForm() {
 
       // الانتقال إلى الصفحة المناسبة
       router.push(getRedirectPath(user.role))
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -166,8 +166,8 @@ export function LoginForm() {
       }
 
       router.push(getRedirectPath(userRole))
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
       // مسح بيانات العرض في حالة الخطأ
       localStorage.removeItem("username")
       localStorage.removeItem("full_name")

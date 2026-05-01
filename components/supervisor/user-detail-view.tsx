@@ -96,9 +96,21 @@ interface ReportItem {
   days_count: number
   entry_date_gregorian: string
   exit_date_gregorian: string
+  entry_date_hijri: string
+  exit_date_hijri: string
+  report_issue_date: string
+  nationality_ar: string
+  nationality_en: string
+  doctor_name_ar: string
+  doctor_name_en: string
+  job_title_ar: string
+  job_title_en: string
+  hospital_name_ar: string
+  hospital_name_en: string
+  print_date: string
+  print_time: string
   created_at: string
   pptx_enabled?: boolean
-  [key: string]: any
 }
 
 interface SuspensionHistoryItem {
@@ -608,9 +620,9 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
       }
 
       setReportsLoading(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("UserDetailView fetch error:", err)
-      setError(err.message || "حدث خطأ غير متوقع")
+      setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع")
       setLoading(false)
       setReportsLoading(false)
     }
