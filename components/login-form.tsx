@@ -14,6 +14,14 @@ import { Fingerprint, Lock, User, Loader2 } from "lucide-react"
 import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 import { motion } from "framer-motion"
 
+/**
+ * Check if the browser supports WebAuthn (PublicKeyCredential)
+ */
+function isWebAuthnSupported(): boolean {
+  if (typeof window === "undefined") return false
+  return !!window.PublicKeyCredential
+}
+
 export function LoginForm() {
   const router = useRouter()
   const [username, setUsername] = useState("")
@@ -21,7 +29,13 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [biometricLoading, setBiometricLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [webAuthnSupported, setWebAuthnSupported] = useState(false)
   const supabase = createClientSupabaseClient()
+
+  // Check WebAuthn support on mount
+  useEffect(() => {
+    setWebAuthnSupported(isWebAuthnSupported())
+  }, [])
 
   const getRedirectPath = (_role: string | null): string => {
     return "/home"
@@ -121,18 +135,15 @@ export function LoginForm() {
   }
 
   const handleBiometricLogin = async () => {
-    const storedUsername = localStorage.getItem("username")
-    const deviceId = localStorage.getItem("device_id")
-    const userRole = localStorage.getItem("user_role")
-    const biometricEnabled = localStorage.getItem("biometric_enabled")
-
-    if (!storedUsername || !deviceId) {
-      setError("لم يتم العثور على بيانات تسجيل الدخول السابقة")
+    // Require username before starting biometric login
+    const loginUsername = username.trim()
+    if (!loginUsername) {
+      setError("أدخل اسم المستخدم أولاً ثم اضغط على زر البصمة")
       return
     }
 
-    if (biometricEnabled !== "true") {
-      setError("لم يتم تفعيل تسجيل الدخول بالبصمة. يرجى تفعيله من الإعدادات أولاً")
+    if (!webAuthnSupported) {
+      setError("المتصفح لا يدعم تسجيل الدخول بالبصمة")
       return
     }
 
@@ -140,38 +151,93 @@ export function LoginForm() {
     setError(null)
 
     try {
-      // التحقق من وجود جلسة صالحة
-      const sessionRes = await fetch("/api/auth/session")
-      if (!sessionRes.ok) {
-        throw new Error("انتهت صلاحية الجلسة. يرجى تسجيل الدخول بكلمة المرور.")
+      // Dynamic import for browser-side WebAuthn helpers
+      const { startAuthentication } = await import("@simplewebauthn/browser")
+
+      // Step 1: Get authentication options from server
+      const optionsRes = await fetch("/api/auth/webauthn/authenticate/options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loginUsername }),
+      })
+
+      const optionsData = await optionsRes.json()
+
+      if (!optionsRes.ok) {
+        if (optionsRes.status === 404 && optionsData.error === "البصمة غير مسجلة") {
+          throw new Error("البصمة غير مسجلة. سجّل دخولك بكلمة المرور أولاً ثم فعّل البصمة من الإعدادات")
+        }
+        throw new Error(optionsData.error || "حدث خطأ أثناء التحقق")
       }
 
-      const sessionData = await sessionRes.json()
-      const userId = sessionData.user.id
+      // Step 2: Use browser WebAuthn API
+      const authResponse = await startAuthentication({
+        optionsJSON: optionsData.options,
+      })
 
-      // محاكاة تأخير للتحقق من البصمة
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Step 3: Verify with server
+      const verifyRes = await fetch("/api/auth/webauthn/authenticate/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: optionsData.challengeId,
+          response: authResponse,
+          username: loginUsername,
+        }),
+      })
 
-      // التحقق من الجهاز المصرح به
+      const verifyData = await verifyRes.json()
+
+      if (!verifyRes.ok) {
+        throw new Error(verifyData.error || "فشل التحقق من البصمة")
+      }
+
+      const user = verifyData.user
+
+      // Check authorized device
+      const deviceId = generateDeviceId()
       const { data: devices, error: deviceError } = await supabase
         .from("authorized_devices")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .eq("device_id", deviceId)
-        .eq("is_approved", true)
         .single()
 
-      if (deviceError || !devices) {
-        throw new Error("هذا الجهاز غير مصرح به أو تم إلغاء التصريح")
+      if (deviceError && deviceError.code !== "PGRST116") {
+        throw new Error("حدث خطأ أثناء التحقق من الجهاز")
       }
 
-      router.push(getRedirectPath(userRole))
+      if (!devices) {
+        const { error: insertError } = await supabase.from("authorized_devices").insert({
+          user_id: user.id,
+          device_id: deviceId,
+          is_approved: false,
+        })
+
+        if (insertError) {
+          throw new Error("حدث خطأ أثناء تسجيل الجهاز")
+        }
+
+        throw new Error("هذا الجهاز غير مصرح به. يرجى الانتظار حتى يتم الموافقة عليه من قبل المسؤول")
+      }
+
+      if (!devices.is_approved) {
+        throw new Error("هذا الجهاز في انتظار الموافقة من قبل المسؤول")
+      }
+
+      // Store display data
+      localStorage.setItem("username", user.username)
+      localStorage.setItem("full_name", user.full_name || user.username)
+      localStorage.setItem("device_id", deviceId)
+      localStorage.setItem("user_role", user.role || "user")
+
+      router.push(getRedirectPath(user.role))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
-      // مسح بيانات العرض في حالة الخطأ
-      localStorage.removeItem("username")
-      localStorage.removeItem("full_name")
-      localStorage.removeItem("user_role")
+      if (err instanceof Error && err.name === "NotAllowedError") {
+        setError("تم إلغاء التحقق بالبصمة")
+      } else {
+        setError(err instanceof Error ? err.message : String(err))
+      }
     } finally {
       setBiometricLoading(false)
     }
@@ -237,26 +303,29 @@ export function LoginForm() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Button
-            variant="outline"
-            className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-            onClick={handleBiometricLogin}
-            disabled={biometricLoading}
-          >
-            {biometricLoading ? (
-              <>
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                جاري التحقق...
-              </>
-            ) : (
-              <>
-                <Fingerprint className="ml-2 h-5 w-5 text-indigo-500" />
-                تسجيل الدخول باستخدام البصمة
-              </>
-            )}
-          </Button>
-        </CardFooter>
+        {/* Fingerprint button — only shown when WebAuthn is supported */}
+        {webAuthnSupported && (
+          <CardFooter>
+            <Button
+              variant="outline"
+              className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+              onClick={handleBiometricLogin}
+              disabled={biometricLoading}
+            >
+              {biometricLoading ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  جاري التحقق بالبصمة...
+                </>
+              ) : (
+                <>
+                  <Fingerprint className="ml-2 h-5 w-5 text-indigo-500" />
+                  تسجيل الدخول باستخدام البصمة
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </motion.div>
   )

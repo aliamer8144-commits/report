@@ -13,7 +13,7 @@ const adminPaths = ["/admin"]
 const mutatingMethods = ["POST", "PUT", "DELETE", "PATCH"]
 
 // المسارات المستثناة من CSRF (نقاط الدخول العامة)
-const csrfExemptPaths = ["/api/auth/login", "/api/auth/register", "/api/auth/csrf"]
+const csrfExemptPaths = ["/api/auth/login", "/api/auth/register", "/api/auth/csrf", "/api/auth/webauthn/authenticate"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

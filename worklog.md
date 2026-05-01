@@ -101,3 +101,58 @@ Stage Summary:
 - تم إصلاح lib/supabase.ts لاستخدام متغيرات بيئة موجودة فعلاً
 - كل مستخدم يحتاج تسجيل دخول من جديد بعد إضافة JWT_SECRET
 
+---
+Task ID: 8
+Agent: Main Agent
+Task: Implement real biometric (fingerprint) authentication using WebAuthn API
+
+Work Log:
+- Read all relevant existing files: login-form.tsx, auth API routes, middleware, lib/auth.ts, lib/supabase.ts, settings page
+- Installed @simplewebauthn/server@13.3.0 and @simplewebauthn/browser@13.3.0
+- Created SQL migration (supabase/migrations/001_add_webauthn_columns.sql) to add 4 columns to users table:
+  - webauthn_credential_id (text, nullable)
+  - webauthn_public_key (text, nullable)
+  - webauthn_counter (integer, default 0)
+  - webauthn_transports (text, nullable)
+- Created lib/webauthn.ts — server-side WebAuthn utility with:
+  - Challenge storage (in-memory Map with 5min TTL + periodic cleanup)
+  - generateRegOptions() — generates WebAuthn registration challenge
+  - verifyReg() — verifies and returns credential data for DB storage
+  - generateAuthOptions() — generates WebAuthn authentication challenge
+  - verifyAuth() — verifies authentication response, returns new counter
+  - Buffer encoding helpers (bufferToBase64URL, base64URLToBuffer)
+  - DB helpers (getStoredCredential, saveCredential, removeCredential, updateCounter)
+  - Configurable RP ID (WEBAUTHN_RP_ID) and origin (WEBAUTHN_ORIGIN)
+- Created 6 API routes:
+  - POST /api/auth/webauthn/register/options — get registration options (auth required)
+  - POST /api/auth/webauthn/register/verify — verify registration, store credential (auth required)
+  - POST /api/auth/webauthn/register/unregister — remove credential (auth required)
+  - GET /api/auth/webauthn/status — check if user has registered credential (auth required)
+  - POST /api/auth/webauthn/authenticate/options — get auth options (public)
+  - POST /api/auth/webauthn/authenticate/verify — verify auth, set JWT cookie (public)
+- Updated middleware.ts: Added /api/auth/webauthn/authenticate to CSRF exempt paths
+- Rewrote components/login-form.tsx:
+  - Replaced fake setTimeout biometric with real WebAuthn flow
+  - Feature detection via window.PublicKeyCredential — fingerprint button hidden if not supported
+  - User enters username first, then clicks fingerprint button
+  - Calls authenticate/options → navigator.credentials.get() → authenticate/verify
+  - Proper error handling (NotAllowedError for cancelled, custom Arabic messages)
+  - Same JWT cookie pattern as normal login
+- Rewrote app/settings/page.tsx:
+  - Replaced fake localStorage toggle with real WebAuthn registration
+  - Checks /api/auth/webauthn/status on mount to show registered/unregistered state
+  - "Register Fingerprint" button → calls register/options → navigator.credentials.create() → register/verify
+  - "Remove Fingerprint" button → calls register/unregister
+  - Falls back to "browser not supported" message when WebAuthn unavailable
+- Fixed all TypeScript errors in new code (Uint8Array generic types, API parameter types)
+- Lint: zero new errors introduced (only pre-existing warnings remain)
+
+Stage Summary:
+- 10 files created, 3 files modified
+- Real WebAuthn biometric authentication fully implemented
+- Fingerprint login is completely optional (feature-detected, hidden if not supported)
+- Registration available in settings page for logged-in users
+- Challenge-response flow prevents replay attacks with counter tracking
+- SQL migration must be run in Supabase SQL Editor before use
+
+
