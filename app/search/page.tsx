@@ -12,9 +12,31 @@ import { type ReportData } from "@/lib/report-generator"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
 
-interface Report extends ReportData {
+interface Report {
   id: string
   created_at: string
+  service_code: string
+  id_number: string
+  name_ar: string
+  name_en: string
+  days_count: number
+  entry_date_gregorian: string
+  exit_date_gregorian: string
+  entry_date_hijri: string
+  exit_date_hijri: string
+  report_issue_date: string
+  nationality_ar: string
+  nationality_en: string
+  doctor_name_ar: string
+  doctor_name_en: string
+  job_title_ar: string
+  job_title_en: string
+  hospital_name_ar: string
+  hospital_name_en: string
+  print_date: string
+  print_time: string
+  is_disabled: boolean
+  [key: string]: unknown
 }
 
 function SearchPageContent() {
@@ -69,7 +91,7 @@ function SearchPageContent() {
           if (idNumber) query = query.eq("id_number", idNumber)
           const { data, error: searchError } = await query
           if (!searchError && data) {
-            setSearchResults(data)
+            setSearchResults(data as unknown as Report[])
           }
         } else {
           router.push("/home")
@@ -103,27 +125,28 @@ function SearchPageContent() {
       return
     }
 
+    const r = report as Record<string, unknown>
     await downloadPptx({
-      SERVICE_CODE: (report as any).SERVICE_CODE ?? report.service_code,
-      ID_NUMBER: (report as any).ID_NUMBER ?? report.id_number,
-      NAME_AR: (report as any).NAME_AR ?? report.name_ar,
-      NAME_EN: (report as any).NAME_EN ?? report.name_en,
-      DAYS_COUNT: (report as any).DAYS_COUNT ?? report.days_count,
-      ENTRY_DATE_GREGORIAN: (report as any).ENTRY_DATE_GREGORIAN ?? report.entry_date_gregorian,
-      EXIT_DATE_GREGORIAN: (report as any).EXIT_DATE_GREGORIAN ?? report.exit_date_gregorian,
-      ENTRY_DATE_HIJRI: (report as any).ENTRY_DATE_HIJRI ?? (report as any).entry_date_hijri,
-      EXIT_DATE_HIJRI: (report as any).EXIT_DATE_HIJRI ?? (report as any).exit_date_hijri,
-      REPORT_ISSUE_DATE: (report as any).REPORT_ISSUE_DATE ?? (report as any).report_issue_date,
-      NATIONALITY_AR: (report as any).NATIONALITY_AR ?? (report as any).nationality_ar,
-      NATIONALITY_EN: (report as any).NATIONALITY_EN ?? (report as any).nationality_en,
-      DOCTOR_NAME_AR: (report as any).DOCTOR_NAME_AR ?? (report as any).doctor_name_ar,
-      DOCTOR_NAME_EN: (report as any).DOCTOR_NAME_EN ?? (report as any).doctor_name_en,
-      JOB_TITLE_AR: (report as any).JOB_TITLE_AR ?? (report as any).job_title_ar,
-      JOB_TITLE_EN: (report as any).JOB_TITLE_EN ?? (report as any).job_title_en,
-      HOSPITAL_NAME_AR: (report as any).HOSPITAL_NAME_AR ?? (report as any).hospital_name_ar,
-      HOSPITAL_NAME_EN: (report as any).HOSPITAL_NAME_EN ?? (report as any).hospital_name_en,
-      PRINT_DATE: (report as any).PRINT_DATE ?? (report as any).print_date,
-      PRINT_TIME: (report as any).PRINT_TIME ?? (report as any).print_time,
+      SERVICE_CODE: String(r.SERVICE_CODE ?? r.service_code ?? ""),
+      ID_NUMBER: String(r.ID_NUMBER ?? r.id_number ?? ""),
+      NAME_AR: String(r.NAME_AR ?? r.name_ar ?? ""),
+      NAME_EN: String(r.NAME_EN ?? r.name_en ?? ""),
+      DAYS_COUNT: Number(r.DAYS_COUNT ?? r.days_count ?? 0),
+      ENTRY_DATE_GREGORIAN: String(r.ENTRY_DATE_GREGORIAN ?? r.entry_date_gregorian ?? ""),
+      EXIT_DATE_GREGORIAN: String(r.EXIT_DATE_GREGORIAN ?? r.exit_date_gregorian ?? ""),
+      ENTRY_DATE_HIJRI: String(r.ENTRY_DATE_HIJRI ?? r.entry_date_hijri ?? ""),
+      EXIT_DATE_HIJRI: String(r.EXIT_DATE_HIJRI ?? r.exit_date_hijri ?? ""),
+      REPORT_ISSUE_DATE: String(r.REPORT_ISSUE_DATE ?? r.report_issue_date ?? ""),
+      NATIONALITY_AR: String(r.NATIONALITY_AR ?? r.nationality_ar ?? ""),
+      NATIONALITY_EN: String(r.NATIONALITY_EN ?? r.nationality_en ?? ""),
+      DOCTOR_NAME_AR: String(r.DOCTOR_NAME_AR ?? r.doctor_name_ar ?? ""),
+      DOCTOR_NAME_EN: String(r.DOCTOR_NAME_EN ?? r.doctor_name_en ?? ""),
+      JOB_TITLE_AR: String(r.JOB_TITLE_AR ?? r.job_title_ar ?? ""),
+      JOB_TITLE_EN: String(r.JOB_TITLE_EN ?? r.job_title_en ?? ""),
+      HOSPITAL_NAME_AR: String(r.HOSPITAL_NAME_AR ?? r.hospital_name_ar ?? ""),
+      HOSPITAL_NAME_EN: String(r.HOSPITAL_NAME_EN ?? r.hospital_name_en ?? ""),
+      PRINT_DATE: String(r.PRINT_DATE ?? r.print_date ?? ""),
+      PRINT_TIME: String(r.PRINT_TIME ?? r.print_time ?? ""),
     })
   }
 
@@ -139,27 +162,28 @@ function SearchPageContent() {
       return
     }
 
+    const r = report as Record<string, unknown>
     await downloadPdf({
-      SERVICE_CODE: (report as any).SERVICE_CODE ?? report.service_code,
-      ID_NUMBER: (report as any).ID_NUMBER ?? report.id_number,
-      NAME_AR: (report as any).NAME_AR ?? report.name_ar,
-      NAME_EN: (report as any).NAME_EN ?? report.name_en,
-      DAYS_COUNT: (report as any).DAYS_COUNT ?? report.days_count,
-      ENTRY_DATE_GREGORIAN: (report as any).ENTRY_DATE_GREGORIAN ?? report.entry_date_gregorian,
-      EXIT_DATE_GREGORIAN: (report as any).EXIT_DATE_GREGORIAN ?? report.exit_date_gregorian,
-      ENTRY_DATE_HIJRI: (report as any).ENTRY_DATE_HIJRI ?? (report as any).entry_date_hijri,
-      EXIT_DATE_HIJRI: (report as any).EXIT_DATE_HIJRI ?? (report as any).exit_date_hijri,
-      REPORT_ISSUE_DATE: (report as any).REPORT_ISSUE_DATE ?? (report as any).report_issue_date,
-      NATIONALITY_AR: (report as any).NATIONALITY_AR ?? (report as any).nationality_ar,
-      NATIONALITY_EN: (report as any).NATIONALITY_EN ?? (report as any).nationality_en,
-      DOCTOR_NAME_AR: (report as any).DOCTOR_NAME_AR ?? (report as any).doctor_name_ar,
-      DOCTOR_NAME_EN: (report as any).DOCTOR_NAME_EN ?? (report as any).doctor_name_en,
-      JOB_TITLE_AR: (report as any).JOB_TITLE_AR ?? (report as any).job_title_ar,
-      JOB_TITLE_EN: (report as any).JOB_TITLE_EN ?? (report as any).job_title_en,
-      HOSPITAL_NAME_AR: (report as any).HOSPITAL_NAME_AR ?? (report as any).hospital_name_ar,
-      HOSPITAL_NAME_EN: (report as any).HOSPITAL_NAME_EN ?? (report as any).hospital_name_en,
-      PRINT_DATE: (report as any).PRINT_DATE ?? (report as any).print_date,
-      PRINT_TIME: (report as any).PRINT_TIME ?? (report as any).print_time,
+      SERVICE_CODE: String(r.SERVICE_CODE ?? r.service_code ?? ""),
+      ID_NUMBER: String(r.ID_NUMBER ?? r.id_number ?? ""),
+      NAME_AR: String(r.NAME_AR ?? r.name_ar ?? ""),
+      NAME_EN: String(r.NAME_EN ?? r.name_en ?? ""),
+      DAYS_COUNT: Number(r.DAYS_COUNT ?? r.days_count ?? 0),
+      ENTRY_DATE_GREGORIAN: String(r.ENTRY_DATE_GREGORIAN ?? r.entry_date_gregorian ?? ""),
+      EXIT_DATE_GREGORIAN: String(r.EXIT_DATE_GREGORIAN ?? r.exit_date_gregorian ?? ""),
+      ENTRY_DATE_HIJRI: String(r.ENTRY_DATE_HIJRI ?? r.entry_date_hijri ?? ""),
+      EXIT_DATE_HIJRI: String(r.EXIT_DATE_HIJRI ?? r.exit_date_hijri ?? ""),
+      REPORT_ISSUE_DATE: String(r.REPORT_ISSUE_DATE ?? r.report_issue_date ?? ""),
+      NATIONALITY_AR: String(r.NATIONALITY_AR ?? r.nationality_ar ?? ""),
+      NATIONALITY_EN: String(r.NATIONALITY_EN ?? r.nationality_en ?? ""),
+      DOCTOR_NAME_AR: String(r.DOCTOR_NAME_AR ?? r.doctor_name_ar ?? ""),
+      DOCTOR_NAME_EN: String(r.DOCTOR_NAME_EN ?? r.doctor_name_en ?? ""),
+      JOB_TITLE_AR: String(r.JOB_TITLE_AR ?? r.job_title_ar ?? ""),
+      JOB_TITLE_EN: String(r.JOB_TITLE_EN ?? r.job_title_en ?? ""),
+      HOSPITAL_NAME_AR: String(r.HOSPITAL_NAME_AR ?? r.hospital_name_ar ?? ""),
+      HOSPITAL_NAME_EN: String(r.HOSPITAL_NAME_EN ?? r.hospital_name_en ?? ""),
+      PRINT_DATE: String(r.PRINT_DATE ?? r.print_date ?? ""),
+      PRINT_TIME: String(r.PRINT_TIME ?? r.print_time ?? ""),
     })
   }
 

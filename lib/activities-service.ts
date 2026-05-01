@@ -62,7 +62,7 @@ export async function getRecentActivities(userId: string, limit = 5) {
       return []
     }
 
-    return data as Activity[]
+    return data as unknown as Activity[]
   } catch (err) {
     console.error("Error in getRecentActivities:", err)
     return []
@@ -86,7 +86,7 @@ export async function getUnreadNotifications(userId: string) {
       return []
     }
 
-    return data as Activity[]
+    return data as unknown as Activity[]
   } catch (err) {
     console.error("Error in getUnreadNotifications:", err)
     return []

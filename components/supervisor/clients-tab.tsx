@@ -83,12 +83,12 @@ export function ClientsTab() {
   const [unsuspendTarget, setUnsuspendTarget] = useState<{
     id: string
     fullName: string
-    suspensionInfo: { suspendedAt: string | null; reason: string | null } | null
+    suspensionInfo: { suspendedAt: string | null; reason: string | null; daysCount: number | null; reportsCount: number | null } | null
   } | null>(null)
 
   // Auto-suspend dialog
   const [autoSuspendOpen, setAutoSuspendOpen] = useState(false)
-  const [usersToAutoSuspend, setUsersToAutoSuspend] = useState<SuspensionCheckResult[]>([])
+  const [usersToAutoSuspend, setUsersToAutoSuspend] = useState<(SuspensionCheckResult & { userId: string; userName: string })[]>([])
 
   const supervisorId = typeof window !== "undefined" ? localStorage.getItem("user_id") : ""
 
@@ -103,27 +103,28 @@ export function ClientsTab() {
         .order("user_created_at", { ascending: false })
 
       if (error) throw error
-      setUsers(data || [])
-      setFilteredUsers(data || [])
+      setUsers((data as unknown as UserCardData[]) || [])
+      setFilteredUsers((data as unknown as UserCardData[]) || [])
 
       // فحص التعليق التلقائي
-      const toSuspend: SuspensionCheckResult[] = []
+      const toSuspend: (SuspensionCheckResult & { userId: string; userName: string })[] = []
       data?.forEach((u) => {
+        const c = u as Record<string, unknown>
         const result = checkSuspension(
           {
-            limit_type: u.limit_type,
-            limit_value: u.limit_value,
-            limit_date: u.limit_date,
-            is_suspended: u.is_suspended ?? false,
+            limit_type: c.limit_type as string | null,
+            limit_value: c.limit_value as number | null,
+            limit_date: c.limit_date as string | null,
+            is_suspended: (c.is_suspended as boolean) ?? false,
           },
           {
-            period_report_count: u.period_report_count ?? 0,
-            period_total_days: u.period_total_days ?? 0,
-            last_report_at: u.last_report_at,
+            period_report_count: (c.period_report_count as number) ?? 0,
+            period_total_days: (c.period_total_days as number) ?? 0,
+            last_report_at: c.last_report_at as string | null,
           }
         )
         if (result) {
-          toSuspend.push({ ...result, userId: u.user_id, userName: u.full_name || u.username })
+          toSuspend.push({ ...result, userId: c.user_id as string, userName: (c.full_name as string) || (c.username as string) })
         }
       })
 
@@ -352,17 +353,18 @@ export function ClientsTab() {
                                   const supabaseClient = createClientSupabaseClient()
                                   const { data: susp } = await supabaseClient
                                     .from("user_suspensions")
-                                    .select("suspended_at, suspension_reason")
+                                    .select("suspended_at, suspension_reason, days_count_at_suspension, reports_count_at_suspension")
                                     .eq("user_id", user.user_id)
                                     .is("reactivated_at", null)
                                     .order("suspended_at", { ascending: false })
                                     .limit(1)
                                     .maybeSingle()
+                                  const s = susp as Record<string, unknown> | null
                                   setUnsuspendTarget({
                                     id: user.user_id,
                                     fullName: user.full_name || user.username,
-                                    suspensionInfo: susp
-                                      ? { suspendedAt: susp.suspended_at, reason: susp.suspension_reason }
+                                    suspensionInfo: s
+                                      ? { suspendedAt: s.suspended_at as string | null, reason: s.suspension_reason as string | null, daysCount: (s.days_count_at_suspension as number) ?? null, reportsCount: (s.reports_count_at_suspension as number) ?? null }
                                       : null,
                                   })
                                 }}
@@ -528,8 +530,8 @@ export function ClientsTab() {
           open={autoSuspendOpen}
           onOpenChange={setAutoSuspendOpen}
           usersToSuspend={usersToAutoSuspend.map((u) => ({
-            userId: (u as SuspensionCheckResult & { userId: string }).userId,
-            userName: (u as SuspensionCheckResult & { userName: string }).userName,
+            userId: u.userId,
+            userName: u.userName,
             reason: u.reason,
             reasonType: u.reasonType,
             currentValue: u.currentValue,

@@ -1,4 +1,5 @@
 import type { ReportDataForPptx } from './pptx-service'
+export type { ReportDataForPptx } from './pptx-service'
 
 export type HtmlPdfProgressCallback = (update: {
   percent: number

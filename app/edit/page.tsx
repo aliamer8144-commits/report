@@ -165,9 +165,10 @@ function EditReportPageContent() {
             .single()
 
           if (!reportError && reportData) {
-            setReport(reportData)
+            const r = reportData as unknown as Report
+            setReport(r)
             setSearchMode(false)
-            populateFormData(reportData)
+            populateFormData(r)
           }
         }
       } catch (err) {
@@ -306,9 +307,10 @@ function EditReportPageContent() {
       }
 
       // إذا وجدنا نتيجة واحدة، نعرضها للتعديل
-      setReport(data[0])
+      const r = data[0] as unknown as Report
+      setReport(r)
       setSearchMode(false)
-      populateFormData(data[0])
+      populateFormData(r)
     } catch (err: any) {
       setError(err.message)
     } finally {

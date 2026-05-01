@@ -149,7 +149,7 @@ export default function AdminPage() {
         remaining,
         monthlyQuota: MONTHLY_QUOTA,
         usagePercent: Math.round((thisMonth / MONTHLY_QUOTA) * 100),
-        recentLogs: (logsRes.data as UsageLog[]) || [],
+        recentLogs: (logsRes.data as unknown as UsageLog[]) || [],
       })
     } catch (err) {
       console.error(err)
@@ -177,7 +177,7 @@ export default function AdminPage() {
         throw new Error("حدث خطأ أثناء جلب المستخدمين")
       }
 
-      setUsers(data || [])
+      setUsers((data as unknown as User[]) || [])
     } catch (err: any) {
       console.error(err)
     }
@@ -202,12 +202,12 @@ export default function AdminPage() {
       }
 
       const formattedDevices =
-        data?.map((device) => ({
+        (data as unknown as Array<Record<string, unknown>>)?.map((device) => ({
           ...device,
-          username: device.users?.username,
+          username: (device.users as Record<string, unknown> | null)?.username,
         })) || []
 
-      setDevices(formattedDevices)
+      setDevices(formattedDevices as unknown as Device[])
     } catch (err: any) {
       console.error(err)
     }
@@ -217,7 +217,7 @@ export default function AdminPage() {
     try {
       const { data, error } = await supabase.from("user_report_counts").select("*").order("username", { ascending: true })
       if (error) throw error
-      setUserCounts((data as UserCountSummary[]) || [])
+      setUserCounts((data as unknown as UserCountSummary[]) || [])
     } catch (err) {
       console.error(err)
     }

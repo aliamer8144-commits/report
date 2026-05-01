@@ -268,7 +268,7 @@ function AddReportPageContent() {
             .single()
 
           setIsSuspended(true)
-          setSuspensionReason(suspensionData?.suspension_reason || "تم تعليق هذا الحساب")
+          setSuspensionReason((suspensionData as Record<string, unknown> | null)?.suspension_reason as string || "تم تعليق هذا الحساب")
         }
       } catch (err) {
         console.error("Error checking suspension:", err)
@@ -278,11 +278,13 @@ function AddReportPageContent() {
     }
 
     // جلب صلاحية PPTX للمستخدم
-    supabase
-      .from("users")
-      .select("pptx_enabled")
-      .eq("id", user.id)
-      .single()
+    Promise.resolve(
+      supabase
+        .from("users")
+        .select("pptx_enabled")
+        .eq("id", user.id)
+        .single()
+    )
       .then(({ data }) => {
         if (data) setPptxEnabled(data.pptx_enabled !== false)
       })
@@ -322,25 +324,26 @@ function AddReportPageContent() {
         .single()
 
       if (!templateError && templateData) {
+        const t = templateData as Record<string, unknown>
         setFormData({
           service_code: "",
-          id_number: templateData.id_number ?? "",
-          name_ar: templateData.name_ar ?? "",
-          name_en: templateData.name_en ?? "",
+          id_number: (t.id_number as string) ?? "",
+          name_ar: (t.name_ar as string) ?? "",
+          name_en: (t.name_en as string) ?? "",
           days_count: "",
           entry_date_gregorian: today,
           exit_date_gregorian: "",
           entry_date_hijri: "",
           exit_date_hijri: "",
           report_issue_date: today,
-          nationality_ar: templateData.nationality_ar ?? "السعودية",
-          nationality_en: templateData.nationality_en ?? "Saudi Arabia",
-          doctor_name_ar: templateData.doctor_name_ar ?? "",
-          doctor_name_en: templateData.doctor_name_en ?? "",
-          job_title_ar: templateData.job_title_ar ?? "طبيب",
-          job_title_en: templateData.job_title_en ?? "Doctor",
-          hospital_name_ar: templateData.hospital_name_ar ?? "",
-          hospital_name_en: templateData.hospital_name_en ?? "",
+          nationality_ar: (t.nationality_ar as string) ?? "السعودية",
+          nationality_en: (t.nationality_en as string) ?? "Saudi Arabia",
+          doctor_name_ar: (t.doctor_name_ar as string) ?? "",
+          doctor_name_en: (t.doctor_name_en as string) ?? "",
+          job_title_ar: (t.job_title_ar as string) ?? "طبيب",
+          job_title_en: (t.job_title_en as string) ?? "Doctor",
+          hospital_name_ar: (t.hospital_name_ar as string) ?? "",
+          hospital_name_en: (t.hospital_name_en as string) ?? "",
           print_date: formattedDate,
           print_time: formattedTime,
         })

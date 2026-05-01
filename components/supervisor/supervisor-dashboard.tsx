@@ -498,7 +498,7 @@ export function SupervisorDashboard() {
       const activeClients = clients.filter((c) => !c.is_suspended).length
       const suspendedClients = clients.filter((c) => c.is_suspended).length
       clients.forEach((c) => {
-        totalSuspensions += c.total_suspensions || 0
+        totalSuspensions += Number(c.total_suspensions) || 0
       })
 
       // totalDays يتم حسابه داخل if (clientIds.length > 0) أعلاه
@@ -517,28 +517,29 @@ export function SupervisorDashboard() {
       })
 
       const sorted = [...clients]
-        .sort((a, b) => (b.period_report_count || 0) - (a.period_report_count || 0))
+        .sort((a, b) => (Number(b.period_report_count) || 0) - (Number(a.period_report_count) || 0))
         .slice(0, 5)
-      setTopClients(sorted)
+      setTopClients(sorted as unknown as TopClient[])
 
       const nearLimit: NearLimitClient[] = []
       clients.forEach((c) => {
-        if (c.limit_type && c.limit_value && !c.is_suspended) {
+        const cv = c as Record<string, unknown>
+        if (cv.limit_type && cv.limit_value && !cv.is_suspended) {
           let percentage = 0
-          if (c.limit_type === "reports_count") {
-            percentage = ((c.period_report_count || 0) / c.limit_value) * 100
-          } else if (c.limit_type === "days_count") {
-            percentage = ((c.period_total_days || 0) / c.limit_value) * 100
+          if (cv.limit_type === "reports_count") {
+            percentage = ((Number(cv.period_report_count) || 0) / Number(cv.limit_value)) * 100
+          } else if (cv.limit_type === "days_count") {
+            percentage = ((Number(cv.period_total_days) || 0) / Number(cv.limit_value)) * 100
           }
           if (percentage >= 70) {
             nearLimit.push({
-              user_id: c.user_id,
-              username: c.username,
-              full_name: c.full_name,
-              limit_type: c.limit_type,
-              limit_value: c.limit_value,
-              period_report_count: c.period_report_count || 0,
-              period_total_days: c.period_total_days || 0,
+              user_id: cv.user_id as string,
+              username: cv.username as string,
+              full_name: cv.full_name as string,
+              limit_type: cv.limit_type as string,
+              limit_value: Number(cv.limit_value),
+              period_report_count: Number(cv.period_report_count) || 0,
+              period_total_days: Number(cv.period_total_days) || 0,
               percentage: Math.round(percentage),
             })
           }
@@ -1090,7 +1091,7 @@ export function SupervisorDashboard() {
                     </div>
                     <div className="text-left shrink-0 mr-3">
                       <p className="text-sm font-bold text-[#007AFF]">{client.period_report_count || 0} <span className="text-[10px] text-gray-400 font-normal">تقرير</span></p>
-                      <p className="text-[10px] text-gray-400">{formatRelativeTime(client.last_report_at)}</p>
+                      <p className="text-[10px] text-gray-400">{formatRelativeTime(client.last_report_at || "")}</p>
                     </div>
                   </motion.div>
                 ))}

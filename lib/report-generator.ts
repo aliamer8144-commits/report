@@ -191,28 +191,28 @@
 //   return date.toLocaleDateString("ar-SA")
 // }
 
-// export interface ReportData {
-//   SERVICE_CODE: string
-//   ID_NUMBER: string
-//   NAME_AR: string
-//   NAME_EN: string
-//   DAYS_COUNT: number
-//   ENTRY_DATE_GREGORIAN: string
-//   EXIT_DATE_GREGORIAN: string
-//   ENTRY_DATE_HIJRI: string
-//   EXIT_DATE_HIJRI: string
-//   REPORT_ISSUE_DATE: string
-//   NATIONALITY_AR: string
-//   NATIONALITY_EN: string
-//   DOCTOR_NAME_AR: string
-//   DOCTOR_NAME_EN: string
-//   JOB_TITLE_AR: string
-//   JOB_TITLE_EN: string
-//   HOSPITAL_NAME_AR: string
-//   HOSPITAL_NAME_EN: string
-//   PRINT_DATE: string
-//   PRINT_TIME: string
-// }
+export interface ReportData {
+  SERVICE_CODE: string
+  ID_NUMBER: string
+  NAME_AR: string
+  NAME_EN: string
+  DAYS_COUNT: number
+  ENTRY_DATE_GREGORIAN: string
+  EXIT_DATE_GREGORIAN: string
+  ENTRY_DATE_HIJRI: string
+  EXIT_DATE_HIJRI: string
+  REPORT_ISSUE_DATE: string
+  NATIONALITY_AR: string
+  NATIONALITY_EN: string
+  DOCTOR_NAME_AR: string
+  DOCTOR_NAME_EN: string
+  JOB_TITLE_AR: string
+  JOB_TITLE_EN: string
+  HOSPITAL_NAME_AR: string
+  HOSPITAL_NAME_EN: string
+  PRINT_DATE: string
+  PRINT_TIME: string
+}
 
 // /**
 //  * تنزيل قالب التقرير بصيغة PPTX

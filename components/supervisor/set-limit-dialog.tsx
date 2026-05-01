@@ -243,10 +243,12 @@ export default function SetLimitDialog({
 
         if (userError) throw userError
 
-        // تعيين حالة pptx_enabled
-        setPptxEnabled(userData.pptx_enabled !== false)
+        const ud = userData as Record<string, unknown>
 
-        if (userData.limit_type) {
+        // تعيين حالة pptx_enabled
+        setPptxEnabled(ud.pptx_enabled !== false)
+
+        if (ud.limit_type) {
           // جلب آخر سجل من user_limits لمعرفة من قام بالتحديد ومتى
           const { data: limitRecords, error: limitsError } = await supabase
             .from("user_limits")
@@ -261,33 +263,35 @@ export default function SetLimitDialog({
           let createdAt: string | null = null
 
           if (limitRecords && limitRecords.length > 0) {
-            createdAt = limitRecords[0].created_at
+            const rec = limitRecords[0] as Record<string, unknown>
+            createdAt = rec.created_at as string | null
 
             // جلب اسم من قام بالتحديد
-            if (limitRecords[0].set_by) {
+            if (rec.set_by) {
               const { data: setterData } = await supabase
                 .from("users")
                 .select("full_name, username")
-                .eq("id", limitRecords[0].set_by)
+                .eq("id", rec.set_by)
                 .single()
 
-              setByName = setterData?.full_name || setterData?.username || null
+              const sd = setterData as Record<string, unknown> | null
+              setByName = (sd?.full_name as string) || (sd?.username as string) || null
             }
           }
 
           // بناء قيمة العرض
           let displayValue = ""
-          if (userData.limit_type === "days" && userData.limit_value) {
-            displayValue = `${userData.limit_value} يوم`
-          } else if (userData.limit_type === "reports" && userData.limit_value) {
-            displayValue = `${userData.limit_value} تقرير`
-          } else if (userData.limit_type === "date" && userData.limit_date) {
-            displayValue = formatDateOnly(userData.limit_date)
+          if (ud.limit_type === "days" && ud.limit_value) {
+            displayValue = `${ud.limit_value} يوم`
+          } else if (ud.limit_type === "reports" && ud.limit_value) {
+            displayValue = `${ud.limit_value} تقرير`
+          } else if (ud.limit_type === "date" && ud.limit_date) {
+            displayValue = formatDateOnly(ud.limit_date as string)
           }
 
           setCurrentLimitInfo({
-            type: userData.limit_type as UserLimitType,
-            typeLabel: getLimitTypeLabel(userData.limit_type),
+            type: ud.limit_type as UserLimitType,
+            typeLabel: getLimitTypeLabel(ud.limit_type as string),
             value: displayValue,
             setByName,
             createdAt,
@@ -297,7 +301,7 @@ export default function SetLimitDialog({
         }
 
         // تحديد القيمة الافتراضية لنوع الحد
-        setSelectedType(mapUserLimitTypeToForm(userData.limit_type))
+        setSelectedType(mapUserLimitTypeToForm(ud.limit_type as string))
       } catch (err: any) {
         console.error("Error fetching current limit:", err)
         setCurrentLimitInfo(null)

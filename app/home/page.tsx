@@ -110,7 +110,7 @@ export default function HomePage() {
           .limit(1)
           .single()
 
-        setSuspensionReason(suspensionData?.suspension_reason || "تم تعليق هذا الحساب")
+        setSuspensionReason((suspensionData as Record<string, unknown> | null)?.suspension_reason as string || "تم تعليق هذا الحساب")
       }
     } catch (err) {
       console.error("Error checking suspension:", err)

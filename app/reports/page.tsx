@@ -128,7 +128,7 @@ export default function ReportsPage() {
         throw new Error("حدث خطأ أثناء جلب التقارير")
       }
 
-      setReports(data || [])
+      setReports((data as unknown as Report[]) || [])
     } catch (err: any) {
       setError(err.message)
     } finally {

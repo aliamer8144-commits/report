@@ -100,11 +100,12 @@ export function AccountTab() {
         .single()
 
       if (error) throw error
-      setAccount(data as AccountData)
+      setAccount(data as unknown as AccountData)
+      const d = data as Record<string, unknown>
       setEditForm({
-        full_name: data.full_name || "",
-        phone: data.phone || "",
-        email: data.email || "",
+        full_name: (d.full_name as string) || "",
+        phone: (d.phone as string) || "",
+        email: (d.email as string) || "",
       })
     } catch (err) {
       console.error("Error fetching account:", err)

@@ -88,7 +88,7 @@ function DeleteReportPageContent() {
             .single()
 
           if (!reportError && reportData) {
-            setReport(reportData)
+            setReport(reportData as unknown as Report)
             setSearchMode(false)
           }
         }
@@ -147,7 +147,7 @@ function DeleteReportPageContent() {
       }
 
       // إذا وجدنا نتيجة واحدة، نعرضها
-      setReport(data[0])
+      setReport(data[0] as unknown as Report)
       setSearchMode(false)
     } catch (err: any) {
       setError(err.message)

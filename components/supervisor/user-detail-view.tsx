@@ -524,7 +524,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
       if (userError) throw new Error("حدث خطأ أثناء جلب بيانات المستخدم")
       if (!userData) throw new Error("لم يتم العثور على المستخدم")
 
-      setUserInfo(userData as UserInfo)
+      setUserInfo(userData as unknown as UserInfo)
 
       // Fetch all remaining data in parallel
       const [periodStatsRes, allTimeStatsRes, currentLimitRes] =
@@ -556,13 +556,13 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         ])
 
       if (periodStatsRes.data) {
-        setPeriodStats(periodStatsRes.data as PeriodStats)
+        setPeriodStats(periodStatsRes.data as unknown as PeriodStats)
       }
       if (allTimeStatsRes.data) {
-        setAllTimeStats(allTimeStatsRes.data as AllTimeStats)
+        setAllTimeStats(allTimeStatsRes.data as unknown as AllTimeStats)
       }
       if (currentLimitRes.data) {
-        setCurrentLimit(currentLimitRes.data as CurrentLimit)
+        setCurrentLimit(currentLimitRes.data as unknown as CurrentLimit)
       }
 
       setLoading(false)
@@ -594,10 +594,10 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
       ])
 
       if (periodReportsRes.data) {
-        setPeriodReports(periodReportsRes.data as ReportItem[])
+        setPeriodReports(periodReportsRes.data as unknown as ReportItem[])
       }
       if (allTimeReportsRes.data) {
-        setAllTimeReports(allTimeReportsRes.data as ReportItem[])
+        setAllTimeReports(allTimeReportsRes.data as unknown as ReportItem[])
       }
 
       // 7. Fetch suspension history
@@ -608,8 +608,8 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
         .order("suspended_at", { ascending: false })
 
       if (suspensionsData) {
-        setSuspensionHistory(suspensionsData as SuspensionHistoryItem[])
-        const active = suspensionsData.find((s) => !s.reactivated_at)
+        setSuspensionHistory(suspensionsData as unknown as SuspensionHistoryItem[])
+        const active = (suspensionsData as unknown as SuspensionHistoryItem[]).find((s) => !s.reactivated_at)
         setCurrentSuspension(active || null)
       }
 

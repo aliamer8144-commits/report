@@ -131,28 +131,28 @@ export function SuspensionsTab({}: {}) {
 
       if (allUsersError) throw allUsersError
 
-      const userMap = new Map(allUsers?.map((u) => [u.id, u]) || [])
+      const userMap = new Map((allUsers as unknown as Array<Record<string, unknown>>)?.map((u) => [u.id, u]) || [])
 
       // دمج البيانات
-      const records: SuspensionRecord[] = (suspensionData || []).map((s) => {
+      const records: SuspensionRecord[] = (suspensionData as unknown as Array<Record<string, unknown>> || []).map((s) => {
         const user = userMap.get(s.user_id)
         const suspendedByUser = userMap.get(s.suspended_by || "")
         const reactivatedByUser = userMap.get(s.reactivated_by || "")
         return {
-          id: s.id,
-          user_id: s.user_id,
-          username: user?.username || "—",
-          full_name: user?.full_name,
-          suspended_by: s.suspended_by,
-          suspended_by_name: suspendedByUser?.full_name || suspendedByUser?.username || "النظام",
-          suspension_reason: s.suspension_reason,
-          suspended_at: s.suspended_at,
-          reactivated_at: s.reactivated_at,
-          reactivated_by: s.reactivated_by,
-          reactivated_by_name: reactivatedByUser?.full_name || reactivatedByUser?.username || null,
-          reports_count_at_suspension: s.reports_count_at_suspension || 0,
-          days_count_at_suspension: s.days_count_at_suspension || 0,
-          is_currently_suspended: user?.is_suspended ?? false,
+          id: s.id as string,
+          user_id: s.user_id as string,
+          username: (user?.username as string) || "—",
+          full_name: user?.full_name as string | null,
+          suspended_by: s.suspended_by as string | null,
+          suspended_by_name: (suspendedByUser?.full_name as string) || (suspendedByUser?.username as string) || "النظام",
+          suspension_reason: s.suspension_reason as string,
+          suspended_at: s.suspended_at as string,
+          reactivated_at: s.reactivated_at as string | null,
+          reactivated_by: s.reactivated_by as string | null,
+          reactivated_by_name: (reactivatedByUser?.full_name as string) || (reactivatedByUser?.username as string) || null,
+          reports_count_at_suspension: Number(s.reports_count_at_suspension) || 0,
+          days_count_at_suspension: Number(s.days_count_at_suspension) || 0,
+          is_currently_suspended: (user?.is_suspended as boolean) ?? false,
         }
       })
 

@@ -125,7 +125,7 @@ export function UnsuspendUserDialog({
             reactivated_at: new Date().toISOString(),
             reactivated_by: currentUserId,
           })
-          .eq("id", activeSuspension.id)
+          .eq("id", activeSuspension.id as string)
 
         if (updateSuspError) throw updateSuspError
       }
