@@ -68,8 +68,15 @@ function cleanTransliteration(raw: string): string {
     .join(" ")
 }
 
+/** مخزن مؤقت لمؤقتات debounce لكل حقل */
+const debounceTimers: Record<string, ReturnType<typeof setTimeout>> = {}
+
+/** مدة الانتظار بعد آخر ضغطة قبل تنفيذ الترجمة (2 ثانية) */
+const DEBOUNCE_MS = 2000
+
 /**
- * عند تغيير حقل عربي: تُستدعى الترجمة أو التحويل الحرفي مباشرة.
+ * عند تغيير حقل عربي: تُستدعى الترجمة أو التحويل الحرفي بعد انتظار
+ * DEBOUNCE_MS من آخر ضغطة (debounce).
  * mode:
  *   - "translate": ترجمة معنوية عبر MyMemory (للجنسية، المسمى الوظيفي، المستشفى)
  *   - "transliterate": تحويل حرفي عبر Google (للأسماء - اسم المريض والطبيب)
@@ -82,6 +89,11 @@ export function scheduleArToEnSync<T extends object>(
   arValue: string,
   mode: "translate" | "transliterate" = "translate",
 ): void {
+  // إلغاء أي مؤقت سابق لنفس الحقل
+  if (debounceTimers[arKey]) {
+    clearTimeout(debounceTimers[arKey])
+  }
+
   const trimmed = arValue.trim()
   if (!trimmed) {
     seqRef.current[arKey] = (seqRef.current[arKey] ?? 0) + 1
@@ -92,19 +104,25 @@ export function scheduleArToEnSync<T extends object>(
     return
   }
 
-  seqRef.current[arKey] = (seqRef.current[arKey] ?? 0) + 1
-  const mySeq = seqRef.current[arKey]
+  // انتظار DEBOUNCE_MS بعد آخر ضغطة قبل التنفيذ
+  debounceTimers[arKey] = setTimeout(() => {
+    seqRef.current[arKey] = (seqRef.current[arKey] ?? 0) + 1
+    const mySeq = seqRef.current[arKey]
 
-  const fetchFn = mode === "transliterate"
-    ? fetchTransliterateArToEn
-    : fetchTranslateArToEn
+    const fetchFn = mode === "transliterate"
+      ? fetchTransliterateArToEn
+      : fetchTranslateArToEn
 
-  void fetchFn(arValue).then((en) => {
-    if (seqRef.current[arKey] !== mySeq) return
-    setFormData((p) => ({ ...p, [enKey]: en } as T))
-  }).catch((e) => {
-    console.error(`Auto-${mode} failed:`, e)
-  })
+    void fetchFn(arValue).then((en) => {
+      if (seqRef.current[arKey] !== mySeq) return
+      setFormData((p) => ({ ...p, [enKey]: en } as T))
+    }).catch((e) => {
+      console.error(`Auto-${mode} failed:`, e)
+    })
+
+    // تنظيف المؤقت بعد التنفيذ
+    delete debounceTimers[arKey]
+  }, DEBOUNCE_MS)
 }
 
 /** عند إلغاء تركيب المكوّن: إبطال الطلبات الجارية حتى لا تُحدَّث الحالة بعد الخروج. */
