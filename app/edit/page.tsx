@@ -6,34 +6,29 @@ import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
 import {
   Edit,
-  SearchIcon,
-  Calendar,
-  User,
-  Hash,
-  Clock,
-  Flag,
   FileText,
-  Building,
-  UserCheck,
   Loader2,
   Save,
   X,
   ArrowLeft,
 } from "lucide-react"
 import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { addActivity } from "@/lib/activities-service"
-import { toHijri } from "hijri-date-converter"
+import { convertToHijri } from "@/lib/date-utils"
 import { invalidateArToEnSeq, scheduleArToEnSync } from "@/lib/auto-translate-ar-en"
+import type { EditFormState } from "@/components/edit/types"
+import { SearchForm } from "@/components/edit/search-form"
+import { BasicInfoTab } from "@/components/edit/basic-info-tab"
+import { DatesTab } from "@/components/edit/dates-tab"
+import { AdditionalInfoTab } from "@/components/edit/additional-info-tab"
 
 interface Report {
   id: string
@@ -63,29 +58,6 @@ interface Report {
   updated_at: string
 }
 
-interface EditFormState {
-  serviceCode: string
-  idNumber: string
-  nameAr: string
-  nameEn: string
-  daysCount: string
-  entryDateGregorian: string
-  exitDateGregorian: string
-  entryDateHijri: string
-  exitDateHijri: string
-  reportIssueDate: string
-  nationalityAr: string
-  nationalityEn: string
-  doctorNameAr: string
-  doctorNameEn: string
-  jobTitleAr: string
-  jobTitleEn: string
-  hospitalNameAr: string
-  hospitalNameEn: string
-  printDate: string
-  printTime: string
-}
-
 const EDIT_AR_EN_PAIRS: { ar: keyof EditFormState; en: keyof EditFormState; mode: "translate" | "transliterate" }[] = [
   { ar: "nameAr", en: "nameEn", mode: "transliterate" },
   { ar: "nationalityAr", en: "nationalityEn", mode: "translate" },
@@ -93,23 +65,6 @@ const EDIT_AR_EN_PAIRS: { ar: keyof EditFormState; en: keyof EditFormState; mode
   { ar: "jobTitleAr", en: "jobTitleEn", mode: "translate" },
   { ar: "hospitalNameAr", en: "hospitalNameEn", mode: "translate" },
 ]
-
-// دالة لتحويل التاريخ الميلادي إلى هجري
-const convertToHijri = (gregorianDate: string): string => {
-  if (!gregorianDate) return ""
-  try {
-    const date = new Date(gregorianDate)
-    const hijriDate = toHijri(date)
-    // تنسيق التاريخ بصيغة DD-MM-YYYY
-    const day = String(hijriDate.day).padStart(2, "0")
-    const month = String(hijriDate.month).padStart(2, "0")
-    const year = hijriDate.year
-    return `${day}-${month}-${year}`
-  } catch (error) {
-    console.error("Error converting to Hijri:", error)
-    return ""
-  }
-}
 
 function EditReportPageContent() {
   const router = useRouter()
@@ -314,7 +269,7 @@ function EditReportPageContent() {
       setReport(r)
       setSearchMode(false)
       populateFormData(r)
-    } catch (err: unknown) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
@@ -400,7 +355,7 @@ function EditReportPageContent() {
       )
 
       setSuccess(true)
-    } catch (err: unknown) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
@@ -429,54 +384,6 @@ function EditReportPageContent() {
     },
   }
 
-  const FormField = ({
-    label,
-    name,
-    value,
-    onChange,
-    placeholder,
-    type = "text",
-    required = false,
-    readOnly = false,
-    icon: Icon,
-    hint,
-    inputClassName,
-  }: {
-    label: string
-    name: string
-    value: string
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-    placeholder?: string
-    type?: string
-    required?: boolean
-    readOnly?: boolean
-    icon?: React.ElementType
-    hint?: string
-    inputClassName?: string
-  }) => (
-    <motion.div className="space-y-2" variants={itemVariants}>
-      <Label htmlFor={name} className="text-amber-900 flex items-center gap-1.5">
-        {Icon && <Icon className="h-4 w-4 text-amber-600" />}
-        {label}
-        {required && <span className="text-red-500">*</span>}
-      </Label>
-      <div className="relative">
-        <Input
-          id={name}
-          name={name}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          readOnly={readOnly}
-          className={`border-amber-200 focus:border-amber-400 ${readOnly ? "bg-gray-50" : ""} ${inputClassName || ""}`}
-        />
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-    </motion.div>
-  )
-
   return (
     <div className="container max-w-md mx-auto p-4 pb-20">
       <BackButton />
@@ -487,76 +394,16 @@ function EditReportPageContent() {
       />
 
       {searchMode ? (
-        <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-          <Card className="glass-card overflow-hidden">
-            <div className="h-2 bg-gradient-to-r from-amber-500 to-amber-600"></div>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <SearchIcon className="ml-2 h-5 w-5 text-amber-600" />
-                البحث عن تقرير
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSearch} className="space-y-4">
-                {error && (
-                  <AlertMessage type="error" title="خطأ في البحث" message={error} onClose={() => setError(null)} />
-                )}
-
-                <motion.div className="space-y-2" variants={itemVariants}>
-                  <Label htmlFor="serviceCode" className="text-amber-900 flex items-center gap-1.5">
-                    <Hash className="h-4 w-4 text-amber-600" />
-                    رمز الخدمة
-                  </Label>
-                  <Input
-                    id="serviceCode"
-                    value={serviceCode}
-                    onChange={(e) => setServiceCode(e.target.value)}
-                    placeholder="أدخل رمز الخدمة"
-                    className="border-amber-200 focus:border-amber-400"
-                  />
-                </motion.div>
-
-                <motion.div className="space-y-2" variants={itemVariants}>
-                  <Label htmlFor="idNumber" className="text-amber-900 flex items-center gap-1.5">
-                    <Hash className="h-4 w-4 text-amber-600" />
-                    رقم الهوية
-                  </Label>
-                  <Input
-                    id="idNumber"
-                    value={idNumber}
-                    onChange={(e) => setIdNumber(e.target.value)}
-                    placeholder="أدخل رقم الهوية"
-                    className="border-amber-200 focus:border-amber-400"
-                  />
-                </motion.div>
-
-                <motion.div className="text-sm text-muted-foreground mb-4" variants={itemVariants}>
-                  أدخل رمز الخدمة أو رقم الهوية أو كليهما للبحث عن التقرير
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        جاري البحث...
-                      </>
-                    ) : (
-                      <>
-                        <SearchIcon className="ml-2 h-4 w-4" />
-                        بحث
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SearchForm
+          serviceCode={serviceCode}
+          idNumber={idNumber}
+          setServiceCode={setServiceCode}
+          setIdNumber={setIdNumber}
+          loading={loading}
+          error={error}
+          onSubmit={handleSearch}
+          setError={setError}
+        />
       ) : (
         <motion.div initial="hidden" animate="visible" variants={containerVariants}>
           <Card className="glass-card overflow-hidden">
@@ -601,220 +448,9 @@ function EditReportPageContent() {
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-4">
-                    <FormField
-                      label="رمز الخدمة"
-                      name="serviceCode"
-                      value={formData.serviceCode}
-                      onChange={handleChange}
-                      placeholder="رمز الخدمة"
-                      required
-                      readOnly
-                      icon={Hash}
-                      inputClassName="font-mono tracking-wider"
-                      hint="(لا يمكن تعديل رمز الخدمة)"
-                    />
-
-                    <FormField
-                      label="رقم الهوية"
-                      name="idNumber"
-                      value={formData.idNumber}
-                      onChange={handleChange}
-                      placeholder="أدخل رقم الهوية"
-                      required
-                      icon={Hash}
-                    />
-
-                    <FormField
-                      label="الاسم (عربي)"
-                      name="nameAr"
-                      value={formData.nameAr}
-                      onChange={handleChange}
-                      placeholder="أدخل الاسم باللغة العربية"
-                      required
-                      icon={User}
-                    />
-
-                    <FormField
-                      label="الاسم (إنجليزي)"
-                      name="nameEn"
-                      value={formData.nameEn}
-                      onChange={handleChange}
-                      placeholder="أدخل الاسم باللغة الإنجليزية"
-                      required
-                      icon={User}
-                      inputClassName="uppercase"
-                    />
-
-                    <FormField
-                      label="عدد الأيام"
-                      name="daysCount"
-                      type="number"
-                      value={formData.daysCount}
-                      onChange={handleChange}
-                      placeholder="أدخل عدد الأيام"
-                      required
-                      icon={Calendar}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="dates" className="space-y-4">
-                    <FormField
-                      label="تاريخ الدخول (ميلادي)"
-                      name="entryDateGregorian"
-                      type="date"
-                      value={formData.entryDateGregorian}
-                      onChange={handleChange}
-                      required
-                      icon={Calendar}
-                    />
-
-                    <FormField
-                      label="تاريخ الخروج (ميلادي)"
-                      name="exitDateGregorian"
-                      type="date"
-                      value={formData.exitDateGregorian}
-                      onChange={handleChange}
-                      readOnly
-                      icon={Calendar}
-                      hint="(يتم حسابه تلقائيًا بناءً على تاريخ الدخول وعدد الأيام)"
-                    />
-
-                    <FormField
-                      label="تاريخ الدخول (هجري)"
-                      name="entryDateHijri"
-                      value={formData.entryDateHijri}
-                      onChange={handleChange}
-                      placeholder="يتم حسابه تلقائيًا"
-                      readOnly
-                      icon={Calendar}
-                      hint="(يتم حسابه تلقائيًا من تاريخ الدخول الميلادي)"
-                    />
-
-                    <FormField
-                      label="تاريخ الخروج (هجري)"
-                      name="exitDateHijri"
-                      value={formData.exitDateHijri}
-                      onChange={handleChange}
-                      placeholder="يتم حسابه تلقائيًا"
-                      readOnly
-                      icon={Calendar}
-                      hint="(يتم حسابه تلقائيًا من تاريخ الخروج الميلادي)"
-                    />
-
-                    <FormField
-                      label="تاريخ إصدار التقرير"
-                      name="reportIssueDate"
-                      type="date"
-                      value={formData.reportIssueDate}
-                      onChange={handleChange}
-                      required
-                      icon={Calendar}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="additional" className="space-y-4">
-                    <FormField
-                      label="الجنسية (عربي)"
-                      name="nationalityAr"
-                      value={formData.nationalityAr}
-                      onChange={handleChange}
-                      placeholder="أدخل الجنسية باللغة العربية"
-                      required
-                      icon={Flag}
-                    />
-
-                    <FormField
-                      label="الجنسية (إنجليزي)"
-                      name="nationalityEn"
-                      value={formData.nationalityEn}
-                      onChange={handleChange}
-                      placeholder="أدخل الجنسية باللغة الإنجليزية"
-                      required
-                      icon={Flag}
-                    />
-
-                    <FormField
-                      label="اسم الطبيب (عربي)"
-                      name="doctorNameAr"
-                      value={formData.doctorNameAr}
-                      onChange={handleChange}
-                      placeholder="أدخل اسم الطبيب باللغة العربية"
-                      required
-                      icon={UserCheck}
-                    />
-
-                    <FormField
-                      label="اسم الطبيب (إنجليزي)"
-                      name="doctorNameEn"
-                      value={formData.doctorNameEn}
-                      onChange={handleChange}
-                      placeholder="أدخل اسم الطبيب باللغة الإنجليزية"
-                      required
-                      icon={UserCheck}
-                      inputClassName="uppercase"
-                    />
-
-                    <FormField
-                      label="المسمى الوظيفي (عربي)"
-                      name="jobTitleAr"
-                      value={formData.jobTitleAr}
-                      onChange={handleChange}
-                      placeholder="أدخل المسمى الوظيفي باللغة العربية"
-                      required
-                      icon={UserCheck}
-                    />
-
-                    <FormField
-                      label="المسمى الوظيفي (إنجليزي)"
-                      name="jobTitleEn"
-                      value={formData.jobTitleEn}
-                      onChange={handleChange}
-                      placeholder="أدخل المسمى الوظيفي باللغة الإنجليزية"
-                      required
-                      icon={UserCheck}
-                    />
-
-                    <FormField
-                      label="اسم المستشفى (عربي)"
-                      name="hospitalNameAr"
-                      value={formData.hospitalNameAr}
-                      onChange={handleChange}
-                      placeholder="أدخل اسم المستشفى باللغة العربية"
-                      required
-                      icon={Building}
-                    />
-
-                    <FormField
-                      label="اسم المستشفى (إنجليزي)"
-                      name="hospitalNameEn"
-                      value={formData.hospitalNameEn}
-                      onChange={handleChange}
-                      placeholder="أدخل اسم المستشفى باللغة الإنجليزية"
-                      required
-                      icon={Building}
-                    />
-
-                    <FormField
-                      label="تاريخ الطباعة"
-                      name="printDate"
-                      value={formData.printDate}
-                      onChange={handleChange}
-                      placeholder="مثال: Tuesday, 22 April 2025"
-                      required
-                      icon={Calendar}
-                    />
-
-                    <FormField
-                      label="وقت الطباعة"
-                      name="printTime"
-                      value={formData.printTime}
-                      onChange={handleChange}
-                      placeholder="مثال: 12:32 PM"
-                      required
-                      icon={Clock}
-                    />
-                  </TabsContent>
+                  <BasicInfoTab formData={formData} handleChange={handleChange} />
+                  <DatesTab formData={formData} handleChange={handleChange} />
+                  <AdditionalInfoTab formData={formData} handleChange={handleChange} />
                 </Tabs>
 
                 <Separator className="my-4" />

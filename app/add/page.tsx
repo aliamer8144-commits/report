@@ -7,81 +7,34 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { addActivity } from "@/lib/activities-service"
 import { checkSuspension, buildSuspensionRecord } from "@/lib/suspension-check"
+import { convertToHijri } from "@/lib/date-utils"
+import { invalidateArToEnSeq, scheduleArToEnSync } from "@/lib/auto-translate-ar-en"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
+import type { ReportFormFields } from "@/components/report/form-field"
+import { SuspensionBanner } from "@/components/add/suspension-banner"
+import { BasicInfoTab } from "@/components/add/basic-info-tab"
+import { DatesTab } from "@/components/add/dates-tab"
+import { AdditionalInfoTab } from "@/components/add/additional-info-tab"
+import { FormNavigation } from "@/components/add/form-navigation"
 import {
   PlusCircle,
   Download,
   RefreshCw,
-  Calendar,
-  User,
-  Hash,
-  Clock,
-  Flag,
-  FileText,
-  Building,
-  UserCheck,
   Loader2,
-  Save,
-  X,
-  ArrowRight,
-  ArrowLeft,
-  Check,
   ShieldOff,
-  AlertTriangle,
+  Check,
+  FileText,
+  X,
 } from "lucide-react"
 import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
-import { toHijri } from "hijri-date-converter"
-import { invalidateArToEnSeq, scheduleArToEnSync } from "@/lib/auto-translate-ar-en"
-
-interface ReportFormFields {
-  service_code: string
-  id_number: string
-  name_ar: string
-  name_en: string
-  days_count: string
-  entry_date_gregorian: string
-  exit_date_gregorian: string
-  entry_date_hijri: string
-  exit_date_hijri: string
-  report_issue_date: string
-  nationality_ar: string
-  nationality_en: string
-  doctor_name_ar: string
-  doctor_name_en: string
-  job_title_ar: string
-  job_title_en: string
-  hospital_name_ar: string
-  hospital_name_en: string
-  print_date: string
-  print_time: string
-}
-
-// دالة لتحويل التاريخ الميلادي إلى هجري
-const convertToHijri = (gregorianDate: string): string => {
-  if (!gregorianDate) return ""
-  try {
-    const date = new Date(gregorianDate)
-    const hijriDate = toHijri(date)
-    // تنسيق التاريخ بصيغة DD-MM-YYYY
-    const day = String(hijriDate.day).padStart(2, "0")
-    const month = String(hijriDate.month).padStart(2, "0")
-    const year = hijriDate.year
-    return `${day}-${month}-${year}`
-  } catch (error) {
-    console.error("Error converting to Hijri:", error)
-    return ""
-  }
-}
 
 const AR_EN_FIELD_PAIRS: { ar: keyof ReportFormFields; en: keyof ReportFormFields; mode: "translate" | "transliterate" }[] = [
   { ar: "name_ar", en: "name_en", mode: "transliterate" },
@@ -90,57 +43,6 @@ const AR_EN_FIELD_PAIRS: { ar: keyof ReportFormFields; en: keyof ReportFormField
   { ar: "job_title_ar", en: "job_title_en", mode: "translate" },
   { ar: "hospital_name_ar", en: "hospital_name_en", mode: "translate" },
 ]
-
-const FormField = ({
-  label,
-  name,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required = false,
-  readOnly = false,
-  icon: Icon,
-  hint,
-  inputClassName,
-}: {
-  label: string
-  name: string
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
-  type?: string
-  required?: boolean
-  readOnly?: boolean
-  icon?: React.ElementType
-  hint?: string
-  inputClassName?: string
-}) => (
-  <motion.div className="space-y-2 text-right" variants={{
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } },
-  }}>
-    <Label htmlFor={name} className="text-indigo-900 flex items-center gap-1.5 justify-end flex-row-reverse w-full">
-      {Icon && <Icon className="h-4 w-4 text-indigo-600" />}
-      {label}
-      {required && <span className="text-red-500">*</span>}
-    </Label>
-    <div className="relative">
-      <Input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        readOnly={readOnly}
-        className={`text-right border-indigo-200 focus:border-indigo-400 ${readOnly ? "bg-gray-50" : ""} ${inputClassName || ""}`}
-      />
-    </div>
-    {hint && <p className="text-xs text-muted-foreground text-right">{hint}</p>}
-  </motion.div>
-)
 
 function AddReportPageContent() {
   const router = useRouter()
@@ -173,7 +75,6 @@ function AddReportPageContent() {
   const [isSuspended, setIsSuspended] = useState(false)
   const [suspensionReason, setSuspensionReason] = useState<string | null>(null)
   const [isCheckingSuspension, setIsCheckingSuspension] = useState(true)
-  // إضافة متغير حالة للتبويب النشط
   const [activeTab, setActiveTab] = useState("basic")
   const translateSeqRef = useRef<Record<string, number>>({})
   const { downloadPptx, pptxProgressDialog } = usePptxDownloadWithProgress()
@@ -688,8 +589,6 @@ function AddReportPageContent() {
     },
   }
 
-  
-
   return (
     <div className="container max-w-md mx-auto p-4 pb-20 text-right" dir="rtl">
       {pptxProgressDialog}
@@ -711,34 +610,7 @@ function AddReportPageContent() {
 
       {/* رسالة التعليق - تظهر فقط إذا كان معلقاً ولم يسجل نجاح (لم ينشئ تقرير الآن) */}
       {isSuspended && !success && !isCheckingSuspension && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4"
-        >
-          <Card className="border-red-200 bg-gradient-to-b from-red-50 to-white overflow-hidden">
-            <div className="h-2 bg-gradient-to-r from-red-500 to-red-600"></div>
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="bg-red-100 p-4 rounded-full inline-flex">
-                <ShieldOff className="h-10 w-10 text-red-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-red-700 mb-2">
-                  حسابك معلق
-                </h2>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {suspensionReason || "لا يمكنك إنشاء تقارير جديدة حالياً. يرجى التواصل مع المشرف لتفعيل حسابك."}
-                </p>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 text-amber-700">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <p className="text-xs">لتفعيل حسابك، يرجى التواصل مع المشرف المسؤول عنك.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SuspensionBanner reason={suspensionReason} />
       )}
 
       {/* النموذج - يظهر إذا لم يكن معلقاً أصلاً، أو بعد نجاح الإرسال (حتى لو اتعلق تلقائياً) */}
@@ -807,285 +679,33 @@ function AddReportPageContent() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="basic" className="space-y-4">
-                  <div className="space-y-2 text-right">
-                    <Label htmlFor="service_code" className="text-indigo-900 flex items-center gap-1.5 justify-end flex-row-reverse w-full">
-                      <Hash className="h-4 w-4 text-indigo-600" />
-                      رمز الخدمة
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="flex gap-2 items-center">
-                      <Input
-                        id="service_code"
-                        name="service_code"
-                        value={formData.service_code}
-                        readOnly
-                        required
-                        className={`flex-1 text-right border-indigo-200 bg-gray-50 font-mono tracking-wider ${isGeneratingCode ? 'animate-pulse' : ''}`}
-                        dir="ltr"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0"
-                        onClick={loadServiceCode}
-                        disabled={isGeneratingCode}
-                        title="توليد رمز جديد"
-                      >
-                        <RefreshCw className={`h-4 w-4 ${isGeneratingCode ? 'animate-spin' : ''}`} />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-right">يتم توليد رمز الخدمة تلقائياً</p>
-                  </div>
+                <BasicInfoTab
+                  formData={formData}
+                  handleChange={handleChange}
+                  isGeneratingCode={isGeneratingCode}
+                  loadServiceCode={loadServiceCode}
+                />
 
-                  <FormField
-                    label="رقم الهوية"
-                    name="id_number"
-                    value={formData.id_number}
-                    onChange={handleChange}
-                    placeholder="أدخل رقم الهوية"
-                    required
-                    icon={Hash}
-                  />
+                <DatesTab
+                  formData={formData}
+                  handleChange={handleChange}
+                />
 
-                  <FormField
-                    label="الاسم (عربي)"
-                    name="name_ar"
-                    value={formData.name_ar}
-                    onChange={handleChange}
-                    placeholder="أدخل الاسم باللغة العربية"
-                    required
-                    icon={User}
-                  />
-
-                  <FormField
-                    label="الاسم (إنجليزي)"
-                    name="name_en"
-                    value={formData.name_en}
-                    onChange={handleChange}
-                    placeholder="أدخل الاسم باللغة الإنجليزية"
-                    required
-                    icon={User}
-                    inputClassName="uppercase"
-                  />
-
-                  <FormField
-                    label="عدد الأيام"
-                    name="days_count"
-                    type="number"
-                    value={formData.days_count}
-                    onChange={handleChange}
-                    placeholder="أدخل عدد الأيام"
-                    required
-                    icon={Calendar}
-                  />
-                </TabsContent>
-
-                <TabsContent value="dates" className="space-y-4">
-                  <FormField
-                    label="تاريخ الدخول (ميلادي)"
-                    name="entry_date_gregorian"
-                    type="date"
-                    value={formData.entry_date_gregorian}
-                    onChange={handleChange}
-                    required
-                    icon={Calendar}
-                  />
-
-                  <FormField
-                    label="تاريخ الخروج (ميلادي)"
-                    name="exit_date_gregorian"
-                    type="date"
-                    value={formData.exit_date_gregorian}
-                    onChange={handleChange}
-                    readOnly
-                    icon={Calendar}
-                    hint="(يتم حسابه تلقائيًا بناءً على تاريخ الدخول وعدد الأيام)"
-                  />
-
-                  <FormField
-                    label="تاريخ الدخول (هجري)"
-                    name="entry_date_hijri"
-                    value={formData.entry_date_hijri}
-                    onChange={handleChange}
-                    placeholder="يتم حسابه تلقائيًا"
-                    readOnly
-                    icon={Calendar}
-                    hint="(يتم حسابه تلقائيًا من تاريخ الدخول الميلادي)"
-                  />
-
-                  <FormField
-                    label="تاريخ الخروج (هجري)"
-                    name="exit_date_hijri"
-                    value={formData.exit_date_hijri}
-                    onChange={handleChange}
-                    placeholder="يتم حسابه تلقائيًا"
-                    readOnly
-                    icon={Calendar}
-                    hint="(يتم حسابه تلقائيًا من تاريخ الخروج الميلادي)"
-                  />
-
-                  <FormField
-                    label="تاريخ إصدار التقرير"
-                    name="report_issue_date"
-                    type="date"
-                    value={formData.report_issue_date}
-                    onChange={handleChange}
-                    required
-                    icon={Calendar}
-                  />
-                </TabsContent>
-
-                <TabsContent value="additional" className="space-y-4">
-                  <FormField
-                    label="الجنسية (عربي)"
-                    name="nationality_ar"
-                    value={formData.nationality_ar}
-                    onChange={handleChange}
-                    placeholder="أدخل الجنسية باللغة العربية"
-                    required
-                    icon={Flag}
-                  />
-
-                  <FormField
-                    label="الجنسية (إنجليزي)"
-                    name="nationality_en"
-                    value={formData.nationality_en}
-                    onChange={handleChange}
-                    placeholder="أدخل الجنسية باللغة الإنجليزية"
-                    required
-                    icon={Flag}
-                  />
-
-                  <FormField
-                    label="اسم الطبيب (عربي)"
-                    name="doctor_name_ar"
-                    value={formData.doctor_name_ar}
-                    onChange={handleChange}
-                    placeholder="أدخل اسم الطبيب باللغة العربية"
-                    required
-                    icon={UserCheck}
-                  />
-
-                  <FormField
-                    label="اسم الطبيب (إنجليزي)"
-                    name="doctor_name_en"
-                    value={formData.doctor_name_en}
-                    onChange={handleChange}
-                    placeholder="أدخل اسم الطبيب باللغة الإنجليزية"
-                    required
-                    icon={UserCheck}
-                    inputClassName="uppercase"
-                  />
-
-                  <FormField
-                    label="المسمى الوظيفي (عربي)"
-                    name="job_title_ar"
-                    value={formData.job_title_ar}
-                    onChange={handleChange}
-                    placeholder="أدخل المسمى الوظيفي باللغة العربية"
-                    required
-                    icon={UserCheck}
-                  />
-
-                  <FormField
-                    label="المسمى الوظيفي (إنجليزي)"
-                    name="job_title_en"
-                    value={formData.job_title_en}
-                    onChange={handleChange}
-                    placeholder="أدخل المسمى الوظيفي باللغة الإنجليزية"
-                    required
-                    icon={UserCheck}
-                  />
-
-                  <FormField
-                    label="اسم المستشفى (عربي)"
-                    name="hospital_name_ar"
-                    value={formData.hospital_name_ar}
-                    onChange={handleChange}
-                    placeholder="أدخل اسم المستشفى باللغة العربية"
-                    required
-                    icon={Building}
-                  />
-
-                  <FormField
-                    label="اسم المستشفى (إنجليزي)"
-                    name="hospital_name_en"
-                    value={formData.hospital_name_en}
-                    onChange={handleChange}
-                    placeholder="أدخل اسم المستشفى باللغة الإنجليزية"
-                    required
-                    icon={Building}
-                  />
-
-                  <FormField
-                    label="تاريخ الطباعة"
-                    name="print_date"
-                    value={formData.print_date}
-                    onChange={handleChange}
-                    placeholder="مثال: Tuesday, 22 April 2025"
-                    required
-                    icon={Calendar}
-                  />
-
-                  <FormField
-                    label="وقت الطباعة"
-                    name="print_time"
-                    value={formData.print_time}
-                    onChange={handleChange}
-                    placeholder="مثال: 12:32 PM"
-                    required
-                    icon={Clock}
-                  />
-                </TabsContent>
+                <AdditionalInfoTab
+                  formData={formData}
+                  handleChange={handleChange}
+                />
               </Tabs>
 
               <Separator className="my-4" />
 
               {/* استبدال أزرار الإرسال والإلغاء بأزرار التالي والسابق */}
-              <motion.div className="flex gap-2" variants={itemVariants}>
-                {activeTab !== "basic" && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    onClick={handlePrevTab}
-                  >
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                    السابق
-                  </Button>
-                )}
-
-                {activeTab !== "additional" ? (
-                  <Button
-                    type="button"
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
-                    onClick={handleNextTab}
-                  >
-                    <ArrowLeft className="ml-2 h-4 w-4" />
-                    التالي
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        جاري الحفظ...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="ml-2 h-4 w-4" />
-                        حفظ التقرير
-                      </>
-                    )}
-                  </Button>
-                )}
-              </motion.div>
+              <FormNavigation
+                activeTab={activeTab}
+                loading={loading}
+                handlePrevTab={handlePrevTab}
+                handleNextTab={handleNextTab}
+              />
 
               {activeTab === "additional" && (
                 <motion.div variants={itemVariants}>
