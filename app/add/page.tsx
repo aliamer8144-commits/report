@@ -224,11 +224,6 @@ function AddReportPageContent() {
   }
 
   const tabs = ["basic", "dates", "additional"]
-  const tabLabels = {
-    basic: "البيانات الأساسية",
-    dates: "التواريخ",
-    additional: "بيانات إضافية",
-  }
 
   useEffect(() => {
     const checkSession = async () => {

@@ -7,10 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  UserCircle,
   User,
   Phone,
   Mail,
@@ -27,10 +25,9 @@ import {
   Save,
   X,
   AlertCircle,
-  Clock,
-  LogOut,
   Settings,
 } from "lucide-react"
+
 
 /* ============================================================
    الأنواع
@@ -195,7 +192,7 @@ export function AccountTab() {
       }
 
       setTimeout(() => setSaveMessage(null), 3000)
-    } catch (err: any) {
+    } catch (_err: any) {
       setSaveMessage({ type: "error", text: "حدث خطأ أثناء تحديث البيانات" })
     } finally {
       setIsSaving(false)
@@ -257,7 +254,7 @@ export function AccountTab() {
         setPasswordMessage(null)
         setShowPasswordDialog(false)
       }, 2000)
-    } catch (err: any) {
+    } catch (_err: any) {
       setPasswordMessage({ type: "error", text: "حدث خطأ أثناء تغيير كلمة المرور" })
     } finally {
       setIsChangingPassword(false)

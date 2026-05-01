@@ -8,7 +8,6 @@ import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
 import { SearchIcon, PlusCircle, Edit, Ban, Download } from "lucide-react"
-import { type ReportData } from "@/lib/report-generator"
 import { createClientSupabaseClient } from "@/lib/supabase"
 import { usePptxDownloadWithProgress, usePdfDownloadWithProgress } from "@/components/ui-custom/pptx-download-progress"
 

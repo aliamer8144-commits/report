@@ -37,8 +37,6 @@ import {
   FileEdit,
   Ban,
   ChevronRight,
-  Construction,
-  Sparkles,
 } from "lucide-react"
 import { ClientsTab } from "./clients-tab"
 import { SuspensionsTab } from "./suspensions-tab"
@@ -53,59 +51,6 @@ const tabs = [
   { id: "comments", label: "التعليقات", icon: MessageSquare },
   { id: "account", label: "الحساب", icon: UserCircle },
 ]
-
-/* ============================================================
-   مكون "قريباً" - يعرض للمستخدم أن الواجهة قيد التطوير
-   ============================================================ */
-function ComingSoonContent({ description }: { description: string }) {
-  return (
-    <motion.div
-      className="flex flex-col items-center justify-center py-20 px-6"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-    >
-      <motion.div
-        className="relative mb-8"
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#007AFF]/10 to-[#5856D6]/10 flex items-center justify-center shadow-lg">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#007AFF]/20 to-[#5856D6]/20 flex items-center justify-center">
-            <Construction className="w-10 h-10 text-[#007AFF]" />
-          </div>
-        </div>
-        <motion.div
-          className="absolute -top-1 -right-1"
-          animate={{ rotate: [0, 15, -15, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Sparkles className="w-6 h-6 text-amber-400" />
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        className="text-center space-y-3"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Badge
-          variant="outline"
-          className="bg-[#007AFF]/10 text-[#007AFF] border-[#007AFF]/20 px-4 py-1.5 text-sm font-medium"
-        >
-          قريباً
-        </Badge>
-        <h2 className="text-xl font-bold text-gray-800">
-          هذه الواجهة قيد التطوير
-        </h2>
-        <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-          {description}
-        </p>
-      </motion.div>
-    </motion.div>
-  )
-}
 
 /* ============================================================
    مكون لوحة التحكم (تبويب التقارير) - نفس محتوى الصفحة الرئيسية
@@ -512,7 +457,7 @@ export default function SupervisorInterface() {
   }, [])
 
   const handleLogout = async () => {
-    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch {}
+    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch (_err) { /* ignore logout errors */ }
     localStorage.removeItem("username")
     localStorage.removeItem("full_name")
     localStorage.removeItem("user_role")

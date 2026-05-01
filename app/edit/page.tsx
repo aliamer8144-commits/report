@@ -171,7 +171,7 @@ function EditReportPageContent() {
             populateFormData(r)
           }
         }
-      } catch (err) {
+      } catch (_err) {
         router.push("/")
       }
     }

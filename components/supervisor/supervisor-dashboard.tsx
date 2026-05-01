@@ -23,7 +23,6 @@ import {
   Zap,
   UserPlus,
   ScrollText,
-  FilePlus,
   Settings,
   BarChart3,
   RefreshCw,
@@ -39,9 +38,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-const stagger = {
-  animate: { transition: { staggerChildren: 0.08 } },
-}
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -257,9 +253,9 @@ export function SupervisorDashboard() {
   const [nearLimitClients, setNearLimitClients] = useState<NearLimitClient[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [_isRefreshing, setIsRefreshing] = useState(false)
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
-  const [connectionStatus, setConnectionStatus] = useState<"fresh" | "stale" | "lost">("fresh")
+  const [_connectionStatus, setConnectionStatus] = useState<"fresh" | "stale" | "lost">("fresh")
   const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "90d">("30d")
   const [dailyChartData, setDailyChartData] = useState<DailyChartData[]>([])
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({
@@ -551,7 +547,7 @@ export function SupervisorDashboard() {
       const calculateFilteredStats = (period: StatsPeriod) => {
         let reports = 0
         let days = 0
-        let suspended = suspendedClients
+        const suspended = suspendedClients
 
         if (period === "today") {
           const startOfDay = new Date()
@@ -636,14 +632,6 @@ export function SupervisorDashboard() {
       suspended: stats.suspendedClients,
     })
   }, [statsPeriod, stats, periodCounts, loading])
-
-  const formatLastRefreshed = () => {
-    const diff = Math.floor((Date.now() - lastRefreshed.getTime()) / 1000)
-    if (diff < 5) return "الآن"
-    if (diff < 60) return `منذ ${diff} ثانية`
-    if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`
-    return `منذ ${Math.floor(diff / 3600)} ساعة`
-  }
 
   const navigateTo = (tab: string) => {
     window.dispatchEvent(new CustomEvent("supervisor-navigate", { detail: { tab } }))

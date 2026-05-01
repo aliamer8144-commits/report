@@ -13,7 +13,7 @@ import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
 import { BackButton } from "@/components/ui-custom/back-button"
 import { Badge } from "@/components/ui/badge"
-import { Ban, SearchIcon, AlertTriangle, Hash, Loader2, ArrowLeft, X, CheckCircle2 } from "lucide-react"
+import { Ban, SearchIcon, AlertTriangle, Hash, Loader2, ArrowLeft, X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -92,7 +92,7 @@ function DeleteReportPageContent() {
             setSearchMode(false)
           }
         }
-      } catch (err) {
+      } catch (_err) {
         router.push("/")
       }
     }

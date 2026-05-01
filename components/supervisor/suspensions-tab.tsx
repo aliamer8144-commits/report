@@ -19,8 +19,6 @@ import {
   User,
   FileBarChart,
   AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   Ban,
   CheckCircle2,
   RotateCcw,

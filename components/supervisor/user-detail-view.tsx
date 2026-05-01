@@ -5,7 +5,6 @@ import { createClientSupabaseClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { motion } from "framer-motion"
 import { AnimatePresence } from "framer-motion"
@@ -135,11 +134,6 @@ const itemVariants = {
   },
 }
 
-const cardHover = {
-  rest: { y: 0 },
-  hover: { y: -2, transition: { duration: 0.2 } },
-}
-
 /* ============================================================
    Helpers
    ============================================================ */
@@ -255,7 +249,7 @@ function LoadingSkeleton() {
    Report Card Component (expandable)
    ============================================================ */
 
-function ReportCard({ report, index }: { report: ReportItem; index: number }) {
+function ReportCard({ report, index: _index }: { report: ReportItem; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const [downloading, setDownloading] = useState<string | null>(null)
 

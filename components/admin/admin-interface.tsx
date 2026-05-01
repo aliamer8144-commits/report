@@ -26,7 +26,6 @@ import {
   FileBarChart,
   Users,
   MessageSquare,
-  UserCircle,
   User,
   Bell,
   FilePlus,
@@ -482,7 +481,7 @@ export default function AdminInterface() {
   }, [])
 
   const handleLogout = async () => {
-    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch {}
+    try { await fetchWithCsrf("/api/auth/logout", { method: "POST" }) } catch (_err) { /* ignore logout errors */ }
     localStorage.removeItem("username")
     localStorage.removeItem("user_role")
     router.push("/")

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClientSupabaseClient } from "@/lib/supabase"
+
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
@@ -19,8 +19,6 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const supabase = createClientSupabaseClient()
-
   useEffect(() => {
     const checkSession = async () => {
       try {

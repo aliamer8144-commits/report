@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertMessage } from "@/components/ui-custom/alert-message"
 import { PageHeader } from "@/components/ui-custom/page-header"
-import { Shield, UserPlus, Users, Check, X, Smartphone, Edit3, LogOut, Loader2, Activity, BarChart3, TrendingDown, TrendingUp, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react"
+import { Shield, UserPlus, Users, Check, X, Smartphone, Edit3, LogOut, Loader2, Activity, BarChart3, TrendingUp, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react"
 import { fetchWithCsrf } from "@/lib/fetch-with-csrf"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -252,7 +252,7 @@ export default function AdminPage() {
         throw new Error("كلمة المرور وتأكيد كلمة المرور غير متطابقين")
       }
 
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingUser, error: _checkError } = await supabase
         .from("users")
         .select("id")
         .eq("username", newUser.username)

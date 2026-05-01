@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { createClientSupabaseClient } from "@/lib/supabase"
-import { buildSuspensionRecord, type SuspensionCheckResult } from "@/lib/suspension-check"
+import { buildSuspensionRecord } from "@/lib/suspension-check"
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   AlertTriangle,
   Loader2,
