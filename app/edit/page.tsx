@@ -152,16 +152,17 @@ export default function EditReportPage() {
         }
         const { user } = await res.json()
 
-    // التحقق مما إذا كان هناك تقرير للتعديل في التخزين المحلي
-    const reportToEdit = localStorage.getItem("report_to_edit")
-    if (reportToEdit) {
-      const parsedReport = JSON.parse(reportToEdit)
-      setReport(parsedReport)
-      setSearchMode(false)
-      populateFormData(parsedReport)
-      // مسح التخزين المحلي بعد استخدامه
-      localStorage.removeItem("report_to_edit")
-      } catch {
+        // التحقق مما إذا كان هناك تقرير للتعديل في التخزين المحلي
+        const reportToEdit = localStorage.getItem("report_to_edit")
+        if (reportToEdit) {
+          const parsedReport = JSON.parse(reportToEdit)
+          setReport(parsedReport)
+          setSearchMode(false)
+          populateFormData(parsedReport)
+          // مسح التخزين المحلي بعد استخدامه
+          localStorage.removeItem("report_to_edit")
+        }
+      } catch (err) {
         router.push("/")
       }
     }

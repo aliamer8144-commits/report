@@ -81,7 +81,7 @@ export default function HomePage() {
         }
 
         setMounted(true)
-      } catch {
+      } catch (_err) {
         router.push("/")
       }
     }
@@ -200,7 +200,7 @@ export default function HomePage() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
-    } catch {
+    } catch (_err) {
       // حتى لو فشل الطلب، نستمر بمسح البيانات المحلية
     }
     localStorage.removeItem("username")

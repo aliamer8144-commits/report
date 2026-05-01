@@ -85,7 +85,7 @@ export default function ReportsPage() {
 
       // جلب التقارير
       fetchReports(user.id, page)
-      } catch {
+      } catch (_err) {
         router.push("/")
       }
     }

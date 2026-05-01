@@ -75,14 +75,15 @@ export default function DeleteReportPage() {
         }
         const { user } = await res.json()
 
-    // التحقق مما إذا كان هناك تقرير في التخزين المحلي
-    const reportToToggle = localStorage.getItem("report_to_toggle")
-    if (reportToToggle) {
-      const parsedReport = JSON.parse(reportToToggle)
-      setReport(parsedReport)
-      setSearchMode(false)
-      localStorage.removeItem("report_to_toggle")
-      } catch {
+        // التحقق مما إذا كان هناك تقرير في التخزين المحلي
+        const reportToToggle = localStorage.getItem("report_to_toggle")
+        if (reportToToggle) {
+          const parsedReport = JSON.parse(reportToToggle)
+          setReport(parsedReport)
+          setSearchMode(false)
+          localStorage.removeItem("report_to_toggle")
+        }
+      } catch (err) {
         router.push("/")
       }
     }

@@ -29,7 +29,7 @@ export default function SettingsPage() {
           router.push("/")
           return
         }
-      } catch {
+      } catch (_err) {
         router.push("/")
         return
       }

@@ -91,7 +91,7 @@ export default function SearchPage() {
         setError("يجب تسجيل الدخول أولاً")
         return
       }
-    } catch {
+    } catch (_err) {
       setError("يجب تسجيل الدخول أولاً")
       return
     }
@@ -127,7 +127,7 @@ export default function SearchPage() {
         setError("يجب تسجيل الدخول أولاً")
         return
       }
-    } catch {
+    } catch (_err) {
       setError("يجب تسجيل الدخول أولاً")
       return
     }

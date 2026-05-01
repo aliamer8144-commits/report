@@ -349,7 +349,7 @@ export default function AddReportPage() {
       print_time: formattedTime,
     }))
     loadServiceCode()
-      } catch {
+      } catch (_err) {
         router.push("/")
       }
     }
@@ -579,7 +579,7 @@ export default function AddReportPage() {
     try {
       const sessionRes = await fetch("/api/auth/session")
       if (!sessionRes.ok) return
-    } catch { return }
+    } catch (_err) { return }
 
     await downloadPptx({
       SERVICE_CODE: formData.service_code,
@@ -609,7 +609,7 @@ export default function AddReportPage() {
     try {
       const sessionRes = await fetch("/api/auth/session")
       if (!sessionRes.ok) return
-    } catch { return }
+    } catch (_err) { return }
     await downloadPdf({
       SERVICE_CODE: formData.service_code,
       ID_NUMBER: formData.id_number,

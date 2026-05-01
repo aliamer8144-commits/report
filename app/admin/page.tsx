@@ -103,7 +103,7 @@ export default function AdminPage() {
           window.location.href = "/home"
           return
         }
-      } catch {
+      } catch (_err) {
         window.location.href = "/"
         return
       }
